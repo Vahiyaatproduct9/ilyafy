@@ -1,0 +1,12 @@
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/CMakeFiles/appmodules.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/CMakeFiles/edit_cache.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/CMakeFiles/rebuild_cache.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/rnreanimated_autolinked_build/CMakeFiles/edit_cache.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/rnreanimated_autolinked_build/CMakeFiles/rebuild_cache.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/safeareacontext_autolinked_build/CMakeFiles/react_codegen_safeareacontext.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/safeareacontext_autolinked_build/CMakeFiles/edit_cache.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/safeareacontext_autolinked_build/CMakeFiles/rebuild_cache.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/rnworklets_autolinked_build/CMakeFiles/edit_cache.dir
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/rnworklets_autolinked_build/CMakeFiles/rebuild_cache.dir

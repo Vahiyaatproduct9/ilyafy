@@ -1,0 +1,14 @@
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/ComponentDescriptors.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/EventEmitters.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/Props.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/ShadowNodes.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/States.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/react/renderer/components/rnreanimated/rnreanimatedJSI-generated.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnreanimated_autolinked_build/CMakeFiles/react_codegen_rnreanimated.dir/rnreanimated-generated.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/ComponentDescriptors.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/EventEmitters.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/Props.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/ShadowNodes.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/States.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/react/renderer/components/rnworklets/rnworkletsJSI-generated.cpp.o
+/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86_64/rnworklets_autolinked_build/CMakeFiles/react_codegen_rnworklets.dir/rnworklets-generated.cpp.o
