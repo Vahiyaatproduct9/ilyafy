@@ -52,3 +52,4 @@ ilyafy/!.yarn/plugins
 ilyafy/!.yarn/releases
 ilyafy/!.yarn/sdks
 ilyafy/!.yarn/versions
+server/node_modules
