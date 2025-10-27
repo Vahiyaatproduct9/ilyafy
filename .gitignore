@@ -36,20 +36,15 @@ ilyafy/**/fastlane/report.xml
 ilyafy/**/fastlane/Preview.html
 ilyafy/**/fastlane/screenshots
 ilyafy/**/fastlane/test_output
-ilyafy/
 # Bundle artifact
 ilyafy/*.jsbundle
-ilyafy/
 # Ruby / CocoaPods
 ilyafy/**/Pods/
 ilyafy/vendor/bundle/
-ilyafy/
 # Temporary files created by Metro to check the health of the file watcher
 ilyafy/.metro-health-check*
-ilyafy/
 # testing
 ilyafy/coverage
-ilyafy/
 # Yarn
 ilyafy/.yarn/*
 ilyafy/!.yarn/patches
