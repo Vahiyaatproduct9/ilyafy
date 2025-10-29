@@ -20,6 +20,7 @@ ilyafy/*.ipa
 ilyafy/*.xcuserstate
 ilyafy/**/.xcode.env.local
 ilyafy/build/
+ilyafy/android/app/build
 ilyafy/.idea
 ilyafy/.gradle
 ilyafy/local.properties
