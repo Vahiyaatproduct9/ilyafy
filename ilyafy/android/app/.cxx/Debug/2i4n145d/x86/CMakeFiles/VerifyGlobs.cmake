@@ -82,6 +82,31 @@ if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
   file(TOUCH_NOCREATE "/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/CMakeFiles/cmake.verify_globs")
 endif()
 
+# react_codegen_SRCS at /home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/*.cpp")
+set(OLD_GLOB
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/TrackPlayerSpec-generated.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/CMakeFiles/cmake.verify_globs")
+endif()
+
+# react_codegen_SRCS at /home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/react/renderer/components/TrackPlayerSpec/*.cpp")
+set(OLD_GLOB
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/react/renderer/components/TrackPlayerSpec/ComponentDescriptors.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/react/renderer/components/TrackPlayerSpec/EventEmitters.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/react/renderer/components/TrackPlayerSpec/Props.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/react/renderer/components/TrackPlayerSpec/ShadowNodes.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/react/renderer/components/TrackPlayerSpec/States.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/react/renderer/components/TrackPlayerSpec/TrackPlayerSpecJSI-generated.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/CMakeFiles/cmake.verify_globs")
+endif()
+
 # react_codegen_SRCS at /home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-worklets/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
 file(GLOB NEW_GLOB LIST_DIRECTORIES true "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-worklets/android/build/generated/source/codegen/jni/*.cpp")
 set(OLD_GLOB

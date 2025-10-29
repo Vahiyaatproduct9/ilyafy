@@ -5,8 +5,8 @@
     <application
       android:name=".MainApplication"
       android:label="@string/app_name"
-      android:icon="@drawable/app_icon"
-      android:roundIcon="@drawable/app_icon"
+      android:icon="@drawable/app_icon_transparent"
+      android:roundIcon="@drawable/app_icon_transparent"
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:usesCleartextTraffic="${usesCleartextTraffic}"

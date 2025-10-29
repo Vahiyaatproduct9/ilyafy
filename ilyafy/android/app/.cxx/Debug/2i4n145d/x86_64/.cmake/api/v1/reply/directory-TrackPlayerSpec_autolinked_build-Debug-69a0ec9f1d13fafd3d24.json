@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "TrackPlayerSpec_autolinked_build",
+		"source" : "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni"
+	}
+}

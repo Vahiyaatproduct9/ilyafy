@@ -1,12 +1,20 @@
 import './global.css';
-import { Text, View } from 'react-native';
-
+import Main from './app/home/main';
+// import { setupPlayer } from './functions/setupPlayer';
+import { useEffect } from 'react';
+import TrackPlayer from 'react-native-track-player';
 export default function App() {
-  return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-xl font-bold text-blue-950">
-        Welcome to Ilyafy!
-      </Text>
-    </View>
-  );
+  useEffect(() => {
+    async () => {
+      await TrackPlayer.add({
+        id: 'placeholder',
+        // url: 'https://software-mansion.github.io/react-native-audio-api/audio/music/example-music-01.mp3', // any short valid MP3/stream
+        url: require('./data/test.mp3'),
+        title: 'Always',
+        artist: 'Daniel Caesar',
+        artwork: require('./data/test.png'),
+      });
+    };
+  }, []);
+  return <Main />;
 }

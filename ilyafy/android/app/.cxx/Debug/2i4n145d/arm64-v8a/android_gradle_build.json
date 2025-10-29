@@ -2,6 +2,7 @@
   "buildFiles": [
     "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni/CMakeLists.txt",
     "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
+    "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-track-player/android/build/generated/source/codegen/jni/CMakeLists.txt",
     "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-worklets/android/build/generated/source/codegen/jni/CMakeLists.txt",
     "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup/CMakeLists.txt"
   ],
@@ -31,6 +32,11 @@
         "/home/grishma/.gradle/caches/8.14.3/transforms/42569a559b78b0143a937df05ae8b5d0/transformed/react-android-0.81.2-debug/prefab/modules/jsi/libs/android.arm64-v8a/libjsi.so",
         "/home/grishma/.gradle/caches/8.14.3/transforms/42569a559b78b0143a937df05ae8b5d0/transformed/react-android-0.81.2-debug/prefab/modules/reactnative/libs/android.arm64-v8a/libreactnative.so"
       ]
+    },
+    "react_codegen_TrackPlayerSpec::@a0ce3d372287884a5e2b": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_TrackPlayerSpec"
     },
     "react_codegen_rnreanimated::@8afabad14bfffa3f8b9a": {
       "toolchain": "toolchain",

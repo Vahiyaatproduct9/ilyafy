@@ -117,3 +117,15 @@ dependencies {
         implementation jscFlavor
     }
 }
+// Since our library doesn't invoke codegen automatically we need to do it here.
+// tasks.register('invokeLibraryCodegenTP', Exec) {
+//     workingDir "$rootDir/../../react-native-track-player"
+//     def isWindows = System.getProperty('os.name').toLowerCase().contains('windows')
+
+//     if (isWindows) {
+//         commandLine 'cmd', '/c', 'npx bob build --target codegen'
+//     } else {
+//         commandLine 'sh', '-c', 'npx bob build --target codegen'
+//     }
+// }
+// preBuild.dependsOn invokeLibraryCodegenTP

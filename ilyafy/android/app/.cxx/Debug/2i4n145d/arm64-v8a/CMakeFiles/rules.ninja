@@ -70,6 +70,16 @@ rule CXX_SHARED_LIBRARY_LINKER__react_codegen_safeareacontext_Debug
 #############################################
 # Rule for compiling CXX files.
 
+rule CXX_COMPILER__react_codegen_TrackPlayerSpec_Debug
+  depfile = $DEP_FILE
+  deps = gcc
+  command = /home/grishma/Android/Sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android24 --sysroot=/home/grishma/Android/Sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/linux-x86_64/sysroot $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
+  description = Building CXX object $out
+
+
+#############################################
+# Rule for compiling CXX files.
+
 rule CXX_COMPILER__react_codegen_rnworklets_Debug
   depfile = $DEP_FILE
   deps = gcc
