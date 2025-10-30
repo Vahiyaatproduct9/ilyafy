@@ -53,4 +53,7 @@ ilyafy/!.yarn/plugins
 ilyafy/!.yarn/releases
 ilyafy/!.yarn/sdks
 ilyafy/!.yarn/versions
+ilyafy/android/app/.cxx
 server/node_modules
+ilyafy/__tests__
+**/.*
