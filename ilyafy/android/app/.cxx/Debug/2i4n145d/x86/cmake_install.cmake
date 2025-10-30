@@ -44,6 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
+  include("/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/ReactNativeBlobUtilSpec_autolinked_build/cmake_install.cmake")
   include("/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/rnreanimated_autolinked_build/cmake_install.cmake")
   include("/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/safeareacontext_autolinked_build/cmake_install.cmake")
   include("/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/x86/TrackPlayerSpec_autolinked_build/cmake_install.cmake")

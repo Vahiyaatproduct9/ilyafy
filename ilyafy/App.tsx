@@ -1,20 +1,16 @@
 import './global.css';
 import Main from './app/home/main';
+import useSocketStore from './store/useSocketStore';
 // import { setupPlayer } from './functions/setupPlayer';
 import { useEffect } from 'react';
-import TrackPlayer from 'react-native-track-player';
+import notificationPermission from './permissions/notificationPermission';
 export default function App() {
+  const connect = useSocketStore(s => s.connect);
+  connect();
   useEffect(() => {
-    async () => {
-      await TrackPlayer.add({
-        id: 'placeholder',
-        // url: 'https://software-mansion.github.io/react-native-audio-api/audio/music/example-music-01.mp3', // any short valid MP3/stream
-        url: require('./data/test.mp3'),
-        title: 'Always',
-        artist: 'Daniel Caesar',
-        artwork: require('./data/test.png'),
-      });
-    };
-  }, []);
+    (async () => {
+      await notificationPermission();
+    })();
+  }, [connect]);
   return <Main />;
 }

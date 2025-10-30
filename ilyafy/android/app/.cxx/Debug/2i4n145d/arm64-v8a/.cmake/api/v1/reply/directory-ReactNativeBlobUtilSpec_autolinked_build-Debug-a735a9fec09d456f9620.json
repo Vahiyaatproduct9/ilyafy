@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "ReactNativeBlobUtilSpec_autolinked_build",
+		"source" : "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni"
+	}
+}

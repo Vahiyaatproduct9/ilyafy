@@ -12,6 +12,31 @@ if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
   file(TOUCH_NOCREATE "/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/armeabi-v7a/CMakeFiles/cmake.verify_globs")
 endif()
 
+# react_codegen_SRCS at /home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/*.cpp")
+set(OLD_GLOB
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/ReactNativeBlobUtilSpec-generated.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/armeabi-v7a/CMakeFiles/cmake.verify_globs")
+endif()
+
+# react_codegen_SRCS at /home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/*.cpp")
+set(OLD_GLOB
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/ComponentDescriptors.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/EventEmitters.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/Props.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/ReactNativeBlobUtilSpecJSI-generated.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/ShadowNodes.cpp"
+  "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/States.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/armeabi-v7a/CMakeFiles/cmake.verify_globs")
+endif()
+
 # react_codegen_SRCS at /home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
 file(GLOB NEW_GLOB LIST_DIRECTORIES true "/home/grishma/Ideas/ilyafy/ilyafy/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni/*.cpp")
 set(OLD_GLOB
