@@ -57,3 +57,5 @@ ilyafy/android/app/.cxx
 server/node_modules
 ilyafy/__tests__
 **/.*
+ilyafy/android/app/build
+**/package-lock.json
