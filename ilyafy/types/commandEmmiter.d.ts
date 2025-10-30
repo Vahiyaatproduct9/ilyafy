@@ -1,8 +1,0 @@
-export type commands = 'play'
-    | 'pause'
-    | 'stop'
-    | 'seek'
-    | 'next'
-    | 'previous'
-    | 'skip'
-    | 'heartbeat'
