@@ -1,4 +1,0 @@
-/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/arm64-v8a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
-/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/arm64-v8a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
-/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/arm64-v8a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
-/home/grishma/Ideas/ilyafy/ilyafy/android/app/.cxx/Debug/2i4n145d/arm64-v8a/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir
