@@ -1,6 +1,9 @@
 FROM node:20-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget ffmpeg && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget ffmpeg ca-certificates && \
+    update-ca-certificates \
+    rm -rf /var/lib/apt/lists/*
 
 RUN wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
   && chmod +x yt-dlp \
@@ -13,4 +16,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]
