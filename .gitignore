@@ -1,0 +1,61 @@
+**/node_modules/
+**/.env
+ilyafy/android/build/
+ilyafy/.DS_Store
+ilyafy/build/
+ilyafy/*.pbxuser
+ilyafy/!default.pbxuser
+ilyafy/*.mode1v3
+ilyafy/!default.mode1v3
+ilyafy/*.mode2v3
+ilyafy/!default.mode2v3
+ilyafy/*.perspectivev3
+ilyafy/!default.perspectivev3
+ilyafy/xcuserdata
+ilyafy/*.xccheckout
+ilyafy/*.moved-aside
+ilyafy/DerivedData
+ilyafy/*.hmap
+ilyafy/*.ipa
+ilyafy/*.xcuserstate
+ilyafy/**/.xcode.env.local
+ilyafy/build/
+ilyafy/android/app/build
+ilyafy/.idea
+ilyafy/.gradle
+ilyafy/local.properties
+ilyafy/*.iml
+ilyafy/*.hprof
+ilyafy/.cxx/
+ilyafy/*.keystore
+ilyafy/!debug.keystore
+ilyafy/.kotlin/
+ilyafy/node_modules/
+ilyafy/npm-debug.log
+ilyafy/yarn-error.log
+ilyafy/**/fastlane/report.xml
+ilyafy/**/fastlane/Preview.html
+ilyafy/**/fastlane/screenshots
+ilyafy/**/fastlane/test_output
+# Bundle artifact
+ilyafy/*.jsbundle
+# Ruby / CocoaPods
+ilyafy/**/Pods/
+ilyafy/vendor/bundle/
+# Temporary files created by Metro to check the health of the file watcher
+ilyafy/.metro-health-check*
+# testing
+ilyafy/coverage
+# Yarn
+ilyafy/.yarn/*
+ilyafy/!.yarn/patches
+ilyafy/!.yarn/plugins
+ilyafy/!.yarn/releases
+ilyafy/!.yarn/sdks
+ilyafy/!.yarn/versions
+ilyafy/android/app/.cxx
+server/node_modules
+ilyafy/__tests__
+**/.*
+ilyafy/android/app/build
+**/package-lock.json
