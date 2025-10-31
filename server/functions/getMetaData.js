@@ -1,7 +1,12 @@
 import { spawn } from "child_process";
 export default async (url) => {
   return new Promise((res, rej) => {
-    const dlp = spawn("yt-dlp", ["-j", url]);
+    const dlp = spawn("yt-dlp", [
+      "-j",
+      "--cookies",
+      "/etc/secrets/cookies.txt",
+      url,
+    ]);
     let data = "";
     dlp.stdout.on("data", (chunk) => {
       data += chunk.toString();
