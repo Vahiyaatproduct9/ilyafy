@@ -1,7 +1,7 @@
 import RNFB from 'react-native-blob-util'
 export default async (ytUrl: string): Promise<{ localPath: string, headers: any } | undefined> => {
-    const serverUrl = `http://localhost:8080/stream/?url=${encodeURIComponent(ytUrl)}`
-    // const serverUrl = `https://ilyafy.onrender.com/stream/?url=${encodeURIComponent(ytUrl)}`
+    // const serverUrl = `http://localhost:8080/stream/?url=${encodeURIComponent(ytUrl)}`
+    const serverUrl = `https://ilyafy.onrender.com/stream/?url=${encodeURIComponent(ytUrl)}`
     const localPath = `${RNFB.fs.dirs.CacheDir}/${Date.now()}.aac`
     console.log('local path:', localPath)
     try {
