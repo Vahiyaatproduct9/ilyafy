@@ -2,7 +2,7 @@ import { spawn } from "child_process";
 import { copyFileSync, existsSync } from "fs";
 export default async (url) => {
   const srcPath = "/etc/secrets/cookies.txt";
-  const tempPath = "/tmp/cookies.txt";
+  const tempPath = "./cookies.txt";
   if (existsSync(srcPath)) {
     copyFileSync(tempPath);
   }

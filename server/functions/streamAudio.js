@@ -6,7 +6,7 @@ export default async ({ url, writable }) => {
   if (!url) return reject("No URL provided");
 
   const srcPath = "/etc/secrets/cookies.txt";
-  const tempPath = "/tmp/cookies.txt";
+  const tempPath = "./cookies.txt";
   if (existsSync(srcPath)) {
     copyFileSync(tempPath);
   }
