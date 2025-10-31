@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo 'run the command npm run dev'",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js"
   },
   "keywords": [
     "audio",
