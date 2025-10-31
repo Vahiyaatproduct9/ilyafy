@@ -20,7 +20,6 @@ const Main = () => {
     const path = task?.localPath;
     const headers = task?.headers;
     console.log('task: ', task);
-    console.log('path: ', path);
     if (path) {
       await TrackPlayer.add({
         id: `${(await TrackPlayer.getQueue()).length + 1}`,
