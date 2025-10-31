@@ -4,7 +4,7 @@ import path from "path";
 
 export default async ({ url, writable }) => {
   if (!url) return reject("No URL provided");
-  const dlpPath = path.resolve("yt-dlp");
+  const dlpPath = path.resolve("./yt-dlp");
   console.log("dlpPath: ", dlpPath);
   if (!existsSync(dlpPath)) {
     console.log("[setup] DLP not found.. \n Downloading..");
