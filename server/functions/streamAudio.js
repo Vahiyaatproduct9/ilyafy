@@ -8,7 +8,7 @@ export default async ({ url, writable }) => {
   const srcPath = "/etc/secrets/cookies.txt";
   const tempPath = "./cookies.txt";
   if (existsSync(srcPath)) {
-    copyFileSync(tempPath);
+    copyFileSync(srcPath, tempPath);
   }
   const cookies = existsSync(tempPath) ? tempPath : "./cookies.txt";
   const dlpPath = path.resolve("./yt-dlp");

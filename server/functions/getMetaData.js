@@ -4,7 +4,7 @@ export default async (url) => {
   const srcPath = "/etc/secrets/cookies.txt";
   const tempPath = "./cookies.txt";
   if (existsSync(srcPath)) {
-    copyFileSync(tempPath);
+    copyFileSync(srcPath, tempPath);
   }
   const cookies = existsSync(tempPath) ? tempPath : "./cookies.txt";
   console.log(cookies);
