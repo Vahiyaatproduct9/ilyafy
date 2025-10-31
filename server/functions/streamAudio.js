@@ -34,6 +34,8 @@ export default async ({ url, writable }) => {
   const ytdlp = spawn(dlpPath, [
     "-f",
     "bestaudio[ext=m4a]/bestaudio",
+    "--cookies",
+    "/etc/secrets/cookies.txt",
     "-o",
     "-",
     url,
