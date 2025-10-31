@@ -1,7 +1,10 @@
 FROM node:20-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget ffmpeg ca-certificates && \
+    wget \
+    ffmpeg \
+    ca-certificates \
+    python3 && \
     update-ca-certificates \
     rm -rf /var/lib/apt/lists/*
 
