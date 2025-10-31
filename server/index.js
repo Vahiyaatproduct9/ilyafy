@@ -18,7 +18,7 @@ app.get("/", (_, res) => {
 });
 
 app.get("/stream", async (req, res) => {
-  console.log("Running Stream");
+  console.log("Running Stream updated");
   const { url } = req.query;
   if (!url)
     res.json({

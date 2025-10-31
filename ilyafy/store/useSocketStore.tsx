@@ -21,6 +21,8 @@ export default create<wsConnectedion>()((set, get) => ({
   isConnected: false,
   connect: () => {
     if (get().ws) return;
+    // const ws = new WebSocket('ws://localhost:8080');
+
     const ws = new WebSocket('wss://ilyafy.onrender.com');
     set({ ws });
     ws.onopen = () => {

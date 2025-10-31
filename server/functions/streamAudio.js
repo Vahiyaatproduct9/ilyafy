@@ -1,12 +1,11 @@
 import { exec, spawn } from "child_process";
-import { existsSync, fstatSync } from "fs";
+import { existsSync } from "fs";
 import path from "path";
 
 export default async ({ url, writable }) => {
   if (!url) return reject("No URL provided");
-  let dlpPath = path.resolve("./yt-dlp");
+  const dlpPath = path.resolve("yt-dlp");
   console.log("dlpPath: ", dlpPath);
-  dlpPath = "./yt-dlp";
   if (!existsSync(dlpPath)) {
     console.log("[setup] DLP not found.. \n Downloading..");
     await new Promise((resolve, reject) => {
@@ -32,7 +31,7 @@ export default async ({ url, writable }) => {
       });
     });
   }
-  const ytdlp = spawn("dlpPath", [
+  const ytdlp = spawn(dlpPath, [
     "-f",
     "bestaudio[ext=m4a]/bestaudio",
     "-o",
