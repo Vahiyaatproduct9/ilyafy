@@ -4,7 +4,9 @@ import path from "path";
 
 export default async ({ url, writable }) => {
   if (!url) return reject("No URL provided");
-  const dlpPath = path.resolve("./yt-dlp");
+  let dlpPath = path.resolve("./yt-dlp");
+  console.log("dlpPath: ", dlpPath);
+  dlpPath = "./yt-dlp";
   if (!existsSync(dlpPath)) {
     console.log("[setup] DLP not found.. \n Downloading..");
     await new Promise((resolve, reject) => {
@@ -30,7 +32,7 @@ export default async ({ url, writable }) => {
       });
     });
   }
-  const ytdlp = spawn(dlpPath, [
+  const ytdlp = spawn("dlpPath", [
     "-f",
     "bestaudio[ext=m4a]/bestaudio",
     "-o",
@@ -83,13 +85,7 @@ export default async ({ url, writable }) => {
         writable.end();
         resolve();
       } else {
-        fail(
-          new Error(
-            "[Error] ffmpeg exited with code " + code,
-            " signal = ",
-            signal
-          )
-        );
+        fail("[Error] ffmpeg exited with code " + code, " signal = ", signal);
       }
       console.log(`[ffmpeg] closed | code = ${code} | signal = ${signal}`);
     });
