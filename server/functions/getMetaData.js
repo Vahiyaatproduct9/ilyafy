@@ -1,12 +1,15 @@
 import { spawn } from "child_process";
+import { copyFileSync, existsSync } from "fs";
 export default async (url) => {
+  const srcPath = "/etc/secrets/cookies.txt";
+  const tempPath = "/tmp/cookies.txt";
+  if (existsSync(srcPath)) {
+    copyFileSync(tempPath);
+  }
+  const cookies = existsSync(tempPath) ? tempPath : "./cookies.txt";
+  console.log(cookies);
   return new Promise((res, rej) => {
-    const dlp = spawn("./yt-dlp", [
-      "-j",
-      "--cookies",
-      "/etc/secrets/cookies.txt",
-      url,
-    ]);
+    const dlp = spawn("./yt-dlp", ["-j", "--cookies", cookies, url]);
     let data = "";
     dlp.stdout.on("data", (chunk) => {
       data += chunk.toString();

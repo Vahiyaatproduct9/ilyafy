@@ -1,9 +1,16 @@
 import { exec, spawn } from "child_process";
-import { existsSync } from "fs";
+import { existsSync, copyFileSync } from "fs";
 import path from "path";
 
 export default async ({ url, writable }) => {
   if (!url) return reject("No URL provided");
+
+  const srcPath = "/etc/secrets/cookies.txt";
+  const tempPath = "/tmp/cookies.txt";
+  if (existsSync(srcPath)) {
+    copyFileSync(tempPath);
+  }
+  const cookies = existsSync(tempPath) ? tempPath : "./cookies.txt";
   const dlpPath = path.resolve("./yt-dlp");
   console.log("dlpPath: ", dlpPath);
   if (!existsSync(dlpPath)) {
@@ -35,7 +42,8 @@ export default async ({ url, writable }) => {
     "-f",
     "bestaudio[ext=m4a]/bestaudio",
     "--cookies",
-    "/etc/secrets/cookies.txt",
+    // "/etc/secrets/cookies.txt",
+    cookies,
     "-o",
     "-",
     url,
