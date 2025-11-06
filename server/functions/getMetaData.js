@@ -1,5 +1,9 @@
 import { spawn } from "child_process";
 import getValidProxy from "./getValidProxyv2.js";
+import { configDotenv } from "dotenv";
+configDotenv({
+  quiet: true,
+});
 export default async ({ url, proxy }) => {
   const localProxy = await getValidProxy();
   console.log(`[getMetaData] using proxy: ${proxy ?? localProxy}`);
@@ -7,7 +11,7 @@ export default async ({ url, proxy }) => {
     const dlp = spawn("yt-dlp", [
       "--force-ipv4",
       "--proxy",
-      proxy ?? localProxy,
+      proxy ?? localProxy ?? process.env.PROXY_SAMPLE,
       "-vU",
       "-j",
       url,
