@@ -1,15 +1,22 @@
 import { spawn } from "child_process";
 import { copyFileSync, existsSync } from "fs";
-export default async (url) => {
+import getValidProxy from "./getValidProxyv2.js";
+export default async ({ url, proxy }) => {
+  const localProxy = await getValidProxy();
   const srcPath = "/etc/secrets/cookies.txt";
   const tempPath = "./cookies.txt";
   if (existsSync(srcPath)) {
     copyFileSync(srcPath, tempPath);
   }
-  const cookies = existsSync(tempPath) ? tempPath : "./cookies.txt";
-  console.log(cookies);
   return new Promise((res, rej) => {
-    const dlp = spawn("./yt-dlp", ["-j", "--cookies", cookies, url]);
+    const dlp = spawn("./yt-dlp", [
+      "--proxy",
+      proxy ?? localProxy,
+      "-j",
+      // "--cookies",
+      // cookies,
+      url,
+    ]);
     let data = "";
     dlp.stdout.on("data", (chunk) => {
       data += chunk.toString();

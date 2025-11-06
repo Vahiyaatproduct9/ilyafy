@@ -83,6 +83,11 @@ export default async function () {
     await TrackPlayer.seekTo(data.progress.position)
     await TrackPlayer.pause()
   })
+  commandEmitter.on('seek', async data => {
+    if (data?.position) {
+      await TrackPlayer.seekTo(data.position)
+    }
+  })
   commandEmitter.on('next', async data => {
     const dTrack = data.track;
     const index = queue.findIndex(t => t.id === dTrack.id);

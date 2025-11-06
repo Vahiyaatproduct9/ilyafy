@@ -1,16 +1,17 @@
 import { exec, spawn } from "child_process";
 import { existsSync, copyFileSync } from "fs";
 import path from "path";
+import getValidProxy from "./getValidProxyv2.js";
 
-export default async ({ url, writable }) => {
+export default async ({ url, writable, proxy }) => {
   if (!url) return reject("No URL provided");
+  const localProxy = await getValidProxy();
 
   const srcPath = "/etc/secrets/cookies.txt";
   const tempPath = "./cookies.txt";
   if (existsSync(srcPath)) {
     copyFileSync(srcPath, tempPath);
   }
-  const cookies = existsSync(tempPath) ? tempPath : "./cookies.txt";
   const dlpPath = path.resolve("./yt-dlp");
   console.log("dlpPath: ", dlpPath);
   if (!existsSync(dlpPath)) {
@@ -39,11 +40,13 @@ export default async ({ url, writable }) => {
     });
   }
   const ytdlp = spawn(dlpPath, [
+    "--proxy",
+    proxy ? proxy : localProxy,
     "-f",
     "bestaudio[ext=m4a]/bestaudio",
-    "--cookies",
+    // "--cookies",
     // "/etc/secrets/cookies.txt",
-    cookies,
+    // cookies,
     "-o",
     "-",
     url,

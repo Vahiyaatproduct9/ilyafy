@@ -5,6 +5,7 @@ import streamAudio from "./functions/streamAudio.js";
 // import wss from "./socket/wss.js";
 import { WebSocketServer } from "ws";
 import getMetaData from "./functions/getMetaData.js";
+import getValidProxy from "./functions/getValidProxyv2.js";
 configDotenv({
   path: "./.env",
   quiet: true,
@@ -20,44 +21,64 @@ app.get("/", (_, res) => {
 app.get("/stream", async (req, res) => {
   console.log("Running Stream updated");
   const { url } = req.query;
+  const proxy = await getValidProxy();
+
   if (!url)
-    res.json({
+    return res.json({
       success: false,
       message: "Missing URL.",
     });
-  const file = await getMetaData(url);
+
+  let file;
+  try {
+    file = await getMetaData({ url, proxy });
+  } catch (err) {
+    console.error("Metadata error:", err);
+    return res.json({ success: false, message: "Failed to get metadata." });
+  }
+
   const audioFormat = file.formats.find(
     (f) => f.ext === "m4a" || f.acodec === "aac"
   );
   console.log("audio:", audioFormat);
-  res.setHeader("Content-Type", "audio/aac");
+
+  // if we can directly stream from CDN
+  if (audioFormat?.url) {
+    return res.json({
+      ...audioFormat,
+      thumbnail: file?.thumbnail || "",
+      artist: file?.artist || "",
+      title: file?.title || "",
+      duration: file?.duration || "",
+      success: true,
+    });
+  }
+
+  // otherwise stream manually
+  const contentType = audioFormat?.mime_type || "audio/aac";
+  res.setHeader("Content-Type", contentType);
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("Transfer-Encoding", "chunked");
   if (req.headers.range) {
+    res.status(206);
     res.setHeader("Accept-Ranges", "bytes");
   }
   if (audioFormat?.filesize)
     res.setHeader("Content-Length", audioFormat.filesize);
-  res.setHeader("Transfer-Encoding", "chunked");
-  res.setHeader("X-Track-Thumbnail", file?.thumbnail || "");
-  res.setHeader(
-    "X-Track-Artist",
-    file?.artist || file?.channel || file?.uploader || ""
-  );
-  res.setHeader("X-Duration", file?.duration || "");
+
+  res.setHeader("X-Track-Thumb", file?.thumbnail || "");
+  res.setHeader("X-Track-Artist", file?.artist || file?.uploader || "");
   res.setHeader("X-Track-Title", file?.title || "");
+  res.setHeader("X-Track-Duration", file?.duration || "");
+
+  res.flushHeaders?.();
+
   try {
-    streamAudio({
-      url,
-      writable: res,
-      req,
-    });
+    await streamAudio({ url, writable: res, req, proxy });
   } catch (error) {
-    console.error("Error: ", error);
-    res.json({
-      success: false,
-      message: "Couldn't Stream Audio",
-    });
+    console.error("Stream error:", error);
+    res.json({ success: false, message: "Couldn't stream audio." });
   }
 });
 
@@ -70,7 +91,6 @@ try {
     ws.send(JSON.stringify({ message: "Heyy from server!" }));
     ws.onmessage = (msg) => {
       const data = JSON.parse(msg.data);
-      console.log("data from client:", data);
       try {
         if (data.state === "join") {
           const { user_id, room_id } = data;

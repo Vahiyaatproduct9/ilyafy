@@ -1,0 +1,23 @@
+services:
+  vpn:
+    image: qmcgaw/gluetun
+    container_name: vpn
+    cap_add:
+      - NET_ADMIN
+    environments:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESS=${WIREGUARD_ADDRESS}
+      - SERVER_HOSTNAME=${SERVER_HOSTNAME}
+    volumes:
+      - ./gluetun:/gluetun
+    restart: unless-stopped
+
+  nodeapp:
+    build: .
+    container_name: nodeapp
+    network_mode: "container:vpn"
+    depends_on:
+      - vpn
+    restart: unless-stopped

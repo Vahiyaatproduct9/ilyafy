@@ -60,3 +60,5 @@ ilyafy/__tests__
 ilyafy/android/app/build
 **/package-lock.json
 server/cookies*
+**/*.keystore
+**/*.txt

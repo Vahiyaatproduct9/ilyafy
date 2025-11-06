@@ -19,6 +19,7 @@
     "@supabase/supabase-js": "^2.77.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "https-proxy-agent": "^7.0.6",
     "ws": "^8.18.3"
   },
   "devDependencies": {
