@@ -21,7 +21,8 @@ export default async ({ url, proxy }) => {
     dlp.on("close", (code, signal) => {
       console.log("MetaData closed with code " + code + "Signal: ", +signal);
       try {
-        res(JSON.parse(data));
+        console.log("data from getMetaData: ", data);
+        res(JSON.parse(data || ""));
       } catch (err) {
         rej(err);
       }
