@@ -1,15 +1,9 @@
 import { spawn } from "child_process";
-import { copyFileSync, existsSync } from "fs";
 import getValidProxy from "./getValidProxyv2.js";
 export default async ({ url, proxy }) => {
   const localProxy = await getValidProxy();
-  const srcPath = "/etc/secrets/cookies.txt";
-  const tempPath = "./cookies.txt";
-  if (existsSync(srcPath)) {
-    copyFileSync(srcPath, tempPath);
-  }
   return new Promise((res, rej) => {
-    const dlp = spawn("./yt-dlp", [
+    const dlp = spawn("yt-dlp", [
       "--proxy",
       proxy ?? localProxy,
       "-j",
