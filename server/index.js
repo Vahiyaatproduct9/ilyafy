@@ -101,9 +101,12 @@ try {
           ws.user_id = user_id;
           console.log(`${user_id} connected to room ${room_id}`);
         } else {
-          const { room_id } = data;
+          const { room_id, user_id: uid } = data;
           const users = roomMap.get(room_id);
           for (const user_id of users) {
+            if (user_id === uid) {
+              continue;
+            }
             const socket = userMap.get(user_id);
             socket.send(JSON.stringify(data));
           }
