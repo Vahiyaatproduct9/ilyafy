@@ -4,13 +4,12 @@ export default async ({ url, proxy }) => {
   const localProxy = await getValidProxy();
   console.log(`[getMetaData] using proxy: ${proxy ?? localProxy}`);
   return new Promise((res, rej) => {
-    const dlp = spawn("yt-dlp", [
+    const dlp = spawn("./yt-dlp", [
       "--force-ipv4",
       "--proxy",
       proxy ?? localProxy,
+      "-vU",
       "-j",
-      // "--cookies",
-      // cookies,
       url,
     ]);
     let data = "";
@@ -33,7 +32,6 @@ export default async ({ url, proxy }) => {
         return rej(new Error("yt-dlp exited with code " + code));
       }
       try {
-        console.log("data from getMetaData: ", data);
         if (!data) {
           return rej(new Error("yt-dlp returned no data"));
         }
