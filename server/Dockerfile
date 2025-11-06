@@ -1,13 +1,6 @@
 # ---- Base image ----
 # ---- Base image ----
 FROM node:20-slim
-
-# ---- Replace resolv.conf safely ----
-RUN cp /etc/resolv.conf /tmp/resolv.conf && \
-    echo "nameserver 8.8.8.8" > /tmp/resolv.conf && \
-    echo "nameserver 1.1.1.1" >> /tmp/resolv.conf && \
-    mv /tmp/resolv.conf /etc/resolv.conf || true
-
 # ---- Install dependencies ----
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
