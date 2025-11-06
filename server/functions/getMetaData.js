@@ -3,6 +3,7 @@ import getValidProxy from "./getValidProxyv2.js";
 import { configDotenv } from "dotenv";
 configDotenv({
   quiet: true,
+  path: "./.env",
 });
 export default async ({ url, proxy }) => {
   const localProxy = await getValidProxy();
@@ -12,7 +13,6 @@ export default async ({ url, proxy }) => {
       "--force-ipv4",
       "--proxy",
       proxy ?? localProxy ?? process.env.PROXY_SAMPLE,
-      "-vU",
       "-j",
       url,
     ]);

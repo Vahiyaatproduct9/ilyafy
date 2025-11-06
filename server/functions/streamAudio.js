@@ -1,5 +1,5 @@
 import { exec, spawn } from "child_process";
-import { existsSync, copyFileSync } from "fs";
+import { existsSync } from "fs";
 import path from "path";
 import getValidProxy from "./getValidProxyv2.js";
 
