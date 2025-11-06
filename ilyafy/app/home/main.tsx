@@ -22,18 +22,26 @@ const Main = () => {
     );
     const path = task?.localPath;
     const headers = task?.headers;
+    const metadata = task?.metadata;
+    const isStreamed =
+      path?.startsWith('https://') || path?.startsWith('http://') || false;
     console.log('task: ', task);
     if (path) {
       await TrackPlayer.add({
         id: `${(await TrackPlayer.getQueue()).length + 1}`,
-        url:
-          path.startsWith('https://') || path.startsWith('http://')
-            ? path
-            : `file://${path}`,
-        title: headers['X-Track-Title'] || 'Streamed Audio',
-        artist: headers['X-Track-Artist'] || 'Ilya',
-        artwork: headers['X-Track-Thumbnail'] || require('../../data/test.png'),
-        duration: parseInt(headers['X-Duration'], 10) || undefined,
+        url: isStreamed ? path : `file://${path}`,
+        title: isStreamed
+          ? metadata?.title
+          : headers['X-Track-Title'] || 'Streamed Audio',
+        artist: isStreamed
+          ? metadata?.artist
+          : headers['X-Track-Artist'] || 'Ilyafy',
+        artwork: isStreamed
+          ? metadata?.thumbnail
+          : headers['X-Track-Thumbnail'] || require('../../data/test.png'),
+        duration: isStreamed
+          ? metadata?.duration
+          : parseInt(headers['X-Duration'], 10) || undefined,
       });
       await TrackPlayer.play();
     }
