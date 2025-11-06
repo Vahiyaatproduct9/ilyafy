@@ -4,7 +4,7 @@ export default async ({ url, proxy }) => {
   const localProxy = await getValidProxy();
   console.log(`[getMetaData] using proxy: ${proxy ?? localProxy}`);
   return new Promise((res, rej) => {
-    const dlp = spawn("./yt-dlp", [
+    const dlp = spawn("yt-dlp", [
       "--force-ipv4",
       "--proxy",
       proxy ?? localProxy,
