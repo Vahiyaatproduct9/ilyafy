@@ -1,9 +1,9 @@
-import { SignInData, SignUpData } from 'types/auth';
+import { SignInData, SignUpData, tokenType } from 'types/auth';
 import prisma from '@libs/prisma';
 import { encrypt, decrypt } from '@functions/secret/cryption';
 import mailto from '@libs/mailer';
 import verification from '@templates/verification';
-import { createToken } from '@functions/secret/JWT';
+import * as JWT from '@functions/secret/JWT';
 const codes = new Map<string, string>();
 export default class User {
   async signup(info: SignUpData) {
@@ -66,16 +66,15 @@ export default class User {
       }
     }
     if (decrypt(user.password || '') === arg.password) {
-      const token = createToken({
+      const token = this.createToken({
         name: user.name,
         id: user.id,
-        exp: 60 * 60 * 24 * 7
+        tokenVersion: user.tokenVersion
       })
       return {
-        success: true,
         message: 'Sign in successful',
         userId: user.id,
-        token
+        ...token
       }
     }
     return {
@@ -108,16 +107,15 @@ export default class User {
         }
       });
       codes.delete(email);
-      const token = createToken({
+      const token = this.createToken({
         name: user[0].name,
         id: user[0].id,
-        exp: 60 * 60 * 24 * 7
+        tokenVersion: user[0].tokenVersion
       })
       if (token.success) {
         return {
-          success: true,
           message: 'Email verified successfully',
-          token: token.token
+          ...token
         }
       }
     }
@@ -126,5 +124,13 @@ export default class User {
       message: 'Invalid verification code'
     }
   }
-
+  createToken(args: tokenType) {
+    return JWT.createToken(args)
+  }
+  verifyToken(args: { token: string }) {
+    return JWT.verifyToken(args.token)
+  }
+  refreshToken(args: { refreshToken: string }) {
+    return JWT.refreshToken(args.refreshToken)
+  }
 }

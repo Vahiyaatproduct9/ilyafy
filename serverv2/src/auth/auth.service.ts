@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import User from '@functions/User';
-import { emailVerificationData, SignInData, SignUpData } from 'types/auth';
+import { emailVerificationData, refreshToken, SignInData, SignUpData } from 'types/auth';
 
 @Injectable({})
 export default class AuthService {
@@ -16,5 +16,8 @@ export default class AuthService {
   }
   verifyEmail(info: emailVerificationData) {
     return this.user.verifyEmail(info)
+  }
+  refreshToken(info: refreshToken) {
+    return this.user.refreshToken(info)
   }
 }

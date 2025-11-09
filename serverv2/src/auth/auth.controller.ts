@@ -23,4 +23,10 @@ export default class AuthController {
     console.log('Email verification request received:', body);
     return this.authService.verifyEmail(body);
   }
+
+  @Post('refresh-token')
+  async refreshToken(@Body() body: auth.refreshToken) {
+    console.log('Refreshing Token: ', body)
+    return this.authService.refreshToken(body);
+  }
 }

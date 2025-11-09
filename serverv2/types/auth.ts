@@ -12,3 +12,11 @@ export interface emailVerificationData {
   email: string;
   code: string;
 }
+export interface refreshToken {
+  refreshToken: string;
+}
+export type tokenType = {
+  id: string;
+  name: string;
+  tokenVersion: number;
+}

@@ -50,4 +50,5 @@ model users {
   songs         songs[]
   rooms         rooms?   @relation(fields: [room_part_of], references: [id], onUpdate: NoAction)
   authenticated Boolean? @default(false)
+  tokenVersion  Int      @default(1)
 }
