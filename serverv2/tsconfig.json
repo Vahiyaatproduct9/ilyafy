@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		"module": "CommonJS",
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"target": "ES2021",
+		"sourceMap": true,
+		"outDir": "./dist",
+		"incremental": true,
+		"skipLibCheck": true,
+		"strictNullChecks": true,
+		"forceConsistentCasingInFileNames": true,
+		"allowSyntheticDefaultImports": true,
+		"isolatedModules": false,
+		"baseUrl": "./",
+		"paths": {
+			"@libs/*": ["libs/*"],
+			"@functions/*": ["functions/*"],
+			"@types/*": ["types/*"],
+			"@templates/*": ["templates/*"]
+		}
+	}
+}

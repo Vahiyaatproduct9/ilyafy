@@ -8,6 +8,7 @@ interface wsConnectedion {
   isConnected: boolean;
   connect: () => void;
   sendMessage: (arg: Object | []) => boolean;
+  user_id: string | null;
 }
 interface command {
   state: commands;
@@ -18,16 +19,21 @@ export const commandEmitter: EventEmitter<commands, string> =
 
 export default create<wsConnectedion>()((set, get) => ({
   ws: null,
+  user_id: null,
   isConnected: false,
   connect: () => {
+    get().user_id = `${Date.now()}`;
     if (get().ws) return;
     // const ws = new WebSocket('ws://localhost:8080');
-    const ws = new WebSocket('wss://ilyafy.onrender.com');
+    const ws = new WebSocket('ws://10.219.195.8:8080');
+    // const ws = new WebSocket('wss://ilyafy.onrender.com');
     set({ ws });
     ws.onopen = () => {
       set({ isConnected: true });
       console.log('WebSocket Open!');
-      ws.send(JSON.stringify({ state: 'join', user_id: '1', room_id: '3' }));
+      ws.send(
+        JSON.stringify({ state: 'join', user_id: get().user_id, room_id: '3' }),
+      );
       setInterval(async () => {
         const state = await TrackPlayer.getPlaybackState();
         const progress = await TrackPlayer.getProgress();
@@ -38,7 +44,7 @@ export default create<wsConnectedion>()((set, get) => ({
             status: state.state,
             progress,
             track_id,
-            user_id: '1',
+            user_id: get().user_id,
             room_id: '3',
           }),
         );
@@ -65,7 +71,9 @@ export default create<wsConnectedion>()((set, get) => ({
   sendMessage: arg => {
     console.log('sending Message: ', arg);
     if (get().isConnected && get().ws) {
-      get().ws?.send(JSON.stringify({ ...arg, user_id: '1', room_id: '3' }));
+      get().ws?.send(
+        JSON.stringify({ ...arg, user_id: get().user_id, room_id: '3' }),
+      );
       return true;
     } else {
       return false;

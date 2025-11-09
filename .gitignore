@@ -62,3 +62,15 @@ ilyafy/android/app/build
 server/cookies*
 **/*.keystore
 **/*.txt
+
+**/pids
+**/*.pid
+**/*.seed
+**/*.pid.lock
+**/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+**/generated/prisma
+**/dist
+**/node_modules
+**/build
+**/*.key
+**/*.pem

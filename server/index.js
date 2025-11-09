@@ -83,14 +83,14 @@ app.get("/stream", async (req, res) => {
 });
 
 const wss = new WebSocketServer({ server });
-wss.on("listening", () => console.log("ws started"));
 const userMap = new Map();
 const roomMap = new Map();
 try {
   wss.on("connection", (ws) => {
-    ws.send(JSON.stringify({ message: "Heyy from server!" }));
+    ws.send(JSON.stringify({ message: "Connection Established!" }));
     ws.onmessage = (msg) => {
       const data = JSON.parse(msg.data);
+      console.log("data: ", data);
       try {
         if (data.state === "join") {
           const { user_id, room_id } = data;
@@ -104,6 +104,8 @@ try {
           const { room_id, user_id: uid } = data;
           const users = roomMap.get(room_id);
           for (const user_id of users) {
+            console.log("user:", user_id);
+            console.log("uid: ", uid);
             if (user_id === uid) {
               continue;
             }

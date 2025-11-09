@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model playlists {
+  id           String    @id @unique @db.Uuid
+  room_part_of String?   @db.Uuid
+  title        String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  rooms        rooms?    @relation(fields: [room_part_of], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  songs        songs[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model rooms {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at   DateTime    @default(now()) @db.Timestamptz(6)
+  code         String      @unique
+  current_song String?     @db.Uuid
+  playlists    playlists[]
+  songs        songs?      @relation(fields: [current_song], references: [id])
+  users        users[]
+}
+
+model songs {
+  id               String     @id @db.Uuid
+  playlist_part_of String?    @db.Uuid
+  url              String?
+  title            String?
+  added_by         String?    @db.Uuid
+  position         Int?
+  added_at         DateTime?  @default(now()) @db.Timestamp(6)
+  rooms            rooms[]
+  users            users?     @relation(fields: [added_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  playlists        playlists? @relation(fields: [playlist_part_of], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String   @unique
+  password      String
+  name          String
+  room_part_of  String?  @db.Uuid
+  songs         songs[]
+  rooms         rooms?   @relation(fields: [room_part_of], references: [id], onUpdate: NoAction)
+  authenticated Boolean? @default(false)
+}

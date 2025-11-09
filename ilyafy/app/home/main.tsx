@@ -14,8 +14,8 @@ const Main = () => {
     //   artwork: require('../../data/test.png'),
     // });
     const task = await saveAndStream(
-      // 'https://youtu.be/jfjXJpUNayg?si=zGVN9eKvt1CntJMh',
-      'https://youtu.be/Eicw_dIi2dw?si=RfCTdEDpY83gfUpf',
+      'https://youtu.be/jfjXJpUNayg?si=zGVN9eKvt1CntJMh',
+      // 'https://youtu.be/Eicw_dIi2dw?si=RfCTdEDpY83gfUpf',
       // 'https://youtu.be/rScwLoES2bM?si=YOSMQyhVGQtpKnk1',
       // 'https://youtu.be/xnP7qKxwzjg?si=kbOCKZEELlctlZZe',
     );
@@ -47,19 +47,19 @@ const Main = () => {
     const queue = await TrackPlayer.getQueue();
     console.log({ queue });
   };
-  const [message, setMessage] = useState<string>('mera ghee nikaal do');
+  const [message, setMessage] = useState<string>('Download Audio');
   useEffect(() => {
     TrackPlayer.addEventListener(Event.PlaybackState, state => {
       if (state.state === State.Buffering || state.state === State.Loading) {
-        setMessage('arey yaar load horha');
+        setMessage('buffering...');
       } else {
-        setMessage('Notification Check kijiye');
+        setMessage('Loaded');
       }
     });
   }, []);
   return (
     <View className="bg-slate-500 items-center flex-1 justify-center">
-      <Text className="text-3xl font-bold text-blue-200">Hiiee Loveee!</Text>
+      <Text className="text-3xl font-bold text-blue-200">Welcome!</Text>
       <Pressable
         className="bg-slate-400 py-3 px-10 rounded-xl"
         onPress={sendMsg}

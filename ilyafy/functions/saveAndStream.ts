@@ -4,7 +4,8 @@ export default async function saveAndStream(
     ytUrl: string
 ): Promise<{ localPath: string; headers: any; metadata: undefined | any; } | undefined> {
     // const serverUrl = `http://localhost:8080/stream/?url=${encodeURIComponent(ytUrl)}`
-    const serverUrl = `https://ilyafy.onrender.com/stream/?url=${encodeURIComponent(ytUrl)}`
+    const serverUrl = `http://10.219.195.8:8080/stream/?url=${encodeURIComponent(ytUrl)}`
+    // const serverUrl = `https://ilyafy.onrender.com/stream/?url=${encodeURIComponent(ytUrl)}`
     const localPath = `${RNFB.fs.dirs.CacheDir}/${Date.now()}.aac`
 
     try {

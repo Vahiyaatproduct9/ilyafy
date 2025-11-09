@@ -2,7 +2,7 @@ import TrackPlayer, { Event, State } from 'react-native-track-player';
 import useSocketStore, { commandEmitter } from '../store/useSocketStore';
 export default async function () {
   const sendMessage = useSocketStore.getState().sendMessage
-  const trackIndex = await TrackPlayer.getActiveTrackIndex() || 0
+  const user_id = useSocketStore.getState().user_id
   const queue = await TrackPlayer.getQueue()
   const track = await TrackPlayer.getActiveTrack()
   TrackPlayer.addEventListener(Event.RemotePlay, async () => {
@@ -45,34 +45,25 @@ export default async function () {
     await TrackPlayer.skip(event.index)
   })
   TrackPlayer.addEventListener(Event.RemoteNext, async () => {
-    if (queue.length > 0) {
-      const nextIndex = (trackIndex + 1) % queue.length
-      await TrackPlayer.skipToNext()
-      const nextSong = await TrackPlayer.getActiveTrack()
-      sendMessage({
-        state: 'next',
-        data: {
-          track: nextSong,
-          index: nextIndex
-        }
-      })
-    }
+    await TrackPlayer.skipToNext()
+    const nextSongId = await TrackPlayer.getActiveTrackIndex()
+    sendMessage({
+      state: 'next',
+      data: {
+        track_id: nextSongId
+      }
+    })
   })
   TrackPlayer.addEventListener(Event.RemotePrevious, async () => {
-    if (queue.length > 0) {
-      const prevIndex = (trackIndex - 1 + queue.length) % queue.length
-      await TrackPlayer.skipToPrevious()
-      const prevSong = await TrackPlayer.getActiveTrack()
+    await TrackPlayer.skipToPrevious()
+    const prevSongId = await TrackPlayer.getActiveTrackIndex()
 
-      sendMessage({
-        state: 'previous',
-        data: {
-          track: prevSong,
-          index: prevIndex
-        }
-      })
-
-    }
+    sendMessage({
+      state: 'previous',
+      data: {
+        track_id: prevSongId,
+      }
+    })
   })
   commandEmitter.on('play', async data => {
     if (data?.progress?.position)
@@ -89,19 +80,19 @@ export default async function () {
     }
   })
   commandEmitter.on('next', async data => {
-    const dTrack = data.track;
+    const dTrack = data.track_id;
     const index = queue.findIndex(t => t.id === dTrack.id);
     await TrackPlayer.skip(index)
   })
   commandEmitter.on('previous', async data => {
-    const dTrack = data.track;
+    const dTrack = data.track_id;
     const index = queue.findIndex(t => t.id === dTrack.id);
     await TrackPlayer.skip(index)
   })
 
   commandEmitter.on('heartbeat', async data => {
     const progress = data.progress;
-    if (data.user_id === '1' || data.room_id === '3') return;
+    if (data.user_id === user_id && data.room_id === '3') return;
     const localProgress = await TrackPlayer.getProgress()
     const dif = Math.abs(progress.position - localProgress.position)
     if (dif > 5) {
