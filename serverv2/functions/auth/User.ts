@@ -66,15 +66,16 @@ export default class User {
       }
     }
     if (decrypt(user.password || '') === arg.password) {
+      console.log("level 3:", arg, user)
       const token = this.createToken({
         name: user.name,
         id: user.id,
         tokenVersion: user.tokenVersion
       })
       return {
-        message: 'Sign in successful',
+        ...token,
         userId: user.id,
-        ...token
+        message: 'Sign in successful',
       }
     }
     return {
@@ -94,10 +95,10 @@ export default class User {
       code
     }
   }
-  async verifyEmail({ email, code }: { email: string, code: string }) {
+  async verifyEmail({ email, code }: { email: string, code: number }) {
     const storedCode = codes.get(email);
     console.log('code:', codes.entries())
-    if (storedCode === code) {
+    if (code === parseInt(storedCode ?? '')) {
       const user = await prisma.users.updateManyAndReturn({
         where: {
           email
@@ -124,13 +125,13 @@ export default class User {
       message: 'Invalid verification code'
     }
   }
-  createToken(args: tokenType) {
-    return JWT.createToken(args)
+  createToken(users: tokenType) {
+    return JWT.createToken(users)
   }
   verifyToken(args: { token: string }) {
     return JWT.verifyToken(args.token)
   }
-  refreshToken(args: { refreshToken: string }) {
-    return JWT.refreshToken(args.refreshToken)
+  async refreshToken(args: { refreshToken: string }) {
+    return await JWT.refreshToken(args.refreshToken)
   }
 }

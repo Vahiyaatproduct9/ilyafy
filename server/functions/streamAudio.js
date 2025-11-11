@@ -4,7 +4,7 @@ import path from "path";
 import getValidProxy from "./getValidProxyv2.js";
 
 export default async ({ url, writable, proxy }) => {
-  if (!url) return reject("No URL provided");
+  if (!url) return new Error("No URL provided");
   const localProxy = await getValidProxy();
   const dlpPath = path.resolve("./yt-dlp");
   console.log("dlpPath: ", dlpPath);

@@ -7,8 +7,8 @@ const Main = () => {
   const sendMsg = async () => {
     // await TrackPlayer.add({
     //   id: 'placeholder',
-    //   // url: 'file:///data/user/0/com.ilyafy/cache/1761797489062.aac',
     //   // url: require('../../data/test.mp3'),
+    //   url: 'file:///data/user/0/com.ilyafy/cache/1762842829597.aac',
     //   title: 'Always',
     //   artist: 'Daniel Caesar',
     //   artwork: require('../../data/test.png'),
@@ -37,7 +37,7 @@ const Main = () => {
           : headers['X-Track-Artist'] || 'Ilyafy',
         artwork: isStreamed
           ? metadata?.thumbnail
-          : headers['X-Track-Thumbnail'] || require('../../data/test.png'),
+          : headers['X-Track-Thumb'] || require('../../data/test.png'),
         duration: isStreamed
           ? metadata?.duration
           : parseInt(headers['X-Duration'], 10) || undefined,

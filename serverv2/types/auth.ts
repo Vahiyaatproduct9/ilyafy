@@ -10,7 +10,7 @@ export interface SignInData {
 }
 export interface emailVerificationData {
   email: string;
-  code: string;
+  code: number;
 }
 export interface refreshToken {
   refreshToken: string;

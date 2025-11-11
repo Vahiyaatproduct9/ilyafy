@@ -1,40 +1,15 @@
 import RNFB from 'react-native-blob-util'
+import path from '../path/path';
 
 export default async function saveAndStream(
     ytUrl: string
 ): Promise<{ localPath: string; headers: any; metadata: undefined | any; } | undefined> {
-    // const serverUrl = `http://localhost:8080/stream/?url=${encodeURIComponent(ytUrl)}`
-    const serverUrl = `http://10.219.195.8:8080/stream/?url=${encodeURIComponent(ytUrl)}`
+    const serverUrl = `http://${path}:8080/stream?url=${encodeURIComponent(ytUrl)}`
     // const serverUrl = `https://ilyafy.onrender.com/stream/?url=${encodeURIComponent(ytUrl)}`
     const localPath = `${RNFB.fs.dirs.CacheDir}/${Date.now()}.aac`
 
     try {
         if (await RNFB.fs.exists(localPath)) await RNFB.fs.unlink(localPath)
-
-        // First, do a HEAD or light GET to detect response type
-        const headRes = await fetch(serverUrl, { method: 'GET' })
-        const contentType = headRes.headers.get('Content-Type') || ''
-
-        // CASE 1: Direct URL mode
-        if (contentType.includes('application/json')) {
-            const json = await headRes.json()
-            console.log('json: ', json)
-            return new Promise((resolve, reject) => {
-                if (json.success && json.url) {
-                    console.log('Direct URL mode:', json.url)
-                    resolve({ localPath: json.url, headers: headRes.headers, metadata: json })
-                    const saveAudio = async () => {
-                        await RNFB.config({ path: localPath }).fetch('GET', json.url)
-                        console.log('Downloaded to:', localPath)
-                    }
-                    saveAudio()
-                } else {
-                    reject(new Error('Invalid JSON response from stream API'))
-                }
-            })
-        }
-
-        // CASE 2: Raw stream mode
         console.log('Streaming chunks to:', localPath)
         let started = false
         let headers: any = null
@@ -48,24 +23,33 @@ export default async function saveAndStream(
             }).fetch('GET', serverUrl)
 
             task.progress({ interval: 100 }, (received) => {
-                if (!started && received > minBuffer) {
+                console.info(`Downloaded ${received} bytes`);
+                if (received >= minBuffer && !started) {
                     started = true
                     console.log('Buffer ready...')
-                    resolve({ localPath, headers, metadata: undefined })
                 }
             })
-
             task
-                .then((res) => {
-                    headers = res.info().headers
-                    console.log('Download complete:', res.path())
-                    if (!started) resolve({ localPath, headers, metadata: undefined })
+                .then(async (res) => {
+                    headers = await res.info().headers;
+                    const info = await res.json();
+                    console.log('info: ', info);
+                    console.log('Headers:', headers)
+                    if (headers['Content-Type'].includes('application/json')) {
+                        console.log('Meta Mode:', res.path())
+                        return resolve({ localPath: info.url, headers, metadata: info });
+                    } else {
+                        console.log('Buffer Mode.');
+                        return resolve({ localPath: res.path(), headers, metadata: undefined });
+                    }
                 })
                 .catch((err) => {
                     console.error('Download Error:', err)
                     if (!started) reject(err)
                 })
+
         })
+
     } catch (err) {
         console.error('Error in saveAndStream:', err)
     }

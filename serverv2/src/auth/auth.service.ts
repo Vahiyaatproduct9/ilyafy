@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import User from '@functions/User';
+import User from '@functions/auth/User';
 import { emailVerificationData, refreshToken, SignInData, SignUpData } from 'types/auth';
 
 @Injectable({})
@@ -12,6 +12,7 @@ export default class AuthService {
     return this.user.signup(info)
   }
   signIn(info: SignInData) {
+    console.log('level2: ', info)
     return this.user.signin(info)
   }
   verifyEmail(info: emailVerificationData) {
