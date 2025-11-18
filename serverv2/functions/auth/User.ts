@@ -65,23 +65,24 @@ export default class User {
         message: 'User not found'
       }
     }
-    if (decrypt(user.password || '') === arg.password) {
-      console.log("level 3:", arg, user)
-      const token = this.createToken({
-        name: user.name,
-        id: user.id,
-        tokenVersion: user.tokenVersion
-      })
+    if (decrypt(user.password || '') !== arg.password) {
       return {
-        ...token,
-        userId: user.id,
-        message: 'Sign in successful',
+        success: false,
+        message: 'Incorrect password'
       }
     }
+    console.log("level 3:", arg, user)
+    const token = this.createToken({
+      name: user.name,
+      id: user.id,
+      tokenVersion: user.tokenVersion
+    })
     return {
-      success: false,
-      message: 'Incorrect password'
+      token,
+      profile: user,
+      message: 'Sign in successful',
     }
+
   }
   async #sendVerificationEmail(email: string) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
