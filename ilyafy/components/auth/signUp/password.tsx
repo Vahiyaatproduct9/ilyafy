@@ -1,10 +1,10 @@
 /* eslint-disable react-native/no-inline-styles */
-import { View, TextInput, Text } from 'react-native';
-import React, { Dispatch, SetStateAction, useEffect } from 'react';
+import { View, TextInput } from 'react-native';
+import React, { Dispatch, SetStateAction } from 'react';
 // import Animated from 'react-native-reanimated';
 import Button from '../../buttons/button1';
 import theme from '../../../data/color/theme';
-import useMessage from '../../../store/useMessage';
+// import useMessage from '../../../store/useMessage';
 import Animated, { FadeInRight, FadeOutRight } from 'react-native-reanimated';
 
 type PasswordProps = {
@@ -13,6 +13,7 @@ type PasswordProps = {
   confirmPass: string;
   setConfirmPass: Dispatch<SetStateAction<string>>;
   onPress: () => Promise<void>;
+  loading: boolean | null;
 };
 
 const Password = ({
@@ -21,11 +22,9 @@ const Password = ({
   confirmPass,
   setConfirmPass,
   onPress,
+  loading,
 }: PasswordProps) => {
-  const { setMessage } = useMessage();
-  useEffect(() => {
-    setMessage('lmaaok');
-  }, [setMessage]);
+  // const { setMessage } = useMessage();
   const unmatchedPass =
     confirmPass.length < 8 || pass.length < 8 || pass !== confirmPass;
   return (
@@ -94,6 +93,7 @@ const Password = ({
           borderRadius: 16,
           marginTop: 14,
         }}
+        loading={loading}
         textStyle={{
           color: theme.text,
         }}

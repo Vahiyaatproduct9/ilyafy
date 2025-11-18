@@ -16,8 +16,9 @@ export default {
     return await signup(props);
   },
   verify: async (props: verificationProps) => {
+    console.log('Running : verify')
     const res = await fetch(`${domain}/auth/users/verify-email`, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },

@@ -1,5 +1,8 @@
-import { Text, Pressable, ViewStyle, TextStyle } from 'react-native';
+import { useEffect } from 'react';
+import { Text, Pressable, ViewStyle, TextStyle, View } from 'react-native';
 import Animated, {
+  FadeInDown,
+  FadeOutDown,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -15,6 +18,7 @@ interface Props {
   onPressOut?: () => void;
   label: string;
   disabled?: boolean;
+  loading?: boolean | null;
 }
 
 const Button = ({
@@ -27,6 +31,7 @@ const Button = ({
   onPressIn,
   onPressOut,
   disabled,
+  loading = null,
 }: Props) => {
   const scale = useSharedValue(1);
 
@@ -50,11 +55,53 @@ const Button = ({
       }}
       disabled={disabled}
     >
-      <Text className={textClassName || ''} style={textStyle}>
-        {label}
-      </Text>
+      {!loading ? (
+        <Text className={textClassName || ''} style={textStyle}>
+          {label}
+        </Text>
+      ) : (
+        <LoadingAnimated />
+      )}
     </AnimatedPressable>
   );
 };
 
 export default Button;
+
+const LoadingAnimated = () => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const values = [useSharedValue(0), useSharedValue(0), useSharedValue(0)];
+
+  useEffect(() => {
+    const distance = 1;
+
+    values.forEach((val, i) => {
+      setInterval(() => {
+        val.value = withTiming(distance, { duration: 250 }, () => {
+          val.value = withTiming(0, { duration: 250 });
+        });
+      }, 800 + i * 150); // <- stagger each one
+    });
+  }, [values]);
+
+  return (
+    <Animated.View className="gap-1 flex-row">
+      {values.map((val, i) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const animatedStyle = useAnimatedStyle(() => ({
+          transform: [{ translateY: val.value }],
+        }));
+
+        return (
+          <Animated.View
+            key={i}
+            style={animatedStyle}
+            entering={FadeInDown.delay(i * 100).duration(250)}
+            exiting={FadeOutDown.delay(i * 100).duration(250)}
+            className="p-1 bg-white rounded-full"
+          />
+        );
+      })}
+    </Animated.View>
+  );
+};

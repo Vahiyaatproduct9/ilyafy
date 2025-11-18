@@ -14,6 +14,7 @@ import { authMethod } from '../../../types/components';
 import signup from '../../../api/auth/signup';
 import useProfile from '../../../store/useProfile';
 import { useNavigation } from '@react-navigation/native';
+import useMessage from '../../../store/useMessage';
 type props = {
   setAuth: Dispatch<SetStateAction<authMethod>>;
   email: string;
@@ -85,20 +86,27 @@ const SignUp = ({ style, whichAuth, setAuth }: signUpProp) => {
   const navigation = useNavigation();
   const [email, setEmail] = useState<string>('');
   const [pass, setPass] = useState<string>('');
+  const setMessage = useMessage().setMessage;
   const [confirmPass, setConfirmPass] = useState<string>('');
+  const [loading, setLoading] = useState<boolean | null>(null);
   const storedEmail = useProfile.getState().email;
-  useEffect(() => {
-    if (pass !== confirmPass) {
-      console.warn('Passwords do not match!');
-    }
-  }, [confirmPass, pass]);
   useEffect(() => {
     setEmail(storedEmail || '');
   }, [storedEmail]);
 
   const onSignUp = async () => {
-    // await signup({email, name: email.split('@')[0], password: pass})
-    await navigation.navigate('otp' as never);
+    const info = { email, name: email.split('@')[0], password: pass };
+    console.log('Info: ', info);
+    setLoading(true);
+    await signup(info)
+      .then(() => {
+        setLoading(null);
+        navigation.navigate('otp' as never);
+      })
+      .catch(err => {
+        setMessage(err);
+        setLoading(false);
+      });
     console.log('Heyy');
   };
   return (
@@ -121,6 +129,7 @@ const SignUp = ({ style, whichAuth, setAuth }: signUpProp) => {
             confirmPass={confirmPass}
             setConfirmPass={setConfirmPass}
             onPress={onSignUp}
+            loading={loading}
           />
         </Animated.View>
       ) : null}

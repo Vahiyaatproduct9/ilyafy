@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import AuthService from './auth.service';
 import * as dto from 'types/dto'
 
@@ -13,12 +13,12 @@ export default class AuthController {
   }
 
   @Get()
-  async signin(@Body() body: dto.SignInDto) {
+  async signin(@Query() body: dto.SignInDto) {
     console.log('Signin request received:', body);
     return this.authService.signIn(body);
   }
 
-  @Get('verify-email')
+  @Post('verify-email')
   async verifyEmail(@Body() body: dto.emailVerificationDto) {
     console.log('Email verification request received:', body);
     return this.authService.verifyEmail(body);

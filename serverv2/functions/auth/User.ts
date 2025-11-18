@@ -15,13 +15,18 @@ export default class User {
         email: info.email
       }
     });
-    if (existingUser) {
+    if (existingUser && existingUser.authenticated) {
       return { success: false, message: 'Email already in use' };
     }
-    const user = await prisma.users.create({
-      data: {
+    const user = await prisma.users.upsert({
+      where: { email: info.email },
+      create: {
         name: info.name,
         email: info.email,
+        password: encrypt(info.password)
+      },
+      update: {
+        name: info.name,
         password: encrypt(info.password)
       }
     })
@@ -97,6 +102,7 @@ export default class User {
     }
   }
   async verifyEmail({ email, code }: { email: string, code: number }) {
+    console.log('Verify email running');
     const storedCode = codes.get(email);
     console.log('code:', codes.entries())
     if (code === parseInt(storedCode ?? '')) {

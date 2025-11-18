@@ -7,6 +7,9 @@ type signUpProps = {
 export default async ({ email, name, password }: signUpProps) => {
   const res = await fetch(`${domain}/auth/users`, {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify({ email, password, name })
   });
   const response = await res.json();

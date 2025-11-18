@@ -2,18 +2,21 @@ import { View, TextInput, Text } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import theme, { dark } from '../../data/color/theme';
 import Button from '../../components/buttons/button1';
+import otp from '../../api/auth/otp';
+import useProfile from '../../store/useProfile';
 
 const Otp = () => {
   const [code, setCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean | null>(null);
   const isValid = code.length === 6;
+  const email = useProfile.getState().email;
   useEffect(() => {
+    const info = { email: email || '', code: parseInt(code, 10) };
     if (isValid) {
-      setLoading(true);
-      return;
+      console.log('Valid:', info);
+      (async () => await otp.verify(info))();
     }
-    setLoading(false);
-  }, [isValid]);
+  }, [code, email, isValid]);
   return (
     <View
       className="h-full w-full items-center justify-center"
