@@ -1,22 +1,44 @@
+/* eslint-disable react-native/no-inline-styles */
 import { View, TextInput, Text } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import theme, { dark } from '../../data/color/theme';
 import Button from '../../components/buttons/button1';
 import otp from '../../api/auth/otp';
 import useProfile from '../../store/useProfile';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import signup from '../../api/auth/signup';
+import useMessage from '../../store/useMessage';
 const Otp = () => {
   const [code, setCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean | null>(null);
   const isValid = code.length === 6;
   const email = useProfile.getState().email;
+  const setMessage = useMessage().setMessage;
   useEffect(() => {
-    const info = { email: email || '', code: parseInt(code, 10) };
     if (isValid) {
-      console.log('Valid:', info);
-      (async () => await otp.verify(info))();
+      setLoading(true);
+      (async () => {
+        const info = {
+          email: email || '',
+          code: parseInt(code, 10),
+          name: email?.split('@')[0] || '',
+          password: (await AsyncStorage.getItem('password')) || '',
+        };
+        await otp
+          .verify(info)
+          .then(() => setLoading(null))
+          .catch(() => setLoading(false));
+      })();
     }
   }, [code, email, isValid]);
+  const resend = async () => {
+    const res = await signup({
+      email: email || '',
+      name: email?.split('@')[0] || '',
+      password: (await AsyncStorage.getItem('password')) || '',
+    });
+    setMessage(res?.message || '');
+  };
   return (
     <View
       className="h-full w-full items-center justify-center"
@@ -48,7 +70,7 @@ const Otp = () => {
         <Text className="px-4 color-white">Didn't get the Email?</Text>
         <Button
           label="Resend"
-          onPress={() => {}}
+          onPress={resend}
           textClassName="color-white"
           containerClassName="border-[1px] border-[rgba(200,200,200,0.4)] rounded px-5 py-2"
         />

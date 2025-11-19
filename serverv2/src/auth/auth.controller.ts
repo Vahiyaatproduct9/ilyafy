@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import AuthService from './auth.service';
 import * as dto from 'types/dto'
 
@@ -6,14 +6,14 @@ import * as dto from 'types/dto'
 export default class AuthController {
   constructor(private authService: AuthService) { }
 
-  @Post()
+  @Post('signup')
   async signup(@Body() body: dto.signUpDto) {
     console.log('Signup request received:', body);
     return this.authService.signUp(body);
   }
 
-  @Get()
-  async signin(@Query() body: dto.SignInDto) {
+  @Post('signin')
+  async signin(@Body() body: dto.SignInDto) {
     console.log('Signin request received:', body);
     return this.authService.signIn(body);
   }
@@ -24,7 +24,7 @@ export default class AuthController {
     return this.authService.verifyEmail(body);
   }
 
-  @Get('refresh-token')
+  @Post('refresh-token')
   async refreshToken(@Body() body: dto.refreshToken) {
     console.log('Refreshing Token: ', body)
     return this.authService.refreshToken(body);

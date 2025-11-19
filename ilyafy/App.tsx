@@ -11,8 +11,12 @@ import Welcome from './app/auth/welcome';
 import { useEffect } from 'react';
 import Message from './components/message/message';
 import Otp from './app/otp/otpScreen';
+import useProfile from './store/useProfile';
+import Invitation from './app/tabs/invitation';
 const Stack = createNativeStackNavigator();
 export default function App() {
+  const profile = useProfile().profile;
+  console.log('profile:', profile);
   useEffect(() => {
     SystemNavigationBar.stickyImmersive();
     const init = async () => {
@@ -30,9 +34,17 @@ export default function App() {
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Welcome" component={Welcome} />
-            <Stack.Screen name="otp" component={Otp} />
-            <Stack.Screen name="Main" component={Main} />
+            {!profile ? (
+              <>
+                <Stack.Screen name="Welcome" component={Welcome} />
+                <Stack.Screen name="otp" component={Otp} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="Main" component={Main} />
+                <Stack.Screen name="invitation" component={Invitation} />
+              </>
+            )}
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaView>

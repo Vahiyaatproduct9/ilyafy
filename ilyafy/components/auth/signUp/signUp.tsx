@@ -15,6 +15,7 @@ import signup from '../../../api/auth/signup';
 import useProfile from '../../../store/useProfile';
 import { useNavigation } from '@react-navigation/native';
 import useMessage from '../../../store/useMessage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 type props = {
   setAuth: Dispatch<SetStateAction<authMethod>>;
   email: string;
@@ -96,6 +97,7 @@ const SignUp = ({ style, whichAuth, setAuth }: signUpProp) => {
 
   const onSignUp = async () => {
     const info = { email, name: email.split('@')[0], password: pass };
+    await AsyncStorage.setItem('password', pass);
     console.log('Info: ', info);
     setLoading(true);
     await signup(info)

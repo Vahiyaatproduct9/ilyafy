@@ -1,21 +1,35 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useState } from 'react';
-import Animated from 'react-native-reanimated';
+import Animated, { FadeInRight, FadeOutRight } from 'react-native-reanimated';
 import usePageTransition from '../../animation/pageTransitions/pageTransition';
 import Button from '../../buttons/button1';
 import theme from '../../../data/color/theme';
 import { TextInput, ViewProps } from 'react-native';
 import login from '../../../api/auth/login';
+import useMessage from '../../../store/useMessage';
 
 const Login = ({ style }: { style?: ViewProps | AnimationEvent }) => {
-  const AnimatedTI = Animated.createAnimatedComponent(TextInput);
   const pageTransition = usePageTransition();
   const exitTransition = pageTransition.exitTransition;
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean | null>(null);
+  const setMessage = useMessage().setMessage;
   const onLogin = async () => {
-    await login({ email, password });
+    setLoading(true);
+    await login({ email, password })
+      .then(res => {
+        if (res?.success) setLoading(null);
+        else setLoading(false);
+        setMessage(res?.message || '');
+      })
+      .catch(err => {
+        setLoading(false);
+        setMessage(err);
+      });
   };
+  const ValidEmail = email.includes('@') && email.includes('.');
+  const validPass = password.length >= 8;
   return (
     <Animated.View
       className={
@@ -24,12 +38,14 @@ const Login = ({ style }: { style?: ViewProps | AnimationEvent }) => {
       style={style || {}}
     >
       <Animated.View style={exitTransition} className={'gap-2'}>
-        <AnimatedTI
+        <TextInput
           className={
             'flex-1 w-[300px] px-2 text-l border-white border-[1px] rounded-2xl'
           }
           style={{
             backgroundColor: 'rgba(192,194,201, 0.4)',
+            color: theme.text,
+            borderColor: email.length < 5 || ValidEmail ? 'white' : 'red',
           }}
           textAlign={'center'}
           textAlignVertical={'center'}
@@ -38,12 +54,24 @@ const Login = ({ style }: { style?: ViewProps | AnimationEvent }) => {
           value={email}
           onChangeText={setEmail}
         />
-        <AnimatedTI
+        {email.length >= 1 && !ValidEmail && (
+          <Animated.Text
+            entering={FadeInRight.duration(250)}
+            exiting={FadeOutRight.duration(250)}
+            className={'font-semibold text-sm self-end pt-1'}
+            style={{ color: theme.text }}
+          >
+            Please Enter a Valid Email :(
+          </Animated.Text>
+        )}
+        <TextInput
           className={
             'flex-1 w-[300px] px-2 text-l border-white border-[1px] rounded-2xl'
           }
           style={{
+            color: theme.text,
             backgroundColor: 'rgba(192,194,201, 0.4)',
+            borderColor: password.length === 0 || validPass ? 'white' : 'red',
           }}
           textAlign={'center'}
           textAlignVertical={'center'}
@@ -55,6 +83,16 @@ const Login = ({ style }: { style?: ViewProps | AnimationEvent }) => {
           value={password}
           onChangeText={setPassword}
         />
+        {password.length >= 5 && !validPass && (
+          <Animated.Text
+            entering={FadeInRight.duration(250)}
+            exiting={FadeOutRight.duration(250)}
+            className={'font-semibold text-sm self-end pt-1'}
+            style={{ color: theme.text }}
+          >
+            Password must be 8 chars long :(
+          </Animated.Text>
+        )}
         <Button
           label="Login"
           containerClassName="rounded-2xl justify-center items-center p-4"
@@ -62,10 +100,13 @@ const Login = ({ style }: { style?: ViewProps | AnimationEvent }) => {
             backgroundColor: theme.primary,
             borderRadius: 16,
             marginTop: 14,
+            opacity: !validPass || !ValidEmail ? 0.4 : 1,
           }}
           textStyle={{
             color: theme.text,
           }}
+          loading={loading}
+          disabled={!validPass || !ValidEmail}
           textClassName="font-bold text-xl"
           onPress={onLogin}
         />

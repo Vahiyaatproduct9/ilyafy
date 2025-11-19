@@ -82,12 +82,17 @@ export default class User {
       id: user.id,
       tokenVersion: user.tokenVersion
     })
+    await prisma.users.update({ where: { id: user.id }, data: { tokenVersion: { increment: 1 } } })
     return {
       token,
-      profile: user,
+      profile: {
+        name: user.name,
+        id: user.id,
+        room_part_of: user.room_part_of,
+        email: user.email
+      },
       message: 'Sign in successful',
     }
-
   }
   async #sendVerificationEmail(email: string) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();

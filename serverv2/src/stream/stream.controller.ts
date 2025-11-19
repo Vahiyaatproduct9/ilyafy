@@ -12,4 +12,10 @@ export default class StreamController {
   }, @Res() res: Response) {
     await this.streamService.stream({ url: query.url, writable: res });
   }
+  @Get('addToPlaylist')
+  async getInfo(@Query() query: {
+    url: string
+  }, @Res() res: Response) {
+    await this.streamService.getInfo({ url: query.url, writable: res });
+  }
 }

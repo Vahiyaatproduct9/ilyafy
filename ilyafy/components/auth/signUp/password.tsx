@@ -1,10 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 import { View, TextInput } from 'react-native';
 import React, { Dispatch, SetStateAction } from 'react';
-// import Animated from 'react-native-reanimated';
 import Button from '../../buttons/button1';
 import theme from '../../../data/color/theme';
-// import useMessage from '../../../store/useMessage';
 import Animated, { FadeInRight, FadeOutRight } from 'react-native-reanimated';
 
 type PasswordProps = {

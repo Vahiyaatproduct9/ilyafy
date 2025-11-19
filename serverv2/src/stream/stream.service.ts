@@ -53,4 +53,28 @@ export default class StreamService {
       }
     }
   }
+  async getInfo({ url, writable }: { url: string; writable: Response }) {
+    const metadata: any = await getMetaData({ url });
+    const audioFormat = metadata.formats.find(
+      f => f.acodec !== 'none' && f.vcodec === 'none' && f.protocol === 'https'
+    );
+    if (!audioFormat) {
+      writable.json({
+        success: false,
+        message: 'Cannot find Streamable Service, Please choose another song!'
+      })
+      return;
+    }
+    const { ok } = await fetch(audioFormat?.url, { method: 'HEAD' })
+    writable.json({
+      thumbnail: metadata?.thumbnail || null,
+      artist: metadata?.artist || metadata?.uploader || null,
+      title: metadata?.title || null,
+      duration: metadata?.duration || null,
+      success: true,
+      ...audioFormat,
+      playable: ok ? true : false
+    })
+    return;
+  }
 }

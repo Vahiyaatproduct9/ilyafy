@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { profile } from '../types/components';
 type profileProp = {
-  profile: object | null;
+  profile: profile | null;
   email: string | null;
   name: string | null;
   accessToken: string | null;
@@ -11,7 +12,7 @@ type profileProp = {
   setRefreshToken: (arg: string) => void;
   setName: (arg: string) => void;
   setEmail: (arg: string) => void;
-  setProfile: () => Promise<void>;
+  setProfile: (arg: profile) => Promise<void>;
 };
 export default create(
   persist<profileProp>(
@@ -25,7 +26,9 @@ export default create(
       setName: arg => set({ name: arg }),
       setAccessToken: arg => set({ accessToken: arg }),
       setRefreshToken: arg => set({ refreshToken: arg }),
-      setProfile: async () => {},
+      setProfile: async arg => {
+        set({ profile: arg });
+      },
     }),
     {
       name: 'profile',

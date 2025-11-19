@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
-import { Text, Pressable, ViewStyle, TextStyle, View } from 'react-native';
+import { Text, Pressable, ViewStyle, TextStyle } from 'react-native';
 import Animated, {
+  EntryOrExitLayoutType,
   FadeInDown,
   FadeOutDown,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -19,6 +21,8 @@ interface Props {
   label: string;
   disabled?: boolean;
   loading?: boolean | null;
+  entering?: EntryOrExitLayoutType;
+  exiting?: EntryOrExitLayoutType;
 }
 
 const Button = ({
@@ -32,6 +36,8 @@ const Button = ({
   onPressOut,
   disabled,
   loading = null,
+  entering,
+  exiting,
 }: Props) => {
   const scale = useSharedValue(1);
 
@@ -42,6 +48,8 @@ const Button = ({
   const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
   return (
     <AnimatedPressable
+      entering={entering}
+      exiting={exiting}
       style={[animatedStyle, containerStyle]}
       className={containerClassName || ''}
       onPress={onPress}
@@ -69,39 +77,48 @@ const Button = ({
 export default Button;
 
 const LoadingAnimated = () => {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const values = [useSharedValue(0), useSharedValue(0), useSharedValue(0)];
-
-  useEffect(() => {
-    const distance = 1;
-
-    values.forEach((val, i) => {
-      setInterval(() => {
-        val.value = withTiming(distance, { duration: 250 }, () => {
-          val.value = withTiming(0, { duration: 250 });
-        });
-      }, 800 + i * 150); // <- stagger each one
-    });
-  }, [values]);
-
   return (
     <Animated.View className="gap-1 flex-row">
-      {values.map((val, i) => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const animatedStyle = useAnimatedStyle(() => ({
-          transform: [{ translateY: val.value }],
-        }));
-
-        return (
-          <Animated.View
-            key={i}
-            style={animatedStyle}
-            entering={FadeInDown.delay(i * 100).duration(250)}
-            exiting={FadeOutDown.delay(i * 100).duration(250)}
-            className="p-1 bg-white rounded-full"
-          />
-        );
-      })}
+      {Array(3)
+        .fill(null)
+        .map((_, i) => {
+          return <Bead i={i} key={i} />;
+        })}
     </Animated.View>
+  );
+};
+
+const Bead = ({ i }: { i: number }) => {
+  const value = useSharedValue(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      value.value = withDelay(
+        i * 100,
+        withTiming(5, { duration: 250 }, () => {
+          value.value = withTiming(0, { duration: 250 });
+        }),
+      );
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [i, value]);
+  const animate = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: value.value }],
+    };
+  });
+  return (
+    <Animated.View
+      key={i}
+      style={[
+        animate,
+        {
+          borderRadius: 100,
+          padding: 5,
+          backgroundColor: 'rgba(255,255,255,0.6)',
+        },
+      ]}
+      entering={FadeInDown.delay(i * 100).duration(250)}
+      exiting={FadeOutDown.delay(i * 100).duration(250)}
+    />
   );
 };
