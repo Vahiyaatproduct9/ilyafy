@@ -13,6 +13,7 @@ import Message from './components/message/message';
 import Otp from './app/otp/otpScreen';
 import useProfile from './store/useProfile';
 import Invitation from './app/tabs/invitation';
+import refreshJWT from './functions/auth/refreshJWT';
 const Stack = createNativeStackNavigator();
 export default function App() {
   const profile = useProfile().profile;
@@ -24,7 +25,11 @@ export default function App() {
       //   await setupPlayer();
     };
     init();
+    const interval = setInterval(() => {
+      async () => await refreshJWT();
+    }, 5 * 1000 * 60);
     return () => {
+      clearInterval(interval);
       SystemNavigationBar.navigationShow();
     };
   }, []);

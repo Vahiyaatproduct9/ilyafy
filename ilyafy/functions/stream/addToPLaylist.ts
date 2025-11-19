@@ -8,13 +8,15 @@ export default async (url: string) => {
   })
   const response: InfoResponseProp = await res.json();
   console.log('response from addtoplaylist: ', response);
-  await playlist.addSong({
+  const metadata = {
     index: await playlist.length() + 1 || Date.now(),
     title: response?.title || 'Unknown Song',
     url: response?.url || '',
     thumbnail: response?.thumbnail || '',
     artist: response?.artist || '',
     playable: response.playable || false,
-  })
-  return response;
+    ytLink: url
+  }
+  await playlist.addSong(metadata)
+  return { ...response, ytLink: url };
 }

@@ -20,7 +20,9 @@ export default {
     let songList: PlaylistProp = await AsyncStorage.getItem('playlist')
       .then(res => res ? JSON.parse(res) : [])
       .catch(err => console.log('Error: ', err))
-    songList = songList.filter(t => t.index !== index);
+    songList = songList.filter(t => t.index !== index).map((song, i) => {
+      return { ...song, index: i + 1 }
+    });
     await AsyncStorage.setItem('playlist', JSON.stringify(songList))
   }
 

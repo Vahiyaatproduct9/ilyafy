@@ -3,6 +3,7 @@ export type songProp = {
   title: string;
   artist: string;
   url: string;
+  ytLink: string;
   thumbnail: string;
   playable: boolean;
   duration?: number;

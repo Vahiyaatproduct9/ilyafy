@@ -1,13 +1,14 @@
 import { spawn } from "child_process";
 import { configDotenv } from "dotenv";
+import PRXY from "./proxy";
 configDotenv();
 export default async function ({ url, proxy }: { url: string, proxy?: string }) {
   console.log('getMetaData', { url, proxy });
   return new Promise((res, rej) => {
     const dlp = spawn("yt-dlp", [
       '--force-ipv4',
-      "--proxy",
-      process.env.PROXY_SAMPLE || '',
+      // "--proxy",
+      // proxy || PRXY() || process.env.PROXY_SAMPLE || '',
       "-j",
       url
     ])

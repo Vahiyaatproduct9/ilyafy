@@ -5,11 +5,14 @@ import theme from '../../data/color/theme';
 import Button from '../buttons/button1';
 import addToPLaylist from '../../functions/stream/addToPLaylist';
 import useMessage from '../../store/useMessage';
+import { PlaylistProp } from '../../types/songs';
 
 const Popup = ({
   showPopup,
+  setPlaylist,
 }: {
   showPopup: Dispatch<SetStateAction<boolean>>;
+  setPlaylist: Dispatch<SetStateAction<PlaylistProp | []>>;
 }) => {
   // const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
   const [value, setValue] = useState<string>('');
@@ -20,6 +23,19 @@ const Popup = ({
     const response = await addToPLaylist(value);
     if (response?.success) {
       setMessage('Song Added to PLaylist :D');
+      setPlaylist(prev => [
+        ...prev,
+        {
+          index: prev.length + 1 || Date.now(),
+          title: response?.title || 'Unknown Song',
+          url: response?.url || '',
+          thumbnail: response?.thumbnail || '',
+          artist: response?.artist || '',
+          playable: response?.playable || false,
+          ytLink: response?.ytLink || '',
+        },
+      ]);
+      showPopup(false);
       setLoading(null);
     } else {
       setMessage('Some Error Occured! :(');
