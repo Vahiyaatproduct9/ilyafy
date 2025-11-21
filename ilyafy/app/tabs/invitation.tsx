@@ -2,12 +2,26 @@ import { View, Text, Dimensions, TextInput } from 'react-native';
 import React, { useState } from 'react';
 import theme from '../../data/color/theme';
 import Button from '../../components/buttons/button1';
-import { FadeInDown, FadeOutDown } from 'react-native-reanimated';
+import {
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  FadeOutDown,
+} from 'react-native-reanimated';
+import connect from '../../functions/auth/connect';
 
 const Invitation = () => {
   const width = Dimensions.get('window').width - 16;
   const [value, setValue] = useState<string>('');
+  const [loading, setLoading] = useState<boolean | null>(null);
   const showButton = value.length > 3;
+  async function Connect() {
+    setLoading(true);
+    const response = await connect(value);
+    if (response?.success) {
+      setLoading(null);
+    } else setLoading(false);
+  }
   return (
     <View
       className="flex-1 h-full items-center justify-center p-5"
@@ -39,8 +53,10 @@ const Invitation = () => {
       {showButton && (
         <Button
           label="Look"
-          entering={FadeInDown.duration(250)}
-          exiting={FadeOutDown.duration(250)}
+          onPress={Connect}
+          loading={loading}
+          entering={FadeIn.duration(250)}
+          exiting={FadeOut.duration(250)}
           containerClassName="self-end px-10 py-2 rounded-xl"
           containerStyle={{
             backgroundColor: theme.primary,

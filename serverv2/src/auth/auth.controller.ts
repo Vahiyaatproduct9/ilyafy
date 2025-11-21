@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import AuthService from './auth.service';
 import * as dto from 'types/dto'
 
@@ -28,5 +28,10 @@ export default class AuthController {
   async refreshToken(@Body() body: dto.refreshToken) {
     console.log('Refreshing Token: ', body)
     return this.authService.refreshToken(body);
+  }
+  @Post('connect')
+  async getRoom(@Body() body: { accessToken: string; email: string; }) {
+    console.log('Email: ', body.email);
+    return this.authService.connectUser(body)
   }
 }

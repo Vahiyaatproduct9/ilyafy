@@ -6,6 +6,7 @@ import { configDotenv } from 'dotenv';
 configDotenv()
 const publicKey = readFileSync('./public.pem', 'utf8')
 const privateKey = readFileSync('./private.pem', 'utf8');
+const SECRET_KEY = process.env.PASSWORD_ENCRYPTION_KEY || '';
 export function createToken(user: auth.tokenType) {
   console.log('user: ', user)
   try {
@@ -16,7 +17,7 @@ export function createToken(user: auth.tokenType) {
       algorithm: 'RS256',
       expiresIn: '1h'
     })
-    const refreshToken = jwt.sign(user, process.env.PASSWORD_ENCRYPTION_KEY || '', {
+    const refreshToken = jwt.sign(user, SECRET_KEY, {
       expiresIn: '7d',
       algorithm: 'HS256'
     })
@@ -57,7 +58,8 @@ export async function refreshToken(refreshToken: string) {
     tokenVersion: number
   };
   try {
-    const verified = jwt.verify(refreshToken, publicKey);
+    const verified = jwt.verify(refreshToken, SECRET_KEY);
+    console.log('Token: ', verified)
     if (typeof verified === 'string' || !verified || typeof verified !== 'object') {
       return {
         success: false,
@@ -73,6 +75,7 @@ export async function refreshToken(refreshToken: string) {
     }
   }
   const userToken = await prisma.users.findUnique({ where: { id: payload.id }, select: { tokenVersion: true } });
+  console.log('user : ', userToken);
   if (userToken && payload?.tokenVersion === userToken.tokenVersion) {
     await prisma.users.update({
       where: {

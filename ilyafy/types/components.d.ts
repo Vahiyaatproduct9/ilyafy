@@ -10,7 +10,8 @@ export type TokenProps = {
   success?: boolean;
   accessToken?: string;
   refreshToken?: string;
-  message?: string | undefined;
+  message?: string;
+  userId?: string;
 } | undefined
 
 export type signInProps = {

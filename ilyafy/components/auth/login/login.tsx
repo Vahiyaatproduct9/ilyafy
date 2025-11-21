@@ -19,7 +19,7 @@ const Login = ({ style }: { style?: ViewProps | AnimationEvent }) => {
     setLoading(true);
     await login({ email, password })
       .then(res => {
-        if (res?.success) setLoading(null);
+        if (res?.token.success) setLoading(null);
         else setLoading(false);
         setMessage(res?.message || '');
       })

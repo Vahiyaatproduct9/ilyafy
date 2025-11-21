@@ -21,6 +21,7 @@ export default {
   },
   verify: async (props: verificationProps) => {
     const setProfile = useProfile.getState().setProfile;
+    const profile = useProfile.getState().profile;
     const setEmail = useProfile.getState().setEmail;
     const setName = useProfile.getState().setName;
     const setAccessToken = useProfile.getState().setAccessToken;
@@ -34,12 +35,17 @@ export default {
       body: JSON.stringify({ ...props })
     });
     if (res.ok) {
-      setProfile({ email: props.email || '', name: props?.name || '', password: props?.password || '' })
       setEmail(props.email);
       setName(props?.name || '');
     }
     const response: TokenProps = await res.json();
     if (response?.success) {
+      setProfile({
+        email: props.email || '',
+        name: props?.name || '',
+        id: response?.userId || '',
+        room_part_of: profile?.room_part_of || ''
+      })
       setAccessToken(response?.accessToken || '');
       setRefreshToken(response?.refreshToken || '');
     }

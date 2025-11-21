@@ -25,14 +25,16 @@ export default function App() {
       //   await setupPlayer();
     };
     init();
-    const interval = setInterval(() => {
-      async () => await refreshJWT();
+    profile && (async () => await refreshJWT())();
+    const interval = setInterval(async () => {
+      profile && (await refreshJWT());
+      profile && console.log('Refreshing Token!');
     }, 5 * 1000 * 60);
     return () => {
       clearInterval(interval);
       SystemNavigationBar.navigationShow();
     };
-  }, []);
+  }, [profile]);
   return (
     <>
       <Message />

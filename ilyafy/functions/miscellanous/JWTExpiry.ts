@@ -1,14 +1,11 @@
-export default (token: string): number => {
+import { jwtDecode } from "jwt-decode";
+
+export default function isAccessTokenExpired(token: string) {
   try {
-    const payload = token.split(".")[1];
-    const decoded = JSON.parse(Buffer.from(payload, "base64").toString());
-    if (!decoded.exp) return 0;
-
-    const current = Math.floor(Date.now() / 1000);
-    const diff = decoded.exp - current;
-
-    return diff > 0 ? Math.floor(diff / 60) : 0;
-  } catch {
+    const { exp } = jwtDecode<{ exp: number }>(token);
+    return (exp * 1000 - Date.now()) / 60000;
+  } catch (e) {
+    console.error('Invalid token format', e);
     return 0;
   }
 }

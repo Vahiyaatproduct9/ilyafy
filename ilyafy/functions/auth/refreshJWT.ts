@@ -6,7 +6,9 @@ export default async () => {
   const setRefreshToken = useProfile.getState().setRefreshToken;
   const oldAccessToken = useProfile.getState().accessToken || '';
   const timeLeft = JWTExpiry(oldAccessToken);
+  console.log('TIme Left for EXpiry: ', timeLeft)
   if (timeLeft < 5) {
+    console.log('UPdating AccessToken')
     const response = await refreshJWTs();
     if (response?.success) {
       setAccessToken(response?.accessToken || '');

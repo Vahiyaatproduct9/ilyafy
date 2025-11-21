@@ -1,4 +1,4 @@
-import { SignInData, SignUpData, tokenType } from 'types/auth';
+import { SignInData, SignUpData, tokenType } from 'types';
 import prisma from '@libs/prisma';
 import { encrypt, decrypt } from '@functions/secret/cryption';
 import mailto from '@libs/mailer';
@@ -7,6 +7,7 @@ import * as JWT from '@functions/secret/JWT';
 const codes = new Map<string, string>();
 export default class User {
   async signup(info: SignUpData) {
+    info.email = info.email.toLowerCase();
     if (!info.name || !info.email || !info.password) {
       return { success: false, message: 'Missing required fields' };
     }
@@ -59,6 +60,7 @@ export default class User {
     return { success: false, message: 'User creation failed' };
   }
   async signin(arg: SignInData) {
+    arg.email = arg.email.toLowerCase();
     const user = await prisma.users.findUnique({
       where: {
         email: arg.email
@@ -82,7 +84,6 @@ export default class User {
       id: user.id,
       tokenVersion: user.tokenVersion
     })
-    await prisma.users.update({ where: { id: user.id }, data: { tokenVersion: { increment: 1 } } })
     return {
       token,
       profile: {
@@ -95,6 +96,7 @@ export default class User {
     }
   }
   async #sendVerificationEmail(email: string) {
+    email = email.toLowerCase();
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const mail = await mailto({
       to: email,
@@ -107,6 +109,7 @@ export default class User {
     }
   }
   async verifyEmail({ email, code }: { email: string, code: number }) {
+    email = email.toLowerCase();
     console.log('Verify email running');
     const storedCode = codes.get(email);
     console.log('code:', codes.entries())
@@ -127,8 +130,9 @@ export default class User {
       })
       if (token.success) {
         return {
-          message: 'Email verified successfully',
-          ...token
+          message: 'Email verified successfully.',
+          ...token,
+          userId: user[0].id || ''
         }
       }
     }

@@ -47,10 +47,14 @@ export class SessionGateway {
   @SubscribeMessage('message')
   async pass(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { roomId: string, state: string, progress?: string, event?: object }
+    @MessageBody() data: { roomId: string, userId: string; state: string, progress?: string, event?: object }
   ) {
+    console.log('data: ', data);
     const room = this.localSockets.get(data.roomId);
+    console.log('local Sockets: ', this.localSockets);
     if (!room || !room.has(socket.id)) {
+      console.log('socket id:', socket.id);
+      console.log('room:', room);
       console.log('Socket not in room, ignoring message from socket: ', socket.id);
       return;
     }
@@ -63,11 +67,15 @@ export class SessionGateway {
   @SubscribeMessage('join')
   async onJoinRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { access_token: string, roomId: string }
+    @MessageBody() data: { accessToken: string, roomId: string }
   ) {
-    const verified = verifyToken(data.access_token);
+    const verified = verifyToken(data.accessToken);
     if (!verified || !verified?.success) {
       console.log('Invalid Token, disconnecting socket: ', socket.id);
+      socket.emit('reject', {
+        success: false,
+        message: 'Invalid Authentication!'
+      })
       socket.disconnect();
       return;
     }
@@ -77,10 +85,13 @@ export class SessionGateway {
       socketId: socket.id,
     })
     const room = this.localSockets.get(data.roomId);
+    console.log('room:', room);
     if (!room) {
+      console.log('No Room with this ID, creating room :', data.roomId);
       const newRoom = new Set<string>();
       newRoom.add(socket.id);
       this.localSockets.set(data.roomId, newRoom);
+      console.log('local Socktes 2 :', this.localSockets);
     } else {
       room.add(socket.id);
     }
@@ -88,5 +99,4 @@ export class SessionGateway {
     console.log('Client Joined Room: ', verified.data?.name)
     this.server.to(data.roomId).emit('join', { id: socket.id, name: verified.data?.name || 'Unknown' });
   }
-
 }

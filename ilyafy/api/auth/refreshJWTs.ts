@@ -17,6 +17,7 @@ export default async (refreshToken?: string) => {
     message?: undefined;
     error?: string;
   } | undefined = await res.json();
+  console.log('Fetching : ', response);
 
   return response;
 }
