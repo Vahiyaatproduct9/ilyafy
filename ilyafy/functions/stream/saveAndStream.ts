@@ -1,10 +1,10 @@
 import RNFB from 'react-native-blob-util'
-import path from '../path/path';
+import { domain } from '../../path/path';
 
 export default async function saveAndStream(
     ytUrl: string
 ): Promise<{ localPath: string; headers: any; metadata: undefined | any; } | undefined> {
-    const serverUrl = `http://${path}:8080/stream?url=${encodeURIComponent(ytUrl)}`
+    const serverUrl = `${domain}/stream?url=${encodeURIComponent(ytUrl)}`
     // const serverUrl = `https://ilyafy.onrender.com/stream/?url=${encodeURIComponent(ytUrl)}`
     const localPath = `${RNFB.fs.dirs.CacheDir}/${Date.now()}.aac`
 

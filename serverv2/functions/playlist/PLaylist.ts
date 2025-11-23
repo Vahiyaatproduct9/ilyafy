@@ -1,7 +1,9 @@
 import getAccessTokenfromHeaders from "@functions/others/getAccessTokenfromHeaders";
 import { verifyToken } from "@functions/secret/JWT";
+import getMetaData from "@functions/stream/getMetaData";
 import prisma from "@libs/prisma";
-import { deleteType, listType, postType } from "types";
+import { IncomingHttpHeaders } from "http";
+import { deleteType, listType, postType, song } from "types";
 
 export default class PLaylist {
   async list({
@@ -30,7 +32,33 @@ export default class PLaylist {
     });
     return song;
   }
-  async post({ headers, songInfo }: postType) {
+  async post({ url, headers }: { url: string; headers: IncomingHttpHeaders & { authorization: string; } }) {
+    const metadata: any = await getMetaData({ url });
+    const audioFormat = metadata?.formats?.find(
+      f => f.acodec !== 'none' && f.vcodec === 'none' && f.protocol === 'https'
+    );
+    if (!audioFormat) {
+      return {
+        success: false,
+        message: 'Cannot find Streamable Service, Please choose another song!'
+      }
+    }
+    const { ok } = await fetch(audioFormat?.url, { method: 'HEAD' })
+    const payload: song = {
+      title: metadata?.title || null,
+      artist: metadata?.artist || metadata?.uploader || null,
+      thumbnail: metadata?.thumbnail || null,
+      playable: ok ? true : false,
+      ytUrl: url,
+      url: metadata?.url || audioFormat?.url || '',
+      duration: metadata?.duration || null,
+      success: true,
+      ...audioFormat,
+    };
+    return await this.#addToDB({ songInfo: payload, headers })
+
+  }
+  async #addToDB({ headers, songInfo }: { headers: IncomingHttpHeaders & { authorization: string; }; songInfo: song }) {
     const token = getAccessTokenfromHeaders(headers);
     const { success, id, message, userId } = await this.#getPLaylist(token);
     if (!success) {

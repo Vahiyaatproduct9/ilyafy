@@ -5,7 +5,7 @@ export default async (email: string) => {
   const profile = useProfile.getState().profile;
   const response: {
     success: boolean;
-    message?: string | object;
+    message?: string;
     id?: string;
   } | undefined = await connect(email);
   if (response?.success) {

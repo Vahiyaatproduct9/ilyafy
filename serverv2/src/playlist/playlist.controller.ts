@@ -1,12 +1,11 @@
 import { Body, Controller, Delete, Get, Headers, Post, Query } from "@nestjs/common";
 import PlaylistService from "./playlist.service";
 import { IncomingHttpHeaders } from "http";
-import { song } from "types";
 
 type httpHeader = IncomingHttpHeaders & { authorization: string };
 
-type query = {
-  song: song
+type body = {
+  url: string
 }
 type songId = { songId: string }
 @Controller('playlist')
@@ -20,12 +19,13 @@ export default class PlaylistController {
   }
   @Get('list')
   async list(@Headers() headers: httpHeader) {
+    console.log('token:', headers.authorization);
     return this.playlist.list({ headers })
   }
   @Post()
-  async post(@Body() query: query,
+  async post(@Body() body: body,
     @Headers() headers: httpHeader) {
-    return this.playlist.post({ headers, songInfo: query.song })
+    return this.playlist.post({ headers, url: body.url })
   }
   @Delete()
   async delete(@Body() body: songId, @Headers() headers: any) {

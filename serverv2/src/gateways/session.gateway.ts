@@ -59,6 +59,7 @@ export class SessionGateway {
       return;
     }
     for (const s of room) {
+      if (s === socket.id) continue;
       this.server.to(s).emit('message', data);
     }
     console.log('Message from socket ', socket.id, ': ', data);

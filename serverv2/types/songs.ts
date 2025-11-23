@@ -21,8 +21,8 @@ export type listType = {
 }
 
 export type postType = {
-  headers: IncomingHttpHeaders & { authorization: string } | undefined;
-  songInfo: song
+  headers: IncomingHttpHeaders & { authorization: string };
+  url: string;
 }
 
 export type deleteType = {

@@ -11,7 +11,7 @@ export default async ({ email, password }: { email?: string; password: string })
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      email,
+      email: email?.trim().toLowerCase(),
       password
     })
   })

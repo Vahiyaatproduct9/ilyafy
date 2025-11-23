@@ -35,21 +35,38 @@ export default class Connection {
       }
     }
     try {
-      const roomExists = await prisma.users.findMany({
+      const emailExists = await prisma.users.findUnique({
         where: {
-          OR: [
-            { email },
-            { id: data?.id }
-          ]
+          email
         }
       });
-      if (roomExists?.length === 2 && roomExists[0].room_part_of === roomExists[1].room_part_of) {
+      if (!emailExists) {
         return {
-          ...roomExists.find(t => t.email = email),
-          success: true,
-          message: 'Room already exists!'
+          success: false,
+          message: 'Email not found :('
         }
       }
+      if (emailExists.room_part_of) {
+        return {
+          success: false,
+          message: `${emailExists.name} is already paired with somebody :(`
+        }
+      }
+      // const roomExists = await prisma.users.findMany({
+      //   where: {
+      //     OR: [
+      //       { email },
+      //       { id: data?.id }
+      //     ]
+      //   }
+      // });
+      // if (roomExists?.length === 2 && roomExists[0].room_part_of === roomExists[1].room_part_of) {
+      //   return {
+      //     ...roomExists.find(t => t.email = email),
+      //     success: true,
+      //     message: 'Room already exists!'
+      //   }
+      // }
       const newRoom = await prisma.rooms.create({
         data: {
           code: randomBytes(6).toString('hex'),

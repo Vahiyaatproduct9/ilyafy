@@ -3,13 +3,11 @@ import { InfoResponseProp } from "../../types/songs";
 import playlist from "../playlist";
 
 export default async (url: string) => {
-  const res = await fetch(`${domain}/stream/addToPlaylist?url=${url}`, {
-    method: 'GET'
-  })
+  const res = await fetch(`${domain}/stream/addToPlaylist?url=${url}`)
   const response: InfoResponseProp = await res.json();
   console.log('response from addtoplaylist: ', response);
   const metadata = {
-    index: await playlist.length() + 1 || Date.now(),
+    id: Date.now().toString(),
     title: response?.title || 'Unknown Song',
     url: response?.url || '',
     thumbnail: response?.thumbnail || '',
@@ -18,5 +16,5 @@ export default async (url: string) => {
     ytLink: url
   }
   await playlist.addSong(metadata)
-  return { ...response, ytLink: url };
+  return { ...response, ...metadata };
 }

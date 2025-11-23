@@ -14,6 +14,8 @@ import Otp from './app/otp/otpScreen';
 import useProfile from './store/useProfile';
 import Invitation from './app/tabs/invitation';
 import refreshJWT from './functions/auth/refreshJWT';
+// import { ToastAndroid } from 'react-native';
+// import Toast from 'react-native-toast-message';
 const Stack = createNativeStackNavigator();
 export default function App() {
   const profile = useProfile().profile;
@@ -22,7 +24,6 @@ export default function App() {
     SystemNavigationBar.stickyImmersive();
     const init = async () => {
       await notificationPermission();
-      //   await setupPlayer();
     };
     init();
     profile && (async () => await refreshJWT())();
@@ -35,6 +36,7 @@ export default function App() {
       SystemNavigationBar.navigationShow();
     };
   }, [profile]);
+
   return (
     <>
       <Message />

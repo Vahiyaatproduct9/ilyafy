@@ -12,7 +12,7 @@ type profileProp = {
   setRefreshToken: (arg: string) => void;
   setName: (arg: string) => void;
   setEmail: (arg: string) => void;
-  setProfile: (arg: profile) => Promise<void>;
+  setProfile: (arg: profile | null) => Promise<void>;
 };
 export default create(
   persist<profileProp>(
