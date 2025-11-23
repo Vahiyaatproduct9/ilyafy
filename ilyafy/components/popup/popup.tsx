@@ -3,38 +3,29 @@ import React, { Dispatch, SetStateAction, useState } from 'react';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import theme from '../../data/color/theme';
 import Button from '../buttons/button1';
-import addToPLaylist from '../../functions/stream/addToPLaylist';
 import useMessage from '../../store/useMessage';
 import { PlaylistProp } from '../../types/songs';
 
 const Popup = ({
   showPopup,
-  setPlaylist,
+  addSong,
+  value,
+  setValue,
 }: {
   showPopup: Dispatch<SetStateAction<boolean>>;
   setPlaylist: Dispatch<SetStateAction<PlaylistProp | []>>;
+  addSong?: () => Promise<any>;
+  value: string;
+  setValue: Dispatch<SetStateAction<string>>;
 }) => {
   // const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-  const [value, setValue] = useState<string>('');
   const [loading, setLoading] = useState<boolean | null>(null);
   const setMessage = useMessage().setMessage;
   async function Add() {
     setLoading(true);
-    const response = await addToPLaylist(value);
+    const response = await addSong();
     if (response?.success) {
       setMessage('Song Added to PLaylist :D');
-      setPlaylist(prev => [
-        ...prev,
-        {
-          index: prev.length + 1 || Date.now(),
-          title: response?.title || 'Unknown Song',
-          url: response?.url || '',
-          thumbnail: response?.thumbnail || '',
-          artist: response?.artist || '',
-          playable: response?.playable || false,
-          ytLink: response?.ytLink || '',
-        },
-      ]);
       showPopup(false);
       setLoading(null);
     } else {

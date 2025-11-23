@@ -77,14 +77,14 @@ export async function refreshToken(refreshToken: string) {
   const userToken = await prisma.users.findUnique({ where: { id: payload.id }, select: { tokenVersion: true } });
   console.log('user : ', userToken);
   if (userToken && payload?.tokenVersion === userToken.tokenVersion) {
-    await prisma.users.update({
+    const newPayload = await prisma.users.update({
       where: {
         id: payload.id
       }, data: {
         tokenVersion: { increment: 1 }
       }
     })
-    return createToken({ id: payload.id, name: payload.name, tokenVersion: payload.tokenVersion })
+    return createToken({ id: newPayload.id, name: newPayload.name, tokenVersion: newPayload.tokenVersion })
   }
   return { success: false, message: 'User not found.' };
 }

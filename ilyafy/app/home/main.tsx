@@ -10,6 +10,7 @@ import {
   Dimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  ToastAndroid,
 } from 'react-native';
 import Main2 from './main2';
 import theme from '../../data/color/theme';
@@ -18,11 +19,15 @@ import Playlist from '../tabs/playlist';
 import Invitation from '../tabs/invitation';
 import { RefObject, useRef } from 'react';
 import { AnimatedScrollView } from 'react-native-reanimated/lib/typescript/component/ScrollView';
+import Connection from '../tabs/connection';
+import useProfile from '../../store/useProfile';
+import toast from '../../components/message/toast';
 // import React, { useEffect, useState } from 'react';
 // import TrackPlayer, { Event, State } from 'react-native-track-player';
 // import saveAndStream from '../../functions/saveAndStream';
 const tabButtons = ['Playlist', 'Pair', 'Main'];
 const Main = () => {
+  toast('LOLOLOL');
   const scrollRef = useRef<AnimatedScrollView | null>(null);
   const width = Dimensions.get('window').width - 16;
   const scrollX = useSharedValue(0);
@@ -96,9 +101,8 @@ type ScrollViewProps = {
 };
 
 const ScrollView = ({ scrollRef, width, scrollHandler }: ScrollViewProps) => {
+  const room_part_of = useProfile().profile?.room_part_of;
   return (
-    // <View className="bg-slate-500 items-center flex-1">
-    // {/* <Text className="text-3xl font-bold text-blue-200">Heyy</Text> */}
     <Animated.ScrollView
       horizontal
       ref={scrollRef}
@@ -112,73 +116,12 @@ const ScrollView = ({ scrollRef, width, scrollHandler }: ScrollViewProps) => {
       className={'rounded-2xl mt-4'}
     >
       <Playlist />
-      <Invitation />
+      {room_part_of && room_part_of.length !== 0 ? (
+        <Connection />
+      ) : (
+        <Invitation />
+      )}
       <Main2 />
     </Animated.ScrollView>
   );
 };
-
-//   const sendMsg = async () => {
-//     // await TrackPlayer.add({
-//     //   id: 'placeholder',
-//     //   // url: require('../../data/test.mp3'),
-//     //   url: 'file:///data/user/0/com.ilyafy/cache/1762842829597.aac',
-//     //   title: 'Always',
-//     //   artist: 'Daniel Caesar',
-//     //   artwork: require('../../data/test.png'),
-//     // });
-//     const task = await saveAndStream(
-//       'https://youtu.be/jfjXJpUNayg?si=zGVN9eKvt1CntJMh',
-//       // 'https://youtu.be/Eicw_dIi2dw?si=RfCTdEDpY83gfUpf',
-//       // 'https://youtu.be/rScwLoES2bM?si=YOSMQyhVGQtpKnk1',
-//       // 'https://youtu.be/xnP7qKxwzjg?si=kbOCKZEELlctlZZe',
-//     );
-//     const path = task?.localPath;
-//     const headers = task?.headers;
-//     const metadata = task?.metadata;
-//     const isStreamed =
-//       path?.startsWith('https://') || path?.startsWith('http://') || false;
-//     console.log('task: ', task);
-//     if (path) {
-//       await TrackPlayer.add({
-//         id: `${(await TrackPlayer.getQueue()).length + 1}`,
-//         url: isStreamed ? path : `file://${path}`,
-//         title: isStreamed
-//           ? metadata?.title
-//           : headers['X-Track-Title'] || 'Streamed Audio',
-//         artist: isStreamed
-//           ? metadata?.artist
-//           : headers['X-Track-Artist'] || 'Ilyafy',
-//         artwork: isStreamed
-//           ? metadata?.thumbnail
-//           : headers['X-Track-Thumb'] || require('../../data/test.png'),
-//         duration: isStreamed
-//           ? metadata?.duration
-//           : parseInt(headers['X-Duration'], 10) || undefined,
-//       });
-//       await TrackPlayer.play();
-//     }
-//     const queue = await TrackPlayer.getQueue();
-//     console.log({ queue });
-//   };
-//   const [message, setMessage] = useState<string>('Download Audio');
-//   useEffect(() => {
-//     TrackPlayer.addEventListener(Event.PlaybackState, state => {
-//       if (state.state === State.Buffering || state.state === State.Loading) {
-//         setMessage('buffering...');
-//       } else {
-//         setMessage('Loaded');
-//       }
-//     });
-//   }, []);
-//   return (
-//     <View className="bg-slate-500 items-center flex-1 justify-center">
-//       <Text className="text-3xl font-bold text-blue-200">Welcome!</Text>
-//       <Pressable
-//         className="bg-slate-400 py-3 px-10 rounded-xl"
-//         onPress={sendMsg}
-//       >
-//         <Text className="font-semibold text-xl color-blue-300">{message}</Text>
-//       </Pressable>
-//     </View>
-//   );

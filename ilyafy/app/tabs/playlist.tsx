@@ -1,50 +1,83 @@
-import {
-  View,
-  Text,
-  Dimensions,
-  Image,
-  Pressable,
-  TextInput,
-} from 'react-native';
+import { View, Dimensions, TextInput } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import theme from '../../data/color/theme';
-import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import Icon from '../../components/icons/icon';
-const image = require('../../assets/images/background.png');
 import Add from '../../assets/icons/add.svg';
 import Search from '../../assets/icons/search.svg';
 import Popup from '../../components/popup/popup';
 import Options from '../../assets/icons/options.svg';
 import PL from '../../functions/playlist';
-import { PlaylistProp, songProp } from '../../types/songs';
+import { PlaylistProp } from '../../types/songs';
 import SongOptions from '../../components/options/songOptions';
+import Item from '../../components/playlist/song';
+import addToPLaylist from '../../functions/stream/addToPLaylist';
+import pl from '../../functions/playlist';
 const Playlist = () => {
   const [addShown, showAddScreen] = useState<boolean>(false);
-  const [playlist, setPLaylist] = useState<PlaylistProp | []>([]);
-  const [options, setOptions] = useState<number | null>(null);
+  const [playlist, setPlaylist] = useState<PlaylistProp | []>([]);
+  const [options, setOptions] = useState<string | null>(null);
+  const [value, setValue] = useState<string>('');
   useEffect(() => {
     (async () => {
       const localPlaylist = await PL.getSongs();
-      setPLaylist(localPlaylist);
+      setPlaylist(localPlaylist);
     })();
   }, []);
   const width = Dimensions.get('window').width - 16;
-  function showOptionsOf(i: number) {
+  function showOptionsOf(i: string) {
     setOptions(i);
   }
+  const addSong = async () => {
+    const response = await addToPLaylist(value);
+    if (response?.success) {
+      setPlaylist(prev => [
+        ...prev,
+        {
+          id: response?.id || Date.now().toString(),
+          title: response?.title || 'Unknown Song',
+          url: response?.url || '',
+          thumbnail: response?.thumbnail || '',
+          artist: response?.artist || '',
+          playable: response?.playable || false,
+          ytLink: response?.ytLink || '',
+        },
+      ]);
+      setValue('');
+    }
+    return response;
+  };
+  const delSong = async (index: string) => {
+    await pl.deleteSong(index).then(() => {
+      setPlaylist(prev =>
+        prev
+          .filter(t => t.id !== index)
+          .map((s, ind) => {
+            return { ...s, index: ind + 1 };
+          }),
+      );
+      setOptions(null);
+    });
+  };
   return (
     <View
       className="flex-1 gap-2 items-center"
       style={{ width, backgroundColor: theme.secondary }}
     >
       {addShown && (
-        <Popup setPlaylist={setPLaylist} showPopup={showAddScreen} />
+        <Popup
+          setValue={setValue}
+          value={value}
+          setPlaylist={setPlaylist}
+          addSong={addSong}
+          showPopup={showAddScreen}
+        />
       )}
       {options && (
         <SongOptions
+          delSong={delSong}
           i={options}
-          setPlaylist={setPLaylist}
-          song={playlist.filter(t => t.index === options)[0]}
+          song={playlist.filter(t => t.id === options)[0]}
           setOptions={setOptions}
         />
       )}
@@ -81,45 +114,3 @@ const Playlist = () => {
 };
 
 export default Playlist;
-
-const Item = ({
-  i,
-  song,
-  showOptionsOf,
-}: {
-  i: number | null;
-  song: songProp;
-  showOptionsOf: (i: number) => void;
-}) => {
-  return (
-    <Pressable key={i} onPress={() => {}} className="w-full my-1 flex-row px-2">
-      <Animated.View
-        entering={FadeInDown}
-        exiting={FadeOutUp}
-        className={'flex-row flex-1 rounded-2xl p-1'}
-        style={{ backgroundColor: theme.primary }}
-      >
-        <Image
-          source={song.thumbnail ? { uri: song.thumbnail } : image}
-          className="h-20 w-20 rounded-2xl self-center "
-        />
-        <View className="p-3 flex-1">
-          <Text className="font-semibold text-xl" style={{ color: theme.text }}>
-            {song?.title || 'Unknown Song'}
-          </Text>
-          <Text className="font-thin text-l" style={{ color: theme.text }}>
-            {song?.artist || 'Unknown Artist'}
-          </Text>
-        </View>
-        <View className="items-center justify-center p-2">
-          <Icon
-            component={Options}
-            onPress={() => showOptionsOf(song.index)}
-            fill={theme.text}
-            size={28}
-          />
-        </View>
-      </Animated.View>
-    </Pressable>
-  );
-};

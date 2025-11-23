@@ -11,7 +11,7 @@ export default async ({ email, name, password }: signUpProps) => {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ email, password, name })
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password, name })
   });
   const response: signUp = await res.json();
   console.log('response: ', response)

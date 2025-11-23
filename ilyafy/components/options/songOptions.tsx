@@ -1,31 +1,21 @@
-import { View, Text, Pressable } from 'react-native';
+import { Text, Pressable } from 'react-native';
 import React, { Dispatch, SetStateAction } from 'react';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
-import { PlaylistProp, songProp } from '../../types/songs';
+import { songProp } from '../../types/songs';
 import theme from '../../data/color/theme';
 import Button from '../buttons/button1';
-import playlist from '../../functions/playlist';
 
 type optionProp = {
-  i: number;
+  i: string;
   song: songProp;
-  setOptions: Dispatch<SetStateAction<number | null>>;
-  setPlaylist: Dispatch<SetStateAction<PlaylistProp | []>>;
+  setOptions: Dispatch<SetStateAction<string | null>>;
+  delSong: (i: string) => any;
 };
 
-const SongOptions = ({ i, song, setPlaylist, setOptions }: optionProp) => {
+const SongOptions = ({ i, song, delSong, setOptions }: optionProp) => {
   console.log('song: ', song);
-  const deleteSong = async (index: number) => {
-    await playlist.deleteSong(index).then(() => {
-      setPlaylist(prev =>
-        prev
-          .filter(t => t.index !== i)
-          .map((s, ind) => {
-            return { ...s, index: ind + 1 };
-          }),
-      );
-      setOptions(null);
-    });
+  const deleteSong = async (index: string) => {
+    await delSong(index);
   };
   const AP = Animated.createAnimatedComponent(Pressable);
   return (

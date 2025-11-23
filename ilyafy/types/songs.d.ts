@@ -1,9 +1,9 @@
 export type songProp = {
-  index: number;
+  id: string;
   title: string;
   artist: string;
   url: string;
-  ytLink: string;
+  ytUrl: string;
   thumbnail: string;
   playable: boolean;
   duration?: number;

@@ -17,7 +17,7 @@ export default class PlaylistService {
   async delete({ headers, songId }: deleteType) {
     return await this.playlist.delete({ headers, songId })
   }
-  async post({ headers, songInfo }: postType) {
-    return await this.playlist.post({ headers, songInfo })
+  async post({ headers, url }: postType) {
+    return await this.playlist.post({ headers, url })
   }
 }
