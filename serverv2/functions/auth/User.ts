@@ -24,7 +24,8 @@ export default class User {
       create: {
         name: info.name,
         email: info.email,
-        password: encrypt(info.password)
+        password: encrypt(info.password),
+        fcm_token: info.fcmToken
       },
       update: {
         name: info.name,
@@ -61,9 +62,12 @@ export default class User {
   }
   async signin(arg: SignInData) {
     arg.email = arg.email.toLowerCase();
-    const user = await prisma.users.findUnique({
+    const user = await prisma.users.update({
       where: {
         email: arg.email
+      },
+      data: {
+        fcm_token: arg.fcmToken
       }
     });
     if (!user) {
@@ -78,7 +82,6 @@ export default class User {
         message: 'Incorrect password'
       }
     }
-    console.log("level 3:", arg, user)
     const token = this.createToken({
       name: user.name,
       id: user.id,

@@ -10,15 +10,14 @@ interface wsConnectedion {
   isConnected: boolean;
   connect: () => void;
   userId: string | null;
-  sendMessage: (arg: Object | []) => boolean;
+  sendMessage: (arg: Object | []) => Promise<boolean>;
   roomId: string | null;
 }
 interface command {
   state: commands;
   data: any;
 }
-export const commandEmitter: EventEmitter<commands, string> =
-  new EventEmitter();
+export const commandEmitter: EventEmitter<commands, any> = new EventEmitter();
 
 export default create<wsConnectedion>()((set, get) => ({
   socket: null,
@@ -44,16 +43,17 @@ export default create<wsConnectedion>()((set, get) => ({
     });
     setInterval(async () => {
       const state = await TrackPlayer.getPlaybackState();
-      const progress = await TrackPlayer.getProgress();
-      const track_id = (await TrackPlayer.getActiveTrack())?.id;
+      const { position, buffered, duration } = await TrackPlayer.getProgress();
       if (get().isConnected) {
         socket.emit('message', {
           state: 'heartbeat',
-          status: state,
-          progress,
-          track_id,
+          status: state.state,
+          position,
+          buffered,
+          duration,
           userId: get().userId,
           roomId: get().roomId,
+          songId: (await TrackPlayer.getActiveTrack())?.mediaId || undefined,
         });
       }
     }, 7000);
@@ -82,15 +82,16 @@ export default create<wsConnectedion>()((set, get) => ({
       console.error('Socket Connect Error: ', err);
     });
   },
-  sendMessage: arg => {
+  sendMessage: async arg => {
     console.log('sending Message: ', arg);
     if (get().isConnected && get().socket) {
       console.log('Connected, sending...');
       get().socket?.emit('message', {
         state: 'event',
-        ...arg,
         userId: get().userId,
         roomId: get().roomId,
+        songId: (await TrackPlayer.getActiveTrack())?.mediaId || undefined,
+        ...arg,
       });
       return true;
     } else {

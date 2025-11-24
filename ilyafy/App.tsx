@@ -1,8 +1,6 @@
 import './global.css';
 import Main from './app/home/main';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// import useSocketStore from './store/useSocketStore';
-// import { setupPlayer } from './functions/setupPlayer';
 import notificationPermission from './permissions/notificationPermission';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { NavigationContainer } from '@react-navigation/native';
@@ -14,8 +12,6 @@ import Otp from './app/otp/otpScreen';
 import useProfile from './store/useProfile';
 import Invitation from './app/tabs/invitation';
 import refreshJWT from './functions/auth/refreshJWT';
-// import { ToastAndroid } from 'react-native';
-// import Toast from 'react-native-toast-message';
 const Stack = createNativeStackNavigator();
 export default function App() {
   const profile = useProfile().profile;
@@ -31,6 +27,7 @@ export default function App() {
       profile && (await refreshJWT());
       profile && console.log('Refreshing Token!');
     }, 5 * 1000 * 60);
+
     return () => {
       clearInterval(interval);
       SystemNavigationBar.navigationShow();

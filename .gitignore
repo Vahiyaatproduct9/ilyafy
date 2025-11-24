@@ -17,6 +17,7 @@ ilyafy/*.moved-aside
 ilyafy/DerivedData
 ilyafy/*.hmap
 ilyafy/*.ipa
+ilyafy/android/app/google-services.json
 ilyafy/*.xcuserstate
 ilyafy/**/.xcode.env.local
 ilyafy/build/
@@ -62,7 +63,7 @@ ilyafy/android/app/build
 server/cookies*
 **/*.keystore
 **/*.txt
-
+**/serviceAccountKey.json
 **/pids
 **/*.pid
 **/*.seed

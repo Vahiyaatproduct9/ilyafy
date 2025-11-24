@@ -10,7 +10,6 @@ import {
   Dimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  ToastAndroid,
 } from 'react-native';
 import Main2 from './main2';
 import theme from '../../data/color/theme';
@@ -21,13 +20,8 @@ import { RefObject, useRef } from 'react';
 import { AnimatedScrollView } from 'react-native-reanimated/lib/typescript/component/ScrollView';
 import Connection from '../tabs/connection';
 import useProfile from '../../store/useProfile';
-import toast from '../../components/message/toast';
-// import React, { useEffect, useState } from 'react';
-// import TrackPlayer, { Event, State } from 'react-native-track-player';
-// import saveAndStream from '../../functions/saveAndStream';
 const tabButtons = ['Playlist', 'Pair', 'Main'];
 const Main = () => {
-  toast('LOLOLOL');
   const scrollRef = useRef<AnimatedScrollView | null>(null);
   const width = Dimensions.get('window').width - 16;
   const scrollX = useSharedValue(0);

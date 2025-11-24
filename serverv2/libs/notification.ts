@@ -1,0 +1,34 @@
+import { configDotenv } from 'dotenv';
+import admin from 'firebase-admin';
+configDotenv();
+const SECRET = process.env.GOOGLE_API || '';
+const serviceAccount = JSON.parse(SECRET);
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+})
+
+export default async ({ message, fcmToken }: {
+  message: {
+    title: string;
+    body: string;
+    data?: object;
+    event: 'playlist' | 'poke';
+  };
+  fcmToken: string;
+}) => {
+  admin.messaging().send({
+    notification: {
+      title: message.title,
+      body: message.body,
+    },
+    token: fcmToken,
+    data: {
+      ...message.data,
+      event: message.event
+    },
+  })
+    .then(() => {
+      console.log('Notification sent!')
+    })
+    .catch(() => { console.error('Some Error Occured!') });
+}

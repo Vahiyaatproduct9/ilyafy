@@ -1,6 +1,7 @@
 import getAccessTokenfromHeaders from "@functions/others/getAccessTokenfromHeaders";
 import { verifyToken } from "@functions/secret/JWT";
 import getMetaData from "@functions/stream/getMetaData";
+import notification from "@libs/notification";
 import prisma from "@libs/prisma";
 import { IncomingHttpHeaders } from "http";
 import { deleteType, listType, postType, song } from "types";
@@ -9,8 +10,8 @@ export default class PLaylist {
   async list({
     headers
   }: listType) {
-    const token = getAccessTokenfromHeaders(headers)
-    const { success, id, message } = await this.#getPLaylist(token)
+    const token = getAccessTokenfromHeaders(headers);
+    const { success, id, message } = await this.#getPLaylist(token);
     if (!success) {
       return {
         success,
@@ -77,6 +78,26 @@ export default class PLaylist {
         url: songInfo.url,
         ytUrl: songInfo.ytUrl,
         playable: songInfo.playable
+      },
+      select: {
+        id: true,
+        title: true,
+        artist: true,
+        thumbnail: true,
+        added_by: true,
+        added_at: true,
+        url: true,
+        ytUrl: true,
+        playable: true,
+        playlists: {
+          select: {
+            rooms: {
+              select: {
+                users: true
+              }
+            }
+          }
+        }
       }
     });
     if (!insertSong) {
@@ -84,6 +105,31 @@ export default class PLaylist {
         success: false,
         message: 'Some Error Occured X('
       }
+    }
+    const { success: userSuccess, data } = verifyToken(token);
+    if (userSuccess) {
+      await notification({
+        message: {
+          title: '+1',
+          body: '1 song added to Playlist!',
+          data: {
+            songDetails: JSON.stringify({
+              id: insertSong.id || '',
+              title: insertSong.title || '',
+              artist: insertSong.artist || '',
+              thumbnail: insertSong.thumbnail || '',
+              added_by: insertSong.added_by || '',
+              added_at: insertSong.added_at || '',
+              ytUrl: insertSong.ytUrl || '',
+              url: insertSong.url || '',
+              playable: insertSong.playable || ''
+            }),
+
+          },
+          event: 'playlist'
+        },
+        fcmToken: insertSong.playlists?.rooms?.users.find(t => t.id === data?.id)?.fcm_token || ''
+      })
     }
     return {
       success: true,
@@ -93,7 +139,7 @@ export default class PLaylist {
   }
   async delete({ headers, songId }: deleteType) {
     const token = getAccessTokenfromHeaders(headers);
-    const { success, id, message } = await this.#getPLaylist(token);
+    const { success, id, fcm_token, message } = await this.#getPLaylist(token);
     if (!success) {
       return {
         success,
@@ -114,6 +160,17 @@ export default class PLaylist {
         message: "Couldn't Delete Song :("
       }
     }
+    notification({
+      message: {
+        title: `-${deleteSong.count}`,
+        body: `${deleteSong.count} Song removed from Playlist`,
+        data: {
+          songId
+        },
+        event: 'playlist'
+      },
+      fcmToken: fcm_token || ''
+    })
     return {
       success: true,
       message: 'Deleted Song!',
@@ -134,6 +191,7 @@ export default class PLaylist {
         id: data?.id
       },
       select: {
+        fcm_token: true,
         rooms: {
           select: {
             playlists: {
@@ -156,7 +214,8 @@ export default class PLaylist {
       success: true,
       id: playlistId?.rooms?.playlists[0]?.id || '',
       message: 'found.',
-      userId: data?.id
+      userId: data?.id,
+      fcm_token: playlistId.fcm_token
     }
   }
 }

@@ -78,6 +78,7 @@ const Main = () => {
       for (const song of response) {
         if (song.playable) {
           await TrackPlayer.add({
+            mediaId: song.id,
             url: song.url,
             artwork: song.thumbnail,
             artist: song.artist,
@@ -105,6 +106,7 @@ const Main = () => {
             : undefined;
 
           await TrackPlayer.add({
+            mediaId: song.id,
             url: trackUrl,
             title: song.title || 'Streamed Audio',
             artist: song.artist || 'Ilyafy',
