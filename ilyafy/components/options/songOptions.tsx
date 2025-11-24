@@ -7,7 +7,7 @@ import Button from '../buttons/button1';
 
 type optionProp = {
   i: string;
-  song: songProp;
+  song: songProp | undefined;
   setOptions: Dispatch<SetStateAction<string | null>>;
   delSong: (i: string) => any;
 };
@@ -34,10 +34,10 @@ const SongOptions = ({ i, song, delSong, setOptions }: optionProp) => {
         style={{ backgroundColor: theme.primary }}
       >
         <Text className="font-semibold text-xl" style={{ color: theme.text }}>
-          {song.title}
+          {song?.title || ''}
         </Text>
         <Text className="text-l self-end" style={{ color: theme.text }}>
-          {song.artist}
+          {song?.artist || ''}
         </Text>
         <Button
           label="Delete"

@@ -1,7 +1,9 @@
 import { domain } from "../../path/path";
 import { signInProps } from "../../types/components";
 import useProfile from "../../store/useProfile";
-export default async ({ email, password }: { email?: string; password: string }) => {
+import messaging from "@react-native-firebase/messaging";
+export default async ({ email, password }: { email: string; password: string }) => {
+  const fcmToken = await messaging().getToken();
   const setAccessToken = useProfile.getState().setAccessToken;
   const setRefreshToken = useProfile.getState().setRefreshToken;
   const setProfile = useProfile.getState().setProfile;
@@ -12,7 +14,8 @@ export default async ({ email, password }: { email?: string; password: string })
     },
     body: JSON.stringify({
       email: email?.trim().toLowerCase(),
-      password
+      password,
+      fcmToken
     })
   })
   const response: signInProps | undefined = await res.json();

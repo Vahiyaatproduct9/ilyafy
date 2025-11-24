@@ -3,10 +3,12 @@ export interface SignUpData {
   email: string;
   password: string;
   room_part_of?: string;
+  fcmToken?: string;
 }
 export interface SignInData {
   email: string;
   password: string;
+  fcmToken?: string;
 }
 export interface emailVerificationData {
   email: string;

@@ -12,6 +12,9 @@ export class signUpDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+  @IsString()
+  @IsNotEmpty()
+  fcmToken: string;
 }
 export class SignInDto {
   @IsNotEmpty()
@@ -20,6 +23,9 @@ export class SignInDto {
 
   @IsNotEmpty()
   password: string;
+  @IsString()
+  fcmToken: string;
+
 }
 export class emailVerificationDto {
   @IsEmail()

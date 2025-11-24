@@ -40,7 +40,7 @@ const Playlist = () => {
           thumbnail: response?.thumbnail || '',
           artist: response?.artist || '',
           playable: response?.playable || false,
-          ytLink: response?.ytLink || '',
+          ytUrl: response?.ytLink || '',
         },
       ]);
       setValue('');

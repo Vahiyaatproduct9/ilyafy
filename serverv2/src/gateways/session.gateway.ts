@@ -49,7 +49,6 @@ export class SessionGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody() data: { roomId: string, userId: string; state: string, progress?: string, event?: object }
   ) {
-    console.log('data: ', data);
     const room = this.localSockets.get(data.roomId);
     console.log('local Sockets: ', this.localSockets);
     if (!room || !room.has(socket.id)) {
