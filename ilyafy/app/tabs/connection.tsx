@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import theme from '../../data/color/theme';
 import getRoommate from '../../api/room/getRoommate';
 import useProfile from '../../store/useProfile';
+import Button from '../../components/buttons/button1';
+import pokeUser from '../../api/room/pokeUser';
 
 const Connection = () => {
   const width = Dimensions.get('window').width - 16;
@@ -16,8 +18,17 @@ const Connection = () => {
   >();
   const room_part_of = useProfile.getState().profile?.room_part_of;
   useEffect(() => {
-    getRoommate(room_part_of || '')
-      .then(res => setPartner(res))
+    getRoommate()
+      .then(response => {
+        if (response?.success)
+          setPartner([
+            {
+              id: response?.user?.id || '',
+              name: response?.user?.name || '',
+              email: response?.user?.email || '',
+            },
+          ]);
+      })
       .catch(err => {
         console.log('error:', err);
         setPartner([]);
@@ -31,6 +42,7 @@ const Connection = () => {
       className="flex-1 h-full items-center justify-center p-5"
       style={{ width, backgroundColor: theme.background }}
     >
+      <Button label="POKE" onPress={pokeUser} />
       <Text className="p-5 text-xl font-bold" style={{ color: theme.text }}>
         Paired with
       </Text>
@@ -48,7 +60,7 @@ const Connection = () => {
                 style={{ color: theme.text }}
                 className="font-normal text-xl"
               >
-                {item.name}
+                {item?.name || ''}
               </Text>
             </View>
             <View className="gap-2 justify-between flex-row">
@@ -62,7 +74,7 @@ const Connection = () => {
                 style={{ color: theme.text }}
                 className="font-normal text-xl"
               >
-                {item.email}
+                {item?.email || ''}
               </Text>
             </View>
           </View>
