@@ -16,7 +16,7 @@ export default async ({ message, fcmToken }: {
   };
   fcmToken: string;
 }) => {
-  admin.messaging().send({
+  return await admin.messaging().send({
     notification: {
       title: message.title,
       body: message.body,
@@ -29,6 +29,7 @@ export default async ({ message, fcmToken }: {
   })
     .then(() => {
       console.log('Notification sent!')
+      return true;
     })
-    .catch(() => { console.error('Some Error Occured!') });
+    .catch(() => { console.error('Some Error Occured!'); return false });
 }

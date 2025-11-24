@@ -4,6 +4,7 @@ import { encrypt, decrypt } from '@functions/secret/cryption';
 import mailto from '@libs/mailer';
 import verification from '@templates/verification';
 import * as JWT from '@functions/secret/JWT';
+import notification from '@libs/notification';
 const codes = new Map<string, string>();
 export default class User {
   async signup(info: SignUpData) {
@@ -144,13 +145,99 @@ export default class User {
       message: 'Invalid verification code'
     }
   }
+  async getRoommate(token: string) {
+    const { success, data, message } = this.verifyToken(token);
+    if (!success) {
+      return {
+        success,
+        message
+      }
+    }
+    const roommate = await prisma.users.findUnique({
+      where: {
+        id: data?.id || ''
+      },
+      select: {
+        rooms: {
+          select: {
+            users: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                room_part_of: true,
+              }
+            }
+          }
+        }
+      }
+    });
+    if (!roommate) {
+      return {
+        success: false,
+        message: 'Something went wrong! X('
+      }
+    }
+
+    const partner = roommate.rooms?.users.find(t => t.id !== data?.id)
+    return {
+      success: true,
+      user: partner
+    }
+  }
+  async pokeUser(token: string) {
+    const { success, data, message } = this.verifyToken(token);
+    if (!success) {
+      return {
+        success,
+        message,
+      }
+    }
+    const users = await prisma.users.findUnique({
+      where: {
+        id: data?.id
+      },
+      select: {
+        rooms: {
+          select: {
+            users: {
+              select: {
+                fcm_token: true,
+                name: true,
+                id: true
+              }
+            }
+          }
+        }
+      }
+    });
+    const partner = users?.rooms?.users.find(t => t.id === data?.id);
+    const sent = await notification({
+      message: {
+        title: 'Ouch!',
+        body: `${partner?.name || 'They'} poked you to join!`,
+        event: 'poke'
+      },
+      fcmToken: partner?.fcm_token || '',
+    });
+    if (!sent) {
+      return {
+        success: false,
+        message: 'Couldn\'t poke them... :('
+      }
+    }
+    return {
+      success: true,
+      message: 'Made them mad! >:)'
+    }
+  }
   createToken(users: tokenType) {
     return JWT.createToken(users)
   }
-  verifyToken(args: { token: string }) {
-    return JWT.verifyToken(args.token)
+  verifyToken(token: string) {
+    return JWT.verifyToken(token)
   }
-  async refreshToken(args: { refreshToken: string }) {
-    return await JWT.refreshToken(args.refreshToken)
+  async refreshToken(refreshToken: string) {
+    return await JWT.refreshToken(refreshToken)
   }
 }

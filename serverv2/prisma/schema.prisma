@@ -49,7 +49,7 @@ model users {
   password      String
   name          String
   room_part_of  String?  @db.Uuid
-  fcm_token     String?  @unique
+  fcm_token     String?
   songs         songs[]
   rooms         rooms?   @relation(fields: [room_part_of], references: [id], onUpdate: NoAction)
   authenticated Boolean? @default(false)
