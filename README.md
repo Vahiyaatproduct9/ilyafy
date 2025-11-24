@@ -1,5 +1,7 @@
 # Ilyafy v1
 
+![App Logo](https://github.com/Vahiyaatproduct9/ilyafy/blob/main/app_icon.png?raw=true)
+
 ## GOALS
 
 ## Soon to Come in Ilyafy!
@@ -46,8 +48,8 @@
 - **Scenario**
   - User 1 already connected and playing songs.
   - User 2 just opened the app.
-- **_Workflow:_** - User 2 has to connect to socket manually first. - both sends out heartbeat of - | | User 1 | User 2 |
-  | ------- | ------------- | -------------- |
-  | state | `playing` | `none` |
+- | **_Workflow:_** - User 2 has to connect to socket manually first. - both sends out heartbeat of - |           | User 1 | User 2 |
+  | ------------------------------------------------------------------------------------------------- | --------- | ------ | ------ |
+  | state                                                                                             | `playing` | `none` |
 
       - User 1's state is given priority since it's `playing`.
