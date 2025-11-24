@@ -1,5 +1,7 @@
 # Ilyafy v1
 
+![App Icon](https://raw.githubusercontent.com/Vahiyaatproduct9/ilyafy/refs/heads/main/app_icon.png)
+
 ## GOALS
 
 ## Soon to Come in Ilyafy!
