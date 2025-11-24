@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import User from '@functions/auth/User';
 import { emailVerificationData, refreshToken, SignInData, SignUpData } from 'types/auth';
 import Connection from '@functions/connect/connect';
-import prisma from '@libs/prisma';
 
 @Injectable({})
 export default class AuthService {
@@ -22,7 +21,8 @@ export default class AuthService {
     return this.user.verifyEmail(info)
   }
   refreshToken(info: refreshToken) {
-    return this.user.refreshToken(info)
+    const token = info.refreshToken;
+    return this.user.refreshToken(token)
   }
   connectUser(info: { accessToken: string; email: string; }) {
     return this.connection.connectUser(info)
@@ -30,13 +30,10 @@ export default class AuthService {
   searchUser(info: string) {
     return this.connection.search(info)
   }
-  async getRoommate(roomId: string) {
-    const user = await prisma.users.findMany({
-      where: {
-        room_part_of: roomId
-      },
-      omit: { password: true }
-    });
-    return user;
+  pokeUser(token: string) {
+    return this.user.pokeUser(token);
+  }
+  async getRoommate(token: string) {
+    return this.user.getRoommate(token);
   }
 }

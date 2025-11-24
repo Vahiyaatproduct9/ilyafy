@@ -12,7 +12,7 @@ const prismaGlobal = globalThis as unknown as {
 export const prisma =
   prismaGlobal.prisma ??
   new PrismaClient({
-    log: ['query', 'info', 'error', 'warn'],
+    log: ['info', 'error', 'warn'],
     adapter
   });
 

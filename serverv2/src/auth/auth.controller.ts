@@ -4,6 +4,7 @@ import * as dto from 'types/dto'
 import { IncomingHttpHeaders } from 'http';
 import { verifyToken } from '@functions/secret/JWT';
 import prisma from '@libs/prisma';
+import getAccessTokenfromHeaders from '@functions/others/getAccessTokenfromHeaders';
 
 @Controller('auth/users')
 export default class AuthController {
@@ -38,8 +39,9 @@ export default class AuthController {
     return this.authService.connectUser(body)
   }
   @Get('roommate')
-  async getRoommate(@Query() query: { roomId: string }) {
-    return await this.authService.getRoommate(query.roomId)
+  async getRoommate(@Headers() headers: IncomingHttpHeaders & { authorization: string }) {
+    const token = getAccessTokenfromHeaders(headers);
+    return await this.authService.getRoommate(token)
   }
   @Get('refresh-profile')
   async refreshProfile(@Headers() headers: IncomingHttpHeaders & { authorization: string }) {
@@ -57,4 +59,10 @@ export default class AuthController {
     });
     return { success: true, user }
   }
+  @Get('poke')
+  async pokeUser(@Headers() headers: IncomingHttpHeaders & { authorization: string },) {
+    const token = getAccessTokenfromHeaders(headers);
+    return this.authService.pokeUser(token);
+  }
+
 }
