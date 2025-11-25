@@ -34,7 +34,6 @@ import {
 import MiniPlayer from '../../components/player/miniPlayer';
 import MacroPlayer from '../../components/player/macroPlayer';
 import Icon from '../../components/icons/icon';
-const image = require('../../assets/images/background.png');
 import Play from '../../assets/icons/play.svg';
 import Next from '../../assets/icons/next.svg';
 const tabButtons = ['Playlist', 'Pair', 'Main'];
