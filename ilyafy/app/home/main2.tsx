@@ -76,7 +76,8 @@ const Main = () => {
       await TrackPlayer.reset();
       // iterate over the fresh response (not the stale state variable)
       for (const song of response) {
-        if (song.playable) {
+        // if (song.playable) {
+        if (false) {
           await TrackPlayer.add({
             mediaId: song.id,
             url: song.url,
@@ -117,6 +118,7 @@ const Main = () => {
       }
     }
     await TrackPlayer.play();
+    console.log(await TrackPlayer.getQueue());
   };
   useEffect(() => {
     load();

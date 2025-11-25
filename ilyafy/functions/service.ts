@@ -43,29 +43,38 @@ export default async function () {
   });
   TrackPlayer.addEventListener(Event.RemoteSkip, async event => {
     await TrackPlayer.skip(event.index)
+    await TrackPlayer.play();
+    const progress = await TrackPlayer.getProgress();
     sendMessage({
       state: 'skip',
-      ...event
+      ...event,
+      ...progress
     })
     console.log('Skipped: ', event)
   })
   TrackPlayer.addEventListener(Event.RemoteNext, async () => {
     await TrackPlayer.skipToNext()
+    await TrackPlayer.play();
     const nextSongIndex = await TrackPlayer.getActiveTrackIndex()
-    const nextSongId = queue[nextSongIndex || 0]
+    const nextSongId = queue[nextSongIndex || 0]?.mediaId || '';
+    const progress = await TrackPlayer.getProgress();
     sendMessage({
       state: 'skip',
-      songId: nextSongId
+      songId: nextSongId,
+      ...progress
     })
   })
   TrackPlayer.addEventListener(Event.RemotePrevious, async () => {
     await TrackPlayer.skipToPrevious()
+    await TrackPlayer.play();
     const prevSongIndex = await TrackPlayer.getActiveTrackIndex()
-    const nextSongId = queue[prevSongIndex || 0]
+    const nextSongId = queue[prevSongIndex || 0]?.mediaId || ''
+    const progress = await TrackPlayer.getProgress();
 
     sendMessage({
       state: 'skip',
-      songId: nextSongId
+      songId: nextSongId,
+      ...progress
     })
   })
   commandEmitter.on('play', async data => {
@@ -104,7 +113,7 @@ export default async function () {
   })
   commandEmitter.on('skip', async data => {
     const songIndex = queue.findIndex(t => t.mediaId === data.songId)
-    await TrackPlayer.skip(songIndex, 0);
+    await TrackPlayer.skip(songIndex, data.position);
     await TrackPlayer.play();
     toast('They skipped a song.')
   })
