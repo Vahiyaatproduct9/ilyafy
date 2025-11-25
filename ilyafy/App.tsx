@@ -8,13 +8,16 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Welcome from './app/auth/welcome';
 import { useEffect } from 'react';
 import Message from './components/message/message';
+import notifee, { EventType } from '@notifee/react-native';
 import Otp from './app/otp/otpScreen';
 import useProfile from './store/useProfile';
 import Invitation from './app/tabs/invitation';
+import useSocketStore from './store/useSocketStore';
 import refreshJWT from './functions/auth/refreshJWT';
 const Stack = createNativeStackNavigator();
 export default function App() {
   const profile = useProfile().profile;
+  const connect = useSocketStore().connect;
   console.log('profile:', profile);
   useEffect(() => {
     SystemNavigationBar.stickyImmersive();
@@ -33,6 +36,20 @@ export default function App() {
       SystemNavigationBar.navigationShow();
     };
   }, [profile]);
+  notifee.onForegroundEvent(data => {
+    const { type, detail } = data;
+    if (type === EventType.ACTION_PRESS) {
+      if (detail?.pressAction?.id === 'join') {
+        connect();
+      } else {
+        console.log('Declined');
+      }
+    }
+  });
+  notifee.onBackgroundEvent(data => {
+    const { type, detail } = data;
+    console.log('type & detail: ', data);
+  });
 
   return (
     <>
