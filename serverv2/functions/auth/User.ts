@@ -212,6 +212,7 @@ export default class User {
       }
     });
     const partner = users?.rooms?.users.find(t => t.id === data?.id);
+    // CHANGE THE '===' TO '!=='
     const sent = await notification({
       message: {
         title: 'Ouch!',
