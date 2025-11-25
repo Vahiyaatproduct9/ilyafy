@@ -46,14 +46,14 @@ const Circle = () => {
     };
   });
   const panGesture = Gesture.Pan()
-    .onBegin(e => {
+    .onBegin(() => {
       // translateX.value = e.absoluteX;
     })
     .onUpdate(e => {
       translateY.value = withTiming(translateY.value + e.translationY / 2);
       translateX.value = withTiming(translateX.value + e.translationX / 2);
     })
-    .onEnd(e => {});
+    .onEnd(() => {});
   const AnimatedSvg = Animated.createAnimatedComponent(Svg);
   return (
     <GestureDetector gesture={panGesture}>
