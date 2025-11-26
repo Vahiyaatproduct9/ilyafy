@@ -1,4 +1,9 @@
-# Ilyafy v1
+<style>
+.font{
+  font-size: 60px;
+}
+</style>
+<font class='font'>Ilyafy</font>
 
 ![App Icon](https://raw.githubusercontent.com/Vahiyaatproduct9/ilyafy/refs/heads/main/app_icon.png)
 
