@@ -3,6 +3,7 @@ import Animated, {
   FadeInLeft,
   interpolate,
   interpolateColor,
+  useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -22,7 +23,7 @@ import theme from '../../data/color/theme';
 import Button from '../../components/buttons/button1';
 import Playlist from '../tabs/playlist';
 import Invitation from '../tabs/invitation';
-import { RefObject, useRef, useState } from 'react';
+import { RefObject, useRef } from 'react';
 import { AnimatedScrollView } from 'react-native-reanimated/lib/typescript/component/ScrollView';
 import Connection from '../tabs/connection';
 import useProfile from '../../store/useProfile';
@@ -30,6 +31,7 @@ import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
+  GestureType,
 } from 'react-native-gesture-handler';
 import MiniPlayer from '../../components/player/miniPlayer';
 import MacroPlayer from '../../components/player/macroPlayer';
@@ -38,6 +40,8 @@ import Play from '../../assets/icons/play.svg';
 import Next from '../../assets/icons/next.svg';
 const tabButtons = ['Playlist', 'Pair', 'Main'];
 const Main = () => {
+  const parentRef = useRef<GestureType | undefined>(undefined);
+  const controlRef = useRef<GestureType | undefined>(undefined);
   const scrollRef = useRef<AnimatedScrollView | null>(null);
   const width = Dimensions.get('window').width - 16;
   const height = Dimensions.get('window').height;
@@ -56,12 +60,15 @@ const Main = () => {
     });
   }
   const panGesture = Gesture.Pan()
-    .onChange(e => {
-      console.log(e);
-      translateY.value = withSpring(-e.translationY + 80, { damping: 1000 });
+    .onUpdate(e => {
+      translateY.value = withSpring(-e.translationY + translateY.value, {
+        damping: 1000,
+      });
     })
+    .withRef(parentRef)
+    .requireExternalGestureToFail(controlRef)
     .onEnd(e => {
-      if (e.velocityY < -500 || e.translationY < -180) {
+      if (e.translationY < -180 || e.velocityY < -500) {
         translateY.value = withSpring(height, { damping: 1000 });
       } else {
         translateY.value = withSpring(80, { damping: 200 });
@@ -149,7 +156,12 @@ const Main = () => {
       />
 
       <Animated.View
-        style={[playerAnimation]}
+        style={[
+          playerAnimation,
+          {
+            shadowRadius: 10,
+          },
+        ]}
         className={'z-50 absolute self-center overflow-hidden'}
       >
         <GestureHandlerRootView>
@@ -158,33 +170,11 @@ const Main = () => {
               onPress={() => (translateY.value = withSpring(height))}
               className={'flex-1 bg-red-600'}
             >
-              {/* <Animated.View
-                className={'flex-1 w-full h-full p-2 rounded-3xl flex-row'}
-                style={[
-                  {
-                    backgroundColor: theme.primary,
-                  },
-                  microPlayer,
-                ]}
-              >
-                <Animated.Image
-                  progressiveRenderingEnabled
-                  source={image}
-                  className={'h-[60] w-[60] rounded-2xl'}
-                />
-                <Animated.View className={'p-3 flex-1'}>
-                  <Text
-                    className="text-xl font-semibold"
-                    style={{ color: theme.text }}
-                  >
-                    Title
-                  </Text>
-                  <Text className="" style={{ color: theme.text }}>
-                    Artist
-                  </Text>
-                </Animated.View>
-              </Animated.View> */}
-              <MacroPlayer style={macroPlayer} />
+              <MacroPlayer
+                refProp={controlRef}
+                panGesture={panGesture}
+                style={macroPlayer}
+              />
               <MiniPlayer style={microPlayer} />
             </AP>
           </GestureDetector>
@@ -215,7 +205,7 @@ const ScrollView = ({ scrollRef, width, scrollHandler }: ScrollViewProps) => {
       onScroll={scrollHandler}
       scrollEventThrottle={16}
       pagingEnabled
-      className={'rounded-2xl mt-4'}
+      className={'rounded-[28px] mt-4'}
     >
       <Playlist />
       {room_part_of && room_part_of.length !== 0 ? (
