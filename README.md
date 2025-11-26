@@ -1,13 +1,6 @@
-<style>
-.font{
-  font-size: 60px;
-}
-</style>
-<font class='font'>Ilyafy</font>
+# Ilyafy
 
 ![App Icon](https://raw.githubusercontent.com/Vahiyaatproduct9/ilyafy/refs/heads/main/app_icon.png)
-
-## GOALS
 
 ## Soon to Come in Ilyafy!
 
