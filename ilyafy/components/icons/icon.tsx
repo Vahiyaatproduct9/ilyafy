@@ -1,16 +1,17 @@
 /* eslint-disable no-return-assign */
 /* eslint-disable react-native/no-inline-styles */
 // import { ImageStyle, TextStyle, ViewStyle } from 'react-native';
-import React from 'react';
+import React, { FC } from 'react';
 import { Pressable } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { SvgProps } from 'react-native-svg';
 
 type IconProps = {
-  component: React.ComponentType<React.SVGProps<SVGElement>>;
+  component: React.ComponentType<React.SVGProps<SVGElement>> | FC<SvgProps>;
   size?: number;
   className?: string;
   fill?: string;
