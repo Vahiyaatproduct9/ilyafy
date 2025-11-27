@@ -4,7 +4,7 @@ import getMetaData from "@functions/stream/getMetaData";
 import notification from "@libs/notification";
 import prisma from "@libs/prisma";
 import { IncomingHttpHeaders } from "http";
-import { deleteType, listType, postType, song } from "types";
+import { deleteType, listType, song } from "types";
 
 export default class PLaylist {
   async list({
@@ -31,7 +31,17 @@ export default class PLaylist {
         id: songId
       }
     });
-    return song;
+    if (!song) {
+      return {
+        success: false,
+        message: 'Some Error Occured!'
+      }
+    }
+    return {
+      success: true,
+      song,
+      message: 'Got missing song!'
+    }
   }
   async post({ url, headers }: { url: string; headers: IncomingHttpHeaders & { authorization: string; } }) {
     const metadata: any = await getMetaData({ url });

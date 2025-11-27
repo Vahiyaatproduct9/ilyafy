@@ -131,9 +131,19 @@ export default async function () {
     if (data?.songId && track && data.songId !== track.mediaId) {
       const index = queue.findIndex(t => t.mediaId === data.songId)
       if (index === -1) {
-        const song = await get(data?.songId);
-        const songIndex = await TrackPlayer.add(song);
-        songIndex && await TrackPlayer.skip(songIndex, data?.position);
+        const { success, song } = await get(data?.songId);
+        let songIndex;
+        if (success && song !== undefined) {
+          //REFINE WITH FUNCTION ...
+          // songIndex = await TrackPlayer.add({
+          //   mediaId: song.mediaId || Date.now().toString(),
+          //   url: song.url || '',
+          //   artist: song.artist || 'Ilyafy',
+          //   artwork: song.thumbnail,
+          //   title: song.title
+          // });
+          songIndex && await TrackPlayer.skip(songIndex, data?.position);
+        }
       }
       else await TrackPlayer.skip(index, data.position)
       toast('Fixed errors :)')
