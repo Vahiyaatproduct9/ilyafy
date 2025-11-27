@@ -5,22 +5,28 @@ import { songProp } from '../../types/songs';
 import theme from '../../data/color/theme';
 import Button from '../buttons/button1';
 
+type functionList = {
+  title: string;
+  func: () => void;
+}[]
+
 type optionProp = {
-  i: string;
-  song: songProp | undefined;
-  setOptions: Dispatch<SetStateAction<string | null>>;
-  delSong: (i: string) => any;
+  i?: string;
+  song?: songProp | undefined;
+  setOptions?: Dispatch<SetStateAction<string | null>>;
+  delSong?: (i: string) => any;
+  functionList?: functionList;
 };
 
-const SongOptions = ({ i, song, delSong, setOptions }: optionProp) => {
+const SongOptions = ({ i, song, functionList, delSong, setOptions }: optionProp) => {
   console.log('song: ', song);
   const deleteSong = async (index: string) => {
-    await delSong(index);
+    delSong && await delSong(index);
   };
   const AP = Animated.createAnimatedComponent(Pressable);
   return (
     <AP
-      onPress={() => setOptions(null)}
+      onPress={() => setOptions && setOptions(null)}
       className={
         'absolute z-50 flex-row h-full w-full top-0 left-0 bg-[rgba(0,0,0,0.4)] p-2'
       }
@@ -39,13 +45,18 @@ const SongOptions = ({ i, song, delSong, setOptions }: optionProp) => {
         <Text className="text-l self-end" style={{ color: theme.text }}>
           {song?.artist || ''}
         </Text>
-        <Button
-          label="Delete"
-          containerClassName="p-3 rounded-xl w-full mt-4"
-          containerStyle={{ backgroundColor: theme.secondary }}
-          textClassName="color-gray-400 font-bold"
-          onPress={() => deleteSong(i)}
-        />
+        {functionList?.map((f, i) => {
+          return (
+            <Button
+              key={i}
+              label={f.title || 'function'}
+              containerClassName="p-3 rounded-xl w-full mt-4"
+              containerStyle={{ backgroundColor: theme.secondary }}
+              textClassName="color-gray-400 font-bold"
+              onPress={f?.func}
+            />
+          )
+        })}
       </Animated.View>
     </AP>
   );
