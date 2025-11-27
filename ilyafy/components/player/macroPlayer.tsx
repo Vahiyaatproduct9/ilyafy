@@ -1,5 +1,5 @@
 import { View, Text, Dimensions } from 'react-native';
-import React, { RefObject, useEffect, useRef } from 'react';
+import React, { RefObject, useEffect, useRef, useState } from 'react';
 import Animated, {
   AnimatedStyle,
   runOnJS,
@@ -12,7 +12,9 @@ import theme from '../../data/color/theme';
 import { Image } from 'react-native';
 import Icon from '../icons/icon';
 import Play from '../../assets/icons/play.svg';
+import Down from '../../assets/icons/down.svg';
 // import Pause from '../../assets/icons/pause.svg';
+import Options from '../../assets/icons/options.svg';
 import Next from '../../assets/icons/next.svg';
 import Previous from '../../assets/icons/previous.svg';
 // import Playlist from '../../assets/icons/playlist.svg';
@@ -24,6 +26,7 @@ import {
 } from 'react-native-gesture-handler';
 import useCurrentTrack from '../../store/useCurrentTrack';
 import TrackPlayer, { Event } from 'react-native-track-player';
+import SongOptions from '../options/songOptions';
 
 const MacroPlayer = (props: {
   style?: AnimatedStyle;
@@ -34,12 +37,12 @@ const MacroPlayer = (props: {
   const progressRef = useRef<GestureType | undefined>(undefined);
   const controlGesture = Gesture.Pan()
     .simultaneousWithExternalGesture(progressRef).withRef(props.refProp);
+  const [optionsShown, setOptionsShown] = useState<string | null>(null);
   const { track, position } = useCurrentTrack();
   const setSong = async () => {
     await TrackPlayer.reset();
     await TrackPlayer.add({
       url: require('../../data/test.mp3'),
-      // url: 'https://rr6---sn-ci5gup-cvhez.googlevideo.com/videoplayback?expire=1764169400&ei=WMImaY-3DNmd4t4PnvqrsAs&ip=2401%3A4900%3A3828%3A8a71%3A8b62%3Ab140%3Ae914%3A4e29&id=o-AEWcrXrXVYu3WcQqcNZjLS2DwuLfYu2lMDl3nN0-FLp_&itag=139&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=0&rms=au%2Cau&gcr=in&bui=AdEuB5RKBLMJprK9RCYL4Rh3m4G6v7dYvt6dCEMJLWnLpWJ6fqQVHOf-WHC6b-OW9Fm3PSqjOPWl9yxx&spc=6b0G_AYWzn2J&vprv=1&svpuc=1&mime=audio%2Fmp4&rqh=1&gir=yes&clen=1080269&dur=176.854&lmt=1589823322800895&keepalive=yes&fexp=51552689,51565116,51565682,51580968&c=ANDROID&txp=5531432&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cgcr%2Cbui%2Cspc%2Cvprv%2Csvpuc%2Cmime%2Crqh%2Cgir%2Cclen%2Cdur%2Clmt&sig=AJfQdSswRQIhAJhhoSI-5JOlMJZnw9kl2_5FxFCkk8-743yomRTWU6KuAiBR0amt8bUpQV7g4EtKWvDtj3byDkPWPFuffIZ5IpgGEw%3D%3D&redirect_counter=1&cm2rm=sn-ci5gup-jj0r7z&rrc=191&req_id=e8b7c9968a1a3ee&cms_redirect=yes&cmsv=e&met=1764147926,&mh=3T&mm=29&mn=sn-ci5gup-cvhez&ms=rdu&mt=1764147654&mv=m&mvi=6&pl=48&lsparams=cps,met,mh,mm,mn,ms,mv,mvi,pl,rms&lsig=APaTxxMwRQIgDuIuc5S4Bjy7814XEy3DK7LZeBf6RCrZnHlFdEjV0eACIQD98DlwbTt2umPC76RI1_Xek6L84jY5pHs9jXdZO_tJQg%3D%3D',
       title: 'Always',
       artist: 'Daniel Caesar',
       artwork: require('../../data/test.png'),
@@ -47,6 +50,17 @@ const MacroPlayer = (props: {
     await TrackPlayer.play();
   };
 
+  const functionList = [{
+    title: 'function 1',
+    func: () => {
+      console.log('Do Something!')
+    },
+  }, {
+    title: 'function 2',
+    func: () => {
+      console.log('Do some other thing!')
+    }
+  }]
   return (
     <Animated.View
       className={'absolute overflow-hidden'}
@@ -62,11 +76,27 @@ const MacroPlayer = (props: {
         },
       ]}
     >
-      <View className="w-full p-2 items-center">
-        <Text className="text-xl" style={{ color: theme.text }}>
-          {position || 'lol'}
-        </Text>
+      <View className="w-full p-6 items-center flex-row">
+        <Icon component={Down} size={30}
+          // onPress={() => console.log('Heyy')}
+          fill={theme.text} />
+        <View className='flex-1 items-center justify-center'>
+          <Text className="text-xl" style={{ color: theme.text }}>
+            Ilyafy
+          </Text>
+          <Text className='' style={{ color: theme.text }}>
+            Connection Mode
+          </Text>
+        </View>
+
+        <Icon component={Options}
+          onPress={() => setOptionsShown('some string')}
+          size={30} fill={theme.text} />
       </View>
+      {optionsShown && <SongOptions i='ss'
+        setOptions={setOptionsShown}
+        functionList={functionList}
+        song={undefined} />}
       <View className="w-full gap-5 p-1 flex-1 items-center justify-center">
         <Image
           source={require('../../assets/images/background.png')}
