@@ -20,7 +20,6 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   const profile = useProfile(a => a.profile);
   const connect = useSocketStore(s => s.connect);
-  const initializePlayer = useCurrentTrack(s => s.initializePlayer);
   console.log('profile:', profile);
   useEffect(() => {
     SystemNavigationBar.stickyImmersive();
@@ -28,7 +27,6 @@ export default function App() {
       await notificationPermission();
     };
     init();
-    initializePlayer();
     profile && (async () => await refreshJWT())();
     const interval = setInterval(async () => {
       profile && (await refreshJWT());
@@ -39,7 +37,7 @@ export default function App() {
       clearInterval(interval);
       SystemNavigationBar.navigationShow();
     };
-  }, [initializePlayer, profile]);
+  }, [profile]);
   notifee.onForegroundEvent(data => {
     const { type, detail } = data;
     if (type === EventType.ACTION_PRESS) {
