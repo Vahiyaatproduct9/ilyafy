@@ -184,8 +184,7 @@ const ProgressBar = (props: {
       else pos = e.absoluteX;
       const percentage = pos / (width - 16);
 
-      const progress = percentage * (duration || 0);
-      runOnJS(seekSongTo)(progress)
+      const progress = percentage * (duration || 0); runOnJS(seekSongTo)(progress)
 
     })
     .withRef(props.refProp);

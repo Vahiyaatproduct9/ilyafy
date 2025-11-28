@@ -48,7 +48,7 @@
 - **Scenario**
   - User 1 already connected and playing songs.
   - User 2 just opened the app.
-- **_Workflow:_** - User 2 has to connect to socket manually first. - both sends out heartbeat of -
+- ***Workflow:*** - User 2 has to connect to socket manually first. - both sends out heartbeat of -
   | | User 1 | User 2 |
   | ------------- | ------------- | -------------- |
   | state | `playing` | `none` |
