@@ -33,6 +33,7 @@ export default create<wsConnectedion>()((set, get) => ({
     const socket: Socket = io(`${domain}`, {
       transports: ['websocket'],
     });
+    console.log('connecting !!!')
     // const ws = new WebSocket('wss://ilyafy.onrender.com');
     set({ socket: socket });
     socket.connect();

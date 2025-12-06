@@ -12,13 +12,14 @@ const Invitation = () => {
   const width = Dimensions.get('window').width - 16;
   const [value, setValue] = useState<string>('');
   const [loading, setLoading] = useState<boolean | null>(null);
-  const profile = useProfile.getState().profile;
-  const setProfile = useProfile.getState().setProfile;
+  const profile = useProfile().profile;
+  const accessToken = useProfile().accessToken || '';
+  const setProfile = useProfile().setProfile;
   const showButton = value.length > 3;
   const setMessage = useMessage().setMessage;
   async function Connect() {
     setLoading(true);
-    const response = await connect(value);
+    const response = await connect({ email: value, accessToken });
     if (response?.success) {
       setLoading(null);
       setProfile({

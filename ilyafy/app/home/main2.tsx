@@ -36,6 +36,7 @@ const Main = () => {
   const { setBackend, backend } = useBackend();
   const Connect = async () => {
     setLoading(true);
+    console.log('Connecting socket!')
     connect();
     setLoading(null);
     commandEmitter.on('reject', () => {
@@ -76,8 +77,8 @@ const Main = () => {
       await TrackPlayer.reset();
       // iterate over the fresh response (not the stale state variable)
       for (const song of response) {
-        // if (song.playable) {
-        if (false) {
+        if (song.playable) {
+          // if (false) {
           await TrackPlayer.add({
             mediaId: song.id,
             url: song.url,
@@ -103,8 +104,8 @@ const Main = () => {
           const computedDuration = isStreamed
             ? metadata?.duration
             : headerDuration
-            ? parseInt(headerDuration, 10) || undefined
-            : undefined;
+              ? parseInt(headerDuration, 10) || undefined
+              : undefined;
 
           await TrackPlayer.add({
             mediaId: song.id,
@@ -121,7 +122,7 @@ const Main = () => {
     console.log(await TrackPlayer.getQueue());
   };
   useEffect(() => {
-    load();
+    // load();
   }, []);
   const signOutButton = () => {
     return (

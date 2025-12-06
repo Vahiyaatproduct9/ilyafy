@@ -11,7 +11,7 @@ export default class PLaylist {
     headers
   }: listType) {
     const token = getAccessTokenfromHeaders(headers);
-    const { success, id, message } = await this.#getPLaylist(token);
+    const { success, id, message } = await this.#getPlaylist(token);
     if (!success) {
       return {
         success,
@@ -19,11 +19,21 @@ export default class PLaylist {
         message
       }
     }
-    const songs = await prisma.songs.findMany({
-      where: { playlist_part_of: id },
-    })
-    console.log('songs:', songs);
-    return songs;
+    try {
+      const songs = await prisma.songs.findMany({
+        where: { playlist_part_of: id },
+      });
+      return {
+        success: true,
+        songs,
+        message: 'Loaded Songs!'
+      }
+    } catch (e) {
+      return {
+        success: false,
+        message: e
+      }
+    }
   }
   async get(songId: string) {
     const song = await prisma.songs.findUnique({
@@ -67,11 +77,10 @@ export default class PLaylist {
       ...audioFormat,
     };
     return await this.#addToDB({ songInfo: payload, headers })
-
   }
   async #addToDB({ headers, songInfo }: { headers: IncomingHttpHeaders & { authorization: string; }; songInfo: song }) {
     const token = getAccessTokenfromHeaders(headers);
-    const { success, id, message, userId } = await this.#getPLaylist(token);
+    const { success, id, message, userId } = await this.#getPlaylist(token);
     if (!success) {
       return {
         success,
@@ -149,7 +158,7 @@ export default class PLaylist {
   }
   async delete({ headers, songId }: deleteType) {
     const token = getAccessTokenfromHeaders(headers);
-    const { success, id, fcm_token, message } = await this.#getPLaylist(token);
+    const { success, id, fcm_token, message } = await this.#getPlaylist(token);
     if (!success) {
       return {
         success,
@@ -173,7 +182,7 @@ export default class PLaylist {
     notification({
       message: {
         title: `-${deleteSong.count}`,
-        body: `${deleteSong.count} Song removed from Playlist`,
+        body: `${deleteSong.count} ${[0, 1].includes(deleteSong.count) ? 'song' : 'songs'} removed from Playlist`,
         data: {
           songId
         },
@@ -187,7 +196,7 @@ export default class PLaylist {
       count: deleteSong.count
     }
   }
-  async #getPLaylist(token: string) {
+  async #getPlaylist(token: string) {
     const { success, data, message } = verifyToken(token);
     if (!success) {
       return {
