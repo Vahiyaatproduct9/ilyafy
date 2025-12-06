@@ -83,20 +83,6 @@ const Main = () => {
       width: interpolate(translateY.value, [80, height], [width, width + 16]),
     };
   });
-  const macroPlayer = useAnimatedStyle(() => {
-    return {
-      opacity: interpolate(
-        translateY.value,
-        [80, height],
-        [0.9, 1],
-        Extrapolation.CLAMP,
-      ),
-      // display: translateY.value > height ? 'flex' : 'none',
-      filter: [
-        { brightness: interpolate(translateY.value, [80, height], [0.6, 1]) },
-      ],
-    };
-  });
   const microPlayer = useAnimatedStyle(() => {
     return {
       opacity: interpolate(
@@ -173,7 +159,7 @@ const Main = () => {
               <MacroPlayer
                 refProp={controlRef}
                 panGesture={panGesture}
-                style={macroPlayer}
+                sharedValue={translateY}
               />
               <MiniPlayer style={microPlayer} />
             </AP>

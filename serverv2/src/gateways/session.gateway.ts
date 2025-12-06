@@ -91,7 +91,6 @@ export class SessionGateway {
       const newRoom = new Set<string>();
       newRoom.add(socket.id);
       this.localSockets.set(data.roomId, newRoom);
-      console.log('local Socktes 2 :', this.localSockets);
     } else {
       room.add(socket.id);
     }

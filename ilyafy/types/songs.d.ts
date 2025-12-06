@@ -1,5 +1,6 @@
 export type songProp = {
   id: string;
+  mediaId?: string;
   title: string;
   artist: string;
   url: string;

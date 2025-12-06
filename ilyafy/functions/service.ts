@@ -5,26 +5,26 @@ import useProfile from '../store/useProfile';
 import toast from '../components/message/toast';
 import get from '../api/playlist/get';
 export default async function () {
-  const sendMessage = useSocketStore.getState().sendMessage
-  const userId = useSocketStore.getState().userId
+  const sendMessage = useSocketStore.getState().sendMessage;
+  const userId = useSocketStore.getState().userId;
   const roomId = useProfile.getState().profile?.room_part_of;
-  const queue = await TrackPlayer.getQueue()
-  const track = await TrackPlayer.getActiveTrack()
+  const queue = await TrackPlayer.getQueue();
+  const track = await TrackPlayer.getActiveTrack();
   TrackPlayer.addEventListener(Event.RemotePlay, async () => {
-    const progress = await TrackPlayer.getProgress()
+    const progress = await TrackPlayer.getProgress();
     sendMessage({
       state: 'play',
       ...progress
     })
-    await TrackPlayer.play()
+    await TrackPlayer.play();
   });
   TrackPlayer.addEventListener(Event.RemotePause, async () => {
-    const progress = await TrackPlayer.getProgress()
+    const progress = await TrackPlayer.getProgress();
     sendMessage({
       state: 'pause',
       ...progress
     })
-    await TrackPlayer.pause()
+    await TrackPlayer.pause();
   });
   TrackPlayer.addEventListener(Event.RemoteSeek, async ({ position }) => {
     const progress = await TrackPlayer.getProgress();
@@ -76,6 +76,31 @@ export default async function () {
       songId: nextSongId,
       ...progress
     })
+  })
+  TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, async event => {
+    const progress = await TrackPlayer.getProgress();
+    sendMessage({
+      state: 'skip',
+      songId: event.track?.mediaId || '',
+      ...progress
+    })
+  });
+  TrackPlayer.addEventListener(Event.PlaybackError, () => {
+    sendMessage({
+      state: 'error',
+    });
+  });
+  TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () => {
+    sendMessage({
+      state: 'ended'
+    })
+  });
+  TrackPlayer.addEventListener(Event.PlaybackState, async event => {
+    if ([State.Playing, State.Paused].includes(event.state)) {
+      sendMessage({
+        state: event.state
+      })
+    }
   })
   commandEmitter.on('play', async data => {
     if (!data?.position) return;

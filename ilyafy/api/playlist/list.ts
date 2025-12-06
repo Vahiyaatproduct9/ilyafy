@@ -1,10 +1,11 @@
 import useProfile from "../../store/useProfile";
 import { domain } from "../../path/path";
-export default async () => {
-  const accessToken = useProfile.getState().accessToken;
+import { songProp } from "../../types/songs";
+export default async (accessToken?: string): Promise<{ success: boolean; songs?: songProp[]; message: string } | undefined> => {
+  const localAccessToken = useProfile.getState().accessToken;
   const res = await fetch(`${domain}/playlist/list`, {
     headers: {
-      Authorization: `Bearer ${accessToken}`
+      Authorization: `Bearer ${accessToken || localAccessToken}`
     }
   });
   const response = await res.json();

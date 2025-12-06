@@ -8,21 +8,16 @@ import Button from '../buttons/button1';
 type functionList = {
   title: string;
   func: () => void;
-}[]
+}[];
 
 type optionProp = {
-  i?: string;
   song?: songProp | undefined;
   setOptions?: Dispatch<SetStateAction<string | null>>;
-  delSong?: (i: string) => any;
   functionList?: functionList;
 };
 
-const SongOptions = ({ i, song, functionList, delSong, setOptions }: optionProp) => {
+const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
   console.log('song: ', song);
-  const deleteSong = async (index: string) => {
-    delSong && await delSong(index);
-  };
   const AP = Animated.createAnimatedComponent(Pressable);
   return (
     <AP
@@ -55,7 +50,7 @@ const SongOptions = ({ i, song, functionList, delSong, setOptions }: optionProp)
               textClassName="color-gray-400 font-bold"
               onPress={f?.func}
             />
-          )
+          );
         })}
       </Animated.View>
     </AP>
