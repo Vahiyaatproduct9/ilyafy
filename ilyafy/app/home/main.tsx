@@ -35,9 +35,6 @@ import {
 } from 'react-native-gesture-handler';
 import MiniPlayer from '../../components/player/miniPlayer';
 import MacroPlayer from '../../components/player/macroPlayer';
-import Icon from '../../components/icons/icon';
-import Play from '../../assets/icons/play.svg';
-import Next from '../../assets/icons/next.svg';
 const tabButtons = ['Playlist', 'Pair', 'Main'];
 const Main = () => {
   const parentRef = useRef<GestureType | undefined>(undefined);
