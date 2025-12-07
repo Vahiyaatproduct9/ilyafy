@@ -1,7 +1,7 @@
-import { View, Dimensions, TextInput } from 'react-native';
+import { View, Dimensions, TextInput, Text } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import theme from '../../data/color/theme';
-import Animated from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import Icon from '../../components/icons/icon';
 import Add from '../../assets/icons/add.svg';
 import Search from '../../assets/icons/search.svg';
@@ -12,6 +12,7 @@ import Item from '../../components/playlist/song';
 import TrackPlayer from 'react-native-track-player';
 import useProfile from '../../store/useProfile';
 import useSongs from '../../store/useSongs';
+import EmptyPlaylist from '../../components/blank/emptyPlaylist';
 const Playlist = () => {
   const [addShown, showAddScreen] = useState<boolean>(false);
   const [options, setOptions] = useState<string | null>(null);
@@ -31,7 +32,8 @@ const Playlist = () => {
 
   useEffect(() => {
     loadSongs();
-  }, [loadSongs]);
+    console.log('songs:', songs);
+  }, [loadSongs, songs]);
   async function addSong() {
     return await add(value);
   }
@@ -82,6 +84,7 @@ const Playlist = () => {
           fill={theme.text}
         />
       </View>
+      {songs.length === 0 && <EmptyPlaylist />}
       <Animated.FlatList
         data={songs || []}
         renderItem={({ index, item }) => (

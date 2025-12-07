@@ -4,6 +4,7 @@ import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { songProp } from '../../types/songs';
 import theme from '../../data/color/theme';
 import Button from '../buttons/button1';
+import { Track } from 'react-native-track-player';
 
 type functionList = {
   title: string;
@@ -11,8 +12,8 @@ type functionList = {
 }[];
 
 type optionProp = {
-  song?: songProp | undefined;
-  setOptions?: Dispatch<SetStateAction<string | null>>;
+  song?: songProp | Track | undefined;
+  setOptions: Dispatch<SetStateAction<string | null>>;
   functionList?: functionList;
 };
 
@@ -21,7 +22,7 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
   const AP = Animated.createAnimatedComponent(Pressable);
   return (
     <AP
-      onPress={() => setOptions && setOptions(null)}
+      onPress={() => setOptions(null)}
       className={
         'absolute z-50 flex-row h-full w-full top-0 left-0 bg-[rgba(0,0,0,0.4)] p-2'
       }

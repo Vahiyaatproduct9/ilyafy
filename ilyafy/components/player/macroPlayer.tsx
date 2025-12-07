@@ -12,9 +12,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import theme from '../../data/color/theme';
 import Icon from '../icons/icon';
+import deleteSong from '../../api/playlist/delete';
 import Play from '../../assets/icons/play.svg';
 import Down from '../../assets/icons/down.svg';
-// import Pause from '../../assets/icons/pause.svg';
+import Pause from '../../assets/icons/pause.svg';
 import Options from '../../assets/icons/options.svg';
 import Next from '../../assets/icons/next.svg';
 import Previous from '../../assets/icons/previous.svg';
@@ -26,7 +27,7 @@ import {
   PanGesture,
 } from 'react-native-gesture-handler';
 import useCurrentTrack from '../../store/useCurrentTrack';
-import TrackPlayer, { Event } from 'react-native-track-player';
+import TrackPlayer from 'react-native-track-player';
 import SongOptions from '../options/songOptions';
 
 const MacroPlayer = (props: {
@@ -39,17 +40,47 @@ const MacroPlayer = (props: {
     .simultaneousWithExternalGesture(progressRef)
     .withRef(props.refProp);
   const [optionsShown, setOptionsShown] = useState<string | null>(null);
-  const { track, position } = useCurrentTrack();
+  const { track, isPlaying } = useCurrentTrack();
   const setSong = async () => {
     await TrackPlayer.reset();
-    await TrackPlayer.add({
-      url: require('../../data/test.mp3'),
-      title: 'Always',
-      artist: 'Daniel Caesar',
-      artwork: require('../../data/test.png'),
-    });
+    await TrackPlayer.add([
+      {
+        url: require('../../data/test.mp3'),
+        title: 'Always',
+        mediaId: 'someything',
+        artist: 'Daniel Caesar',
+        artwork: require('../../data/test.png'),
+      },
+      {
+        url: require('../../data/test.mp3'),
+        title: 'Always',
+        mediaId: 'someything2',
+        artist: 'Daniel Caesar',
+        artwork: require('../../data/test.png'),
+      },
+      {
+        url: require('../../data/test.mp3'),
+        title: 'Always',
+        mediaId: 'someything3',
+        artist: 'Daniel Caesar',
+        artwork: require('../../data/test.png'),
+      },
+    ]);
     await TrackPlayer.play();
   };
+  useEffect(() => {
+    setSong();
+  }, []);
+  async function togglePlay() {
+    if (isPlaying) await TrackPlayer.pause();
+    else await TrackPlayer.play();
+  }
+  async function skipToNext() {
+    await TrackPlayer.skipToNext();
+  }
+  async function skipToPrevious() {
+    await TrackPlayer.skipToPrevious();
+  }
   const { height, width } = Dimensions.get('window');
 
   const containerStyle = useAnimatedStyle(() => {
@@ -84,18 +115,10 @@ const MacroPlayer = (props: {
     };
   });
 
-  const functionList = [
+  const functionList: { title: string; func: () => Promise<any> }[] = [
     {
-      title: 'function 1',
-      func: () => {
-        console.log('Do Something!');
-      },
-    },
-    {
-      title: 'function 2',
-      func: () => {
-        console.log('Do some other thing!');
-      },
+      title: 'Delete',
+      func: () => deleteSong(optionsShown || ''),
     },
   ];
   return (
@@ -138,10 +161,9 @@ const MacroPlayer = (props: {
       </View>
       {optionsShown && (
         <SongOptions
-          i="ss"
           setOptions={setOptionsShown}
           functionList={functionList}
-          song={undefined}
+          song={track ? track : undefined}
         />
       )}
       <View className="w-full gap-5 p-1 flex-1 items-center justify-center">
@@ -175,12 +197,13 @@ const MacroPlayer = (props: {
                 component={Previous}
                 size={40}
                 fill="white"
+                onPress={skipToPrevious}
                 className="border-2 border-white p-2"
               />
               <Icon
-                component={Play}
+                component={isPlaying ? Pause : Play}
                 size={40}
-                onPress={setSong}
+                onPress={togglePlay}
                 fill="white"
                 className="border-2 border-white p-2"
               />
@@ -188,6 +211,7 @@ const MacroPlayer = (props: {
                 component={Next}
                 size={40}
                 fill="white"
+                onPress={skipToNext}
                 className="border-2 border-white p-2"
               />
             </View>
