@@ -1,14 +1,12 @@
 import { State } from "react-native-track-player"
 
-export type commands = 'play'
-    | 'pause'
-    | 'stop'
+export type commands = State
     | 'seek'
-    | 'next'
-    | 'previous'
     | 'skip'
     | 'heartbeat'
     | 'reject'
+    | 'error'
+    | 'stop'
 
 export type heartbeatDataType = {
     state: 'heartbeat';

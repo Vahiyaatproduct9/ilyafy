@@ -3,36 +3,23 @@ import React, { Dispatch, SetStateAction, useState } from 'react';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import theme from '../../data/color/theme';
 import Button from '../buttons/button1';
-import useMessage from '../../store/useMessage';
-import { PlaylistProp } from '../../types/songs';
-
 const Popup = ({
   showPopup,
-  addSong,
+  func,
   value,
   setValue,
 }: {
   showPopup: Dispatch<SetStateAction<boolean>>;
-  setPlaylist: Dispatch<SetStateAction<PlaylistProp | []>>;
-  addSong?: () => Promise<any>;
+  func?: () => Promise<any>;
   value: string;
   setValue: Dispatch<SetStateAction<string>>;
 }) => {
-  // const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
   const [loading, setLoading] = useState<boolean | null>(null);
-  const setMessage = useMessage().setMessage;
-  async function Add() {
+  const execFunction = async () => {
     setLoading(true);
-    const response = await addSong();
-    if (response?.success) {
-      setMessage('Song Added to PLaylist :D');
-      showPopup(false);
-      setLoading(null);
-    } else {
-      setMessage('Some Error Occured! :(');
-      setLoading(false);
-    }
-  }
+    func && (await func());
+    setLoading(null);
+  };
   return (
     <Pressable
       onPress={() => showPopup(false)}
@@ -72,7 +59,7 @@ const Popup = ({
               opacity: value.length < 3 ? 0.4 : 1,
             }}
             disabled={value.length < 3}
-            onPress={Add}
+            onPress={execFunction}
             loading={loading}
           />
         </Animated.View>

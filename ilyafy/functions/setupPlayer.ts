@@ -1,13 +1,17 @@
 import TrackPlayer, { AppKilledPlaybackBehavior, Capability } from "react-native-track-player";
 export default async () => {
     await TrackPlayer.setupPlayer({
+        autoUpdateMetadata: true,
+        playBuffer: 5,
         autoHandleInterruptions: true,
+
     });
     await TrackPlayer.updateOptions({
         android: {
             alwaysPauseOnInterruption: true,
-            appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback
+            appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
         },
+        progressUpdateEventInterval: 1,
         capabilities: [
             Capability.Play,
             Capability.Pause,
@@ -28,5 +32,4 @@ export default async () => {
             Capability.SkipToPrevious,
         ],
     });
-    TrackPlayer.play()
 }

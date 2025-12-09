@@ -2,16 +2,28 @@ import { Injectable } from '@nestjs/common';
 import getMetaData from '@functions/stream/getMetaData';
 import audioStream from '@functions/stream/audioStream';
 import { Response } from 'express';
+import { IncomingHttpHeaders } from 'http';
+import prisma from '@libs/prisma';
+import { verifyToken } from '@functions/secret/JWT';
 @Injectable()
 export default class StreamService {
-  async stream({ url, writable }: { url: string, writable: Response }) {
+  async stream({ url, writable, songId }: { url: string, writable: Response, songId?: string }) {
     const metadata: any = await getMetaData({ url });
     const audioFormat = metadata.formats.find(
       f => f.acodec !== 'none' && f.vcodec === 'none' && f.protocol === 'https'
     );
     console.log('Audio Format:', audioFormat.url);
+    if (songId) {
+      writable.setHeader("X-Id", songId);
+      await prisma.songs.update({
+        where: {
+          id: songId,
+        }, data: {
+          url: audioFormat.url || ''
+        }
+      })
+    }
     if (audioFormat) {
-      console.log('returning..')
       const res = await fetch(audioFormat.url, { method: 'HEAD' });
       console.log(res.status, res.ok, res.headers.get('Content-Type'));
       if (res.ok) {
@@ -21,7 +33,8 @@ export default class StreamService {
           thumbnail: metadata?.thumbnail || '',
           artist: metadata?.artist || metadata?.uploader || '',
           title: metadata?.title || '',
-          duration: metadata?.duration || ''
+          duration: metadata?.duration || '',
+          id: songId || undefined
         })
         return;
       } else {
@@ -46,13 +59,41 @@ export default class StreamService {
       });
     } catch (err) {
       console.error('Error streaming audio:', err);
-      return {
+      writable.json({
         success: false,
         message: 'Error streaming audio',
         error: err
-      }
+      })
+      return;
     }
   }
+  async update({ songId, headers, writable }: { songId: string; headers: IncomingHttpHeaders; writable: Response }) {
+    const token = headers.authorization?.split(' ')[1] || '';
+    const { success, message } = verifyToken(token);
+    if (!success) {
+      writable.json({
+        success, message
+      });
+      return;
+    }
+    const song = await prisma.songs.findUnique({
+      where: {
+        id: songId
+      }, select: {
+        ytUrl: true,
+      }
+    });
+    if (!song) {
+      writable.json({
+        success: false,
+        message: 'No song with this ID found :('
+      });
+      return;
+    }
+
+    await this.stream({ url: song.ytUrl, writable, songId });
+  }
+
   async getInfo({ url, writable }: { url: string; writable: Response }) {
     const metadata: any = await getMetaData({ url });
     const audioFormat = metadata.formats.find(

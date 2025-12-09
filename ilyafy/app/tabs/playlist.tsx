@@ -1,64 +1,63 @@
 import { View, Dimensions, TextInput } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import theme from '../../data/color/theme';
 import Animated from 'react-native-reanimated';
 import Icon from '../../components/icons/icon';
 import Add from '../../assets/icons/add.svg';
 import Search from '../../assets/icons/search.svg';
 import Popup from '../../components/popup/popup';
-import Options from '../../assets/icons/options.svg';
-import PL from '../../functions/playlist';
-import { PlaylistProp } from '../../types/songs';
 import SongOptions from '../../components/options/songOptions';
 import Item from '../../components/playlist/song';
-import addToPLaylist from '../../functions/stream/addToPLaylist';
-import pl from '../../functions/playlist';
+import useProfile from '../../store/useProfile';
+import useSongs from '../../store/useSongs';
+import EmptyPlaylist from '../../components/blank/emptyPlaylist';
+import useMessage from '../../store/useMessage';
 const Playlist = () => {
   const [addShown, showAddScreen] = useState<boolean>(false);
-  const [playlist, setPlaylist] = useState<PlaylistProp | []>([]);
+  const [loading, setLoading] = useState<boolean | null>(null);
   const [options, setOptions] = useState<string | null>(null);
   const [value, setValue] = useState<string>('');
-  useEffect(() => {
-    (async () => {
-      const localPlaylist = await PL.getSongs();
-      setPlaylist(localPlaylist);
-    })();
-  }, []);
+  const setMessage = useMessage(s => s.setMessage);
+  const accessToken = useProfile(s => s.accessToken);
   const width = Dimensions.get('window').width - 16;
-  function showOptionsOf(i: string) {
-    setOptions(i);
-  }
-  const addSong = async () => {
-    const response = await addToPLaylist(value);
+  const { add, delete: del, songs, load } = useSongs();
+  const delSong = async () => {
+    const response = await del(options || '');
+    setMessage(response?.message || '');
     if (response?.success) {
-      setPlaylist(prev => [
-        ...prev,
-        {
-          id: response?.id || Date.now().toString(),
-          title: response?.title || 'Unknown Song',
-          url: response?.url || '',
-          thumbnail: response?.thumbnail || '',
-          artist: response?.artist || '',
-          playable: response?.playable || false,
-          ytUrl: response?.ytLink || '',
-        },
-      ]);
-      setValue('');
-    }
-    return response;
-  };
-  const delSong = async (index: string) => {
-    await pl.deleteSong(index).then(() => {
-      setPlaylist(prev =>
-        prev
-          .filter(t => t.id !== index)
-          .map((s, ind) => {
-            return { ...s, index: ind + 1 };
-          }),
-      );
       setOptions(null);
-    });
+    }
   };
+  const loadSongs = useCallback(async () => {
+    await load(accessToken || '');
+  }, [accessToken, load]);
+  useEffect(() => {
+    console.log(loading);
+  }, [loading]);
+  useEffect(() => {
+    setLoading(true);
+    loadSongs()
+      .then(() => {
+        setLoading(null);
+        console.log('true');
+      })
+      .catch(() => {
+        console.log('false');
+        setLoading(false);
+      });
+  }, [loadSongs]);
+  useEffect(() => {
+    console.log('Songs:', songs);
+  }, [songs]);
+  async function addSong() {
+    return await add(value);
+  }
+  const functionList = [
+    {
+      title: 'Delete',
+      func: () => delSong(),
+    },
+  ];
   return (
     <View
       className="flex-1 gap-2 items-center"
@@ -68,17 +67,15 @@ const Playlist = () => {
         <Popup
           setValue={setValue}
           value={value}
-          setPlaylist={setPlaylist}
-          addSong={addSong}
+          func={addSong}
           showPopup={showAddScreen}
         />
       )}
       {options && (
         <SongOptions
-          delSong={delSong}
-          i={options}
-          song={playlist.filter(t => t.id === options)[0]}
+          song={songs.filter(t => t.id === options)[0]}
           setOptions={setOptions}
+          functionList={functionList}
         />
       )}
       <View className="justify-end w-full gap-2 flex-row p-2">
@@ -102,13 +99,17 @@ const Playlist = () => {
           fill={theme.text}
         />
       </View>
-      <Animated.FlatList
-        data={playlist}
-        renderItem={({ index, item }) => (
-          <Item song={item} i={index} showOptionsOf={showOptionsOf} />
-        )}
-        className={'w-full'}
-      />
+      {songs.length === 0 ? (
+        <EmptyPlaylist />
+      ) : (
+        <Animated.FlatList
+          data={songs || []}
+          renderItem={({ index, item }) => (
+            <Item song={item} i={index} showOptionsOf={setOptions} />
+          )}
+          className={'w-full'}
+        />
+      )}
     </View>
   );
 };
