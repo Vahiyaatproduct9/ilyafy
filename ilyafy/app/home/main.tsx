@@ -35,9 +35,6 @@ import {
 } from 'react-native-gesture-handler';
 import MiniPlayer from '../../components/player/miniPlayer';
 import MacroPlayer from '../../components/player/macroPlayer';
-import Icon from '../../components/icons/icon';
-import Play from '../../assets/icons/play.svg';
-import Next from '../../assets/icons/next.svg';
 const tabButtons = ['Playlist', 'Pair', 'Main'];
 const Main = () => {
   const parentRef = useRef<GestureType | undefined>(undefined);
@@ -81,20 +78,6 @@ const Main = () => {
       borderRadius: interpolate(translateY.value, [80, height], [24, 0]),
       bottom: interpolate(translateY.value, [80, height], [10, 0]),
       width: interpolate(translateY.value, [80, height], [width, width + 16]),
-    };
-  });
-  const macroPlayer = useAnimatedStyle(() => {
-    return {
-      opacity: interpolate(
-        translateY.value,
-        [80, height],
-        [0.9, 1],
-        Extrapolation.CLAMP,
-      ),
-      // display: translateY.value > height ? 'flex' : 'none',
-      filter: [
-        { brightness: interpolate(translateY.value, [80, height], [0.6, 1]) },
-      ],
     };
   });
   const microPlayer = useAnimatedStyle(() => {
@@ -173,7 +156,7 @@ const Main = () => {
               <MacroPlayer
                 refProp={controlRef}
                 panGesture={panGesture}
-                style={macroPlayer}
+                sharedValue={translateY}
               />
               <MiniPlayer style={microPlayer} />
             </AP>

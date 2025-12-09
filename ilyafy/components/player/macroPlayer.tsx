@@ -1,16 +1,22 @@
 import { View, Text, Dimensions } from 'react-native';
-import React, { RefObject, useEffect, useRef } from 'react';
+import React, { RefObject, useEffect, useRef, useState } from 'react';
 import Animated, {
-  AnimatedStyle,
+  Extrapolation,
+  interpolate,
+  runOnJS,
+  SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import theme from '../../data/color/theme';
-import { Image } from 'react-native';
 import Icon from '../icons/icon';
+import deleteSong from '../../api/playlist/delete';
 import Play from '../../assets/icons/play.svg';
-// import Pause from '../../assets/icons/pause.svg';
+import Down from '../../assets/icons/down.svg';
+import Pause from '../../assets/icons/pause.svg';
+import Options from '../../assets/icons/options.svg';
 import Next from '../../assets/icons/next.svg';
 import Previous from '../../assets/icons/previous.svg';
 // import Playlist from '../../assets/icons/playlist.svg';
@@ -22,38 +28,107 @@ import {
 } from 'react-native-gesture-handler';
 import useCurrentTrack from '../../store/useCurrentTrack';
 import TrackPlayer from 'react-native-track-player';
+import SongOptions from '../options/songOptions';
+// import useSongs from '../../store/useSongs';
 
 const MacroPlayer = (props: {
-  style?: AnimatedStyle;
+  sharedValue: SharedValue<number>;
   panGesture: PanGesture;
   refProp: RefObject<GestureType | undefined>;
 }) => {
-  const { width } = Dimensions.get('screen');
   const progressRef = useRef<GestureType | undefined>(undefined);
   const controlGesture = Gesture.Pan()
     .simultaneousWithExternalGesture(progressRef)
     .withRef(props.refProp);
-  const { track, position } = useCurrentTrack();
-  const setSong = async () => {
-    await TrackPlayer.reset().then(async () => {
-      await TrackPlayer.add({
-        url: require('../../data/test.mp3'),
-        title: "I couldn't care less",
-        artist: 'Daniel Caesar',
-        artwork: require('../../data/test.png'),
-      }).then(async () => {
-        await TrackPlayer.play();
-        const player = await TrackPlayer.setRate(1);
-        console.log('player:', player);
-      });
-    });
-  };
+  const [optionsShown, setOptionsShown] = useState<string | null>(null);
+  const isPlaying = useCurrentTrack(s => s.isPlaying);
+  const track = useCurrentTrack(s => s.track);
+  // const setSongs = useSongs(s => s.setSong);
+  // const loadSong = async () => {
+  //   await TrackPlayer.reset();
+  //   setSongs([
+  //     {
+  //       url: require('../../data/test.mp3'),
+  //       title: 'Always1',
+  //       mediaId: 'someything',
+  //       artist: 'Daniel Caesar',
+  //       artwork: require('../../data/test.png'),
+  //     },
+  //     {
+  //       url: require('../../data/test.mp3'),
+  //       title: 'Always2',
+  //       mediaId: 'someything2',
+  //       artist: 'Daniel Caesar',
+  //       artwork: require('../../data/test.png'),
+  //     },
+  //     {
+  //       url: require('../../data/test.mp3'),
+  //       title: 'Always5',
+  //       mediaId: 'someything3',
+  //       artist: 'Daniel Caesar',
+  //       artwork: require('../../assets/images/background2.png'),
+  //     },
+  //   ]);
+  //   await TrackPlayer.play();
+  // };
+  // useEffect(() => {
+  //   loadSong();
+  // }, []);
+  async function togglePlay() {
+    if (isPlaying) await TrackPlayer.pause();
+    else await TrackPlayer.play();
+  }
+  async function skipToNext() {
+    await TrackPlayer.skipToNext();
+  }
+  async function skipToPrevious() {
+    await TrackPlayer.skipToPrevious();
+  }
+  const { height, width } = Dimensions.get('window');
 
+  const containerStyle = useAnimatedStyle(() => {
+    return {
+      opacity: interpolate(
+        props.sharedValue.value,
+        [80, height],
+        [0.9, 1],
+        Extrapolation.CLAMP,
+      ),
+      // display: translateY.value > height ? 'flex' : 'none',
+      filter: [
+        {
+          brightness: interpolate(
+            props.sharedValue.value,
+            [80, height],
+            [0.6, 1],
+          ),
+        },
+      ],
+    };
+  });
+  const thumbnailStyle = useAnimatedStyle(() => {
+    const num = interpolate(
+      props.sharedValue.value,
+      [80, height],
+      [width, width - 40],
+    );
+    return {
+      width: num,
+      height: num,
+    };
+  });
+
+  const functionList: { title: string; func: () => Promise<any> }[] = [
+    {
+      title: 'Delete',
+      func: () => deleteSong(optionsShown || ''),
+    },
+  ];
   return (
     <Animated.View
       className={'absolute overflow-hidden'}
       style={[
-        props.style,
+        containerStyle,
         // eslint-disable-next-line react-native/no-inline-styles
         {
           backgroundColor: theme.primary,
@@ -64,18 +139,51 @@ const MacroPlayer = (props: {
         },
       ]}
     >
-      <View className="w-full p-2 items-center">
-        <Text className="text-xl" style={{ color: theme.text }}>
-          {position || 'lol'}
-        </Text>
+      <View className="w-full p-6 items-center flex-row">
+        <Icon
+          component={Down}
+          size={30}
+          // onPress={() => console.log('Heyy')}
+          fill={theme.text}
+        />
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-xl" style={{ color: theme.text }}>
+            Ilyafy
+          </Text>
+          <Text className="" style={{ color: theme.text }}>
+            Connection Mode
+          </Text>
+        </View>
+
+        <Icon
+          component={Options}
+          onPress={() => setOptionsShown(track?.mediaId || '')}
+          size={30}
+          fill={theme.text}
+        />
       </View>
+      {optionsShown && (
+        <SongOptions
+          setOptions={setOptionsShown}
+          functionList={functionList}
+          song={track ? track : undefined}
+        />
+      )}
       <View className="w-full gap-5 p-1 flex-1 items-center justify-center">
-        <Image
-          source={require('../../assets/images/background.png')}
-          className="w-full rounded-[32px]"
-          style={{
-            height: width,
-          }}
+        <Animated.Image
+          source={
+            track
+              ? { uri: track?.artwork }
+              : require('../../assets/images/background.png')
+          }
+          className="rounded-[32px]"
+          style={[
+            thumbnailStyle,
+            // eslint-disable-next-line react-native/no-inline-styles
+            {
+              aspectRatio: 1,
+            },
+          ]}
         />
         <GestureDetector gesture={controlGesture}>
           <Animated.View className="w-full p-2">
@@ -96,12 +204,13 @@ const MacroPlayer = (props: {
                 component={Previous}
                 size={40}
                 fill="white"
+                onPress={skipToPrevious}
                 className="border-2 border-white p-2"
               />
               <Icon
-                component={Play}
+                component={isPlaying ? Pause : Play}
                 size={40}
-                onPress={setSong}
+                onPress={togglePlay}
                 fill="white"
                 className="border-2 border-white p-2"
               />
@@ -109,6 +218,7 @@ const MacroPlayer = (props: {
                 component={Next}
                 size={40}
                 fill="white"
+                onPress={skipToNext}
                 className="border-2 border-white p-2"
               />
             </View>
@@ -124,15 +234,43 @@ export default MacroPlayer;
 const ProgressBar = (props: {
   refProp: RefObject<GestureType | undefined>;
 }) => {
+  const { duration, position: tPosition } = useCurrentTrack();
+  const { width } = Dimensions.get('window');
+
   const position = useSharedValue(0);
+  useEffect(() => {
+    let percentage = (tPosition || 0) / (duration || 1);
+    position.value = withTiming(percentage * (width - 16), { duration: 1000 });
+  }, [duration, position, tPosition, width]);
+  const seekSongTo = async (i: number) => {
+    await TrackPlayer.seekTo(i);
+    console.log('Song Seeked!');
+  };
   const gestureHandler = Gesture.Pan()
     .onUpdate(e => {
-      position.value = e.x;
       console.log('data: ', e.x);
+      position.value = e.absoluteX;
+    })
+    .onEnd(e => {
+      let pos;
+      if (e.absoluteX < 8) pos = 0;
+      else if (e.absoluteX > width - 8) pos = duration || 0;
+      else pos = e.absoluteX;
+      const percentage = pos / (width - 16);
+
+      const progress = percentage * (duration || 0);
+      runOnJS(seekSongTo)(progress);
     })
     .withRef(props.refProp);
-  const gestureTapHandler = Gesture.Tap().onBegin(e => {
+  const gestureTapHandler = Gesture.Tap().onBegin(async e => {
     position.value = withSpring(e.absoluteX);
+    let pos;
+    if (e.absoluteX < 8) pos = 0;
+    else if (e.absoluteX > width - 8) pos = duration || 0;
+    else pos = e.absoluteX;
+    const percentage = pos / (width - 16);
+    const progress = percentage * (duration || 0);
+    runOnJS(seekSongTo)(progress);
   });
   const combined = Gesture.Simultaneous(gestureHandler, gestureTapHandler);
   const rProgressStyle = useAnimatedStyle(() => {

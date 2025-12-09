@@ -11,12 +11,12 @@ const Connection = () => {
   const [partner, setPartner] = useState<
     | []
     | {
-        id: string;
-        name: string;
-        email: string;
-      }[]
+      id: string;
+      name: string;
+      email: string;
+    }[]
   >();
-  const room_part_of = useProfile.getState().profile?.room_part_of;
+  const room_part_of = useProfile().profile?.room_part_of;
   useEffect(() => {
     getRoommate()
       .then(response => {

@@ -33,6 +33,7 @@ export default create<wsConnectedion>()((set, get) => ({
     const socket: Socket = io(`${domain}`, {
       transports: ['websocket'],
     });
+    console.log('connecting !!!');
     // const ws = new WebSocket('wss://ilyafy.onrender.com');
     set({ socket: socket });
     socket.connect();
@@ -43,14 +44,12 @@ export default create<wsConnectedion>()((set, get) => ({
     });
     setInterval(async () => {
       const state = await TrackPlayer.getPlaybackState();
-      const { position, buffered, duration } = await TrackPlayer.getProgress();
+      const progress = await TrackPlayer.getProgress();
       if (get().isConnected) {
         socket.emit('message', {
           state: 'heartbeat',
           status: state.state,
-          position,
-          buffered,
-          duration,
+          ...progress,
           userId: get().userId,
           roomId: get().roomId,
           songId: (await TrackPlayer.getActiveTrack())?.mediaId || undefined,

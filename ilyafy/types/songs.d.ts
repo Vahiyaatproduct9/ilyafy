@@ -1,5 +1,8 @@
+import { Track } from "react-native-track-player";
+
 export type songProp = {
   id: string;
+  mediaId?: string;
   title: string;
   artist: string;
   url: string;
@@ -7,6 +10,9 @@ export type songProp = {
   thumbnail: string;
   playable: boolean;
   duration?: number;
+}
+export type CTrack = Track & {
+  localPath?: string | null;
 }
 export type PlaylistProp = songProp[];
 export type InfoResponseProp = {

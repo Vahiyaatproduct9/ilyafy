@@ -52,3 +52,11 @@
   | state | `playing` | `none` |
 
 - User 1's state is given priority since it's `playing`.
+
+## Introduction to Caching
+
+The Stream Algorithm now includes client side caching to reduce the number of fetches in the server.
+particulary focusing on file:
+
+- `ilyafy/functions/stream/stream.ts`
+- `ilyafy/functions/service.ts`
