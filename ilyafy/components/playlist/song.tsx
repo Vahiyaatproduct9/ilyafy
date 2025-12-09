@@ -1,10 +1,9 @@
 import { Image, Pressable, Text, View } from 'react-native';
-import { songProp } from '../../types/songs';
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 import theme from '../../data/color/theme';
 import Icon from '../icons/icon';
 import Options from '../../assets/icons/options.svg';
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, { Track } from 'react-native-track-player';
 const image = require('../../assets/images/background.png');
 const Item = ({
   i,
@@ -12,13 +11,17 @@ const Item = ({
   showOptionsOf,
 }: {
   i: number | null;
-  song: songProp;
+  song: Track;
   showOptionsOf: (i: string) => void;
 }) => {
   const changeSong = async () => {
+    console.log('song:', song);
     console.log('Song Changed!');
     const queue = await TrackPlayer.getQueue();
-    await TrackPlayer.skip(queue.findIndex(t => t.url === song.url));
+    console.log('Queue:', queue);
+    const index = queue.findIndex(t => t.mediaId === song?.mediaId || '');
+    console.log('index:', index);
+    await TrackPlayer.skip(index);
     await TrackPlayer.play();
   };
   return (
@@ -34,7 +37,7 @@ const Item = ({
         style={{ backgroundColor: theme.primary }}
       >
         <Image
-          source={song.thumbnail ? { uri: song.thumbnail } : image}
+          source={song?.artwork ? { uri: song.artwork } : image}
           className="h-20 w-20 rounded-2xl self-center "
         />
         <View className="p-3 flex-1">

@@ -48,9 +48,17 @@
 - **Scenario**
   - User 1 already connected and playing songs.
   - User 2 just opened the app.
-- ***Workflow:*** - User 2 has to connect to socket manually first. - both sends out heartbeat of -
+- **_Workflow:_** - User 2 has to connect to socket manually first. - both sends out heartbeat of -
   | | User 1 | User 2 |
   | ------------- | ------------- | -------------- |
   | state | `playing` | `none` |
 
 - User 1's state is given priority since it's `playing`.
+
+## Introduction to Caching
+
+The Stream Algorithm now includes client side caching to reduce the number of fetches in the server.
+particulary focusing on file:
+
+- `ilyafy/functions/stream/stream.ts`
+- `ilyafy/functions/service.ts`

@@ -156,6 +156,7 @@ export default class PLaylist {
       song: insertSong
     }
   }
+
   async delete({ headers, songId }: deleteType) {
     const token = getAccessTokenfromHeaders(headers);
     const { success, id, fcm_token, message } = await this.#getPlaylist(token);

@@ -19,16 +19,13 @@ export default create<currentTrack>((set, get) => ({
   setTrack: async (remoteTrack?: Track) => {
     const track = remoteTrack || (await TrackPlayer.getActiveTrack()) || null;
     set({ track });
-    TrackPlayer.addEventListener(Event.PlaybackState, data => {
-      data.state !== State.None;
-    });
   },
   initializePlayer: async () => {
     if (get().initialized) return;
     TrackPlayer.addEventListener(
       Event.PlaybackActiveTrackChanged,
       async data => {
-        console.log('ActiveTrackChanged!');
+        console.log('Active Track Changed!');
         set({ track: data.track });
         const { position, duration } = await TrackPlayer.getProgress();
         set({ position, duration });
