@@ -5,9 +5,16 @@ import useProfile from '../store/useProfile';
 import toast from '../components/message/toast';
 import get from '../api/playlist/get';
 import useSongs from '../store/useSongs';
+import useCurrentTrack from '../store/useCurrentTrack';
+import stream from './stream/stream';
+import useMessage from '../store/useMessage';
 export default async function () {
   const addSong = useSongs.getState().addSong;
+  const replaceSong = useSongs.getState().replace;
+  const CurrentSong = useCurrentTrack.getState().track;
+  const accessToken = useProfile.getState().accessToken;
   const sendMessage = useSocketStore.getState().sendMessage;
+  const setMessage = useMessage.getState().setMessage;
   const userId = useSocketStore.getState().userId;
   const roomId = useProfile.getState().profile?.room_part_of;
   const queue = await TrackPlayer.getQueue();
@@ -49,10 +56,33 @@ export default async function () {
       ...progress
     })
   });
-  TrackPlayer.addEventListener(Event.PlaybackError, () => {
+  TrackPlayer.addEventListener(Event.PlaybackError, async () => {
     sendMessage({
       state: 'error',
     });
+    // tell server to update the database
+    const updatedSong = await stream.update(CurrentSong?.mediaId || '', accessToken || '');
+    console.log('songid:', CurrentSong?.mediaId);
+
+    console.log('Update Song:', updatedSong);
+    const headers = updatedSong?.headers;
+    const metadata = updatedSong?.metadata;
+    const localPath = updatedSong?.localPath;
+    const url = headers?.filePath || localPath || metadata?.url || ''
+    if (url) {
+      replaceSong({
+        title: metadata?.title || headers['X-Track-Title'] || 'Unknown Song',
+        url,
+        artist: metadata?.artist || headers['X-Track-Artist'] || 'Ilyafy',
+        artwork: metadata?.thumbnail || headers['X-Track-Thumb'] || '',
+        mediaId: metadata?.id || headers['X-Id'] || CurrentSong?.mediaId,
+        localPath
+      })
+      await TrackPlayer.play();
+    } else {
+      setMessage('URL not found, ignoring this song.')
+      console.log('URL not found');
+    }
   });
   TrackPlayer.addEventListener(Event.PlaybackState, async event => {
     const progress = await TrackPlayer.getProgress();
@@ -137,11 +167,4 @@ export default async function () {
         break;
     }
   })
-  TrackPlayer.addEventListener(Event.PlaybackState, async ({ state }) => {
-    if (state === State.Paused) {
-      console.log('⏸️ Player paused in background service');
-    } else if (state === State.Playing) {
-      console.log('▶️ Player started in background service');
-    }
-  });
 };

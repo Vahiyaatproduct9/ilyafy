@@ -29,6 +29,7 @@ import {
 import useCurrentTrack from '../../store/useCurrentTrack';
 import TrackPlayer from 'react-native-track-player';
 import SongOptions from '../options/songOptions';
+// import useSongs from '../../store/useSongs';
 
 const MacroPlayer = (props: {
   sharedValue: SharedValue<number>;
@@ -40,37 +41,39 @@ const MacroPlayer = (props: {
     .simultaneousWithExternalGesture(progressRef)
     .withRef(props.refProp);
   const [optionsShown, setOptionsShown] = useState<string | null>(null);
-  const { track, isPlaying } = useCurrentTrack();
-  const setSong = async () => {
-    await TrackPlayer.reset();
-    await TrackPlayer.add([
-      {
-        url: require('../../data/test.mp3'),
-        title: 'Always',
-        mediaId: 'someything',
-        artist: 'Daniel Caesar',
-        artwork: require('../../data/test.png'),
-      },
-      {
-        url: require('../../data/test.mp3'),
-        title: 'Always',
-        mediaId: 'someything2',
-        artist: 'Daniel Caesar',
-        artwork: require('../../data/test.png'),
-      },
-      {
-        url: require('../../data/test.mp3'),
-        title: 'Always',
-        mediaId: 'someything3',
-        artist: 'Daniel Caesar',
-        artwork: require('../../data/test.png'),
-      },
-    ]);
-    await TrackPlayer.play();
-  };
-  useEffect(() => {
-    setSong();
-  }, []);
+  const isPlaying = useCurrentTrack(s => s.isPlaying);
+  const track = useCurrentTrack(s => s.track);
+  // const setSongs = useSongs(s => s.setSong);
+  // const loadSong = async () => {
+  //   await TrackPlayer.reset();
+  //   setSongs([
+  //     {
+  //       url: require('../../data/test.mp3'),
+  //       title: 'Always1',
+  //       mediaId: 'someything',
+  //       artist: 'Daniel Caesar',
+  //       artwork: require('../../data/test.png'),
+  //     },
+  //     {
+  //       url: require('../../data/test.mp3'),
+  //       title: 'Always2',
+  //       mediaId: 'someything2',
+  //       artist: 'Daniel Caesar',
+  //       artwork: require('../../data/test.png'),
+  //     },
+  //     {
+  //       url: require('../../data/test.mp3'),
+  //       title: 'Always5',
+  //       mediaId: 'someything3',
+  //       artist: 'Daniel Caesar',
+  //       artwork: require('../../assets/images/background2.png'),
+  //     },
+  //   ]);
+  //   await TrackPlayer.play();
+  // };
+  // useEffect(() => {
+  //   loadSong();
+  // }, []);
   async function togglePlay() {
     if (isPlaying) await TrackPlayer.pause();
     else await TrackPlayer.play();
@@ -154,7 +157,7 @@ const MacroPlayer = (props: {
 
         <Icon
           component={Options}
-          onPress={() => setOptionsShown('some string')}
+          onPress={() => setOptionsShown(track?.mediaId || '')}
           size={30}
           fill={theme.text}
         />
@@ -168,7 +171,11 @@ const MacroPlayer = (props: {
       )}
       <View className="w-full gap-5 p-1 flex-1 items-center justify-center">
         <Animated.Image
-          source={require('../../assets/images/background.png')}
+          source={
+            track
+              ? { uri: track?.artwork }
+              : require('../../assets/images/background.png')
+          }
           className="rounded-[32px]"
           style={[
             thumbnailStyle,

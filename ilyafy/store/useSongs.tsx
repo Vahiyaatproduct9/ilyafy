@@ -1,23 +1,27 @@
 import { create } from 'zustand';
-import { PlaylistProp } from '../types/songs';
 import useMessage from './useMessage';
+import RNFS from 'react-native-fs';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import _delete from '../api/playlist/delete';
 import post from '../api/playlist/post';
 import useProfile from './useProfile';
 import list from '../api/playlist/list';
-import TrackPlayer, { Track } from 'react-native-track-player';
+import TrackPlayer from 'react-native-track-player';
+import { CTrack } from '../types/songs';
+// import useCurrentTrack from './useCurrentTrack';
 type songList = {
-  songs: Track[] | PlaylistProp;
+  songs: CTrack[];
   add: typeof post;
-  addSong: (arg: Track) => Promise<void>;
+  addSong: (arg: CTrack) => Promise<void>;
   delete: typeof _delete;
-  setSong: (arg: Track[] | PlaylistProp) => void;
+  setSong: (arg: CTrack[]) => void;
   load: typeof list;
+  replace: (song: CTrack) => Promise<void>;
 };
 const setMessage = useMessage.getState().setMessage;
 const accessToken = useProfile.getState().accessToken;
+// const currentSong = useCurrentTrack.getState().track;
 export default create(
   persist<songList>(
     (set, get) => ({
@@ -37,6 +41,12 @@ export default create(
       addSong: async song => {
         get().setSong([...get().songs, song]);
       },
+      replace: async song => {
+        const queue = get().songs;
+        const index = queue.findIndex(t => t.mediaId === song?.mediaId);
+        queue[index] = song;
+        get().setSong(queue);
+      },
       delete: async id => {
         const response = await _delete(id);
         if (response?.success) {
@@ -52,6 +62,7 @@ export default create(
       },
       setSong: async arg => {
         set({ songs: arg });
+        await TrackPlayer.reset();
         await TrackPlayer.add(
           arg.map(i => {
             return { ...i, mediaId: i.id || i.mediaId };
@@ -62,7 +73,26 @@ export default create(
         const at = token || accessToken || '';
         const response = await list(at);
         if (response?.success) {
-          get().setSong(response?.songs || []);
+          get().setSong(
+            response?.songs?.map(song => {
+              let localPath;
+              const run = async () => {
+                const filePath = `${RNFS.DownloadDirectoryPath}/${song?.mediaId}.aac`;
+                const fileExists = await RNFS.exists(filePath);
+                if (fileExists) localPath = filePath;
+                else localPath = null;
+              };
+              run();
+              return {
+                url: localPath || song?.url || '',
+                mediaId: song?.id || song?.mediaId || '',
+                artist: song?.artist || 'Ilyafy',
+                artwork: song?.thumbnail || undefined,
+                title: song?.title || 'Unknown Song',
+                localPath,
+              };
+            }) || [],
+          );
         }
         setMessage(response?.message || '');
         return response;

@@ -1,5 +1,5 @@
 import { Text, Pressable } from 'react-native';
-import React, { Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, SetStateAction, useMemo } from 'react';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { songProp } from '../../types/songs';
 import theme from '../../data/color/theme';
@@ -18,15 +18,8 @@ type optionProp = {
 };
 
 const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
-  console.log('song: ', song);
-  const AP = Animated.createAnimatedComponent(Pressable);
-  return (
-    <AP
-      onPress={() => setOptions(null)}
-      className={
-        'absolute z-50 flex-row h-full w-full top-0 left-0 bg-[rgba(0,0,0,0.4)] p-2'
-      }
-    >
+  const options = useMemo(() => {
+    return (
       <Animated.View
         entering={FadeInDown}
         exiting={FadeOutDown}
@@ -45,7 +38,7 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
           return (
             <Button
               key={i}
-              label={f.title || 'function'}
+              label={f.title}
               containerClassName="p-3 rounded-xl w-full mt-4"
               containerStyle={{ backgroundColor: theme.secondary }}
               textClassName="color-gray-400 font-bold"
@@ -54,6 +47,18 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
           );
         })}
       </Animated.View>
+    );
+  }, [functionList, song?.artist, song?.title]);
+  console.log('song: ', song);
+  const AP = Animated.createAnimatedComponent(Pressable);
+  return (
+    <AP
+      onPress={() => setOptions(null)}
+      className={
+        'absolute z-50 flex-row h-full w-full top-0 left-0 bg-[rgba(0,0,0,0.4)] p-2'
+      }
+    >
+      {options}
     </AP>
   );
 };
