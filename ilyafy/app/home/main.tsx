@@ -2,6 +2,7 @@ import Animated, {
   Extrapolation,
   interpolate,
   interpolateColor,
+  useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
