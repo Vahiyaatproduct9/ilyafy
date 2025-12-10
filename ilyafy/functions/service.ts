@@ -11,7 +11,6 @@ import useMessage from '../store/useMessage';
 export default async function () {
   const addSong = useSongs.getState().addSong;
   const replaceSong = useSongs.getState().replace;
-  const CurrentSong = useCurrentTrack.getState().track;
   const accessToken = useProfile.getState().accessToken;
   const sendMessage = useSocketStore.getState().sendMessage;
   const setMessage = useMessage.getState().setMessage;
@@ -61,14 +60,14 @@ export default async function () {
       state: 'error',
     });
     // tell server to update the database
+    const CurrentSong = useCurrentTrack.getState().track;
     const updatedSong = await stream.update(CurrentSong?.mediaId || '', accessToken || '');
     console.log('songid:', CurrentSong?.mediaId);
-
     console.log('Update Song:', updatedSong);
     const headers = updatedSong?.headers;
     const metadata = updatedSong?.metadata;
     const localPath = updatedSong?.localPath;
-    const url = headers?.filePath || localPath || metadata?.url || ''
+    const url = headers?.filePath || localPath || metadata?.url || undefined;
     if (url) {
       replaceSong({
         title: metadata?.title || headers['X-Track-Title'] || 'Unknown Song',
@@ -77,7 +76,7 @@ export default async function () {
         artwork: metadata?.thumbnail || headers['X-Track-Thumb'] || '',
         mediaId: metadata?.id || headers['X-Id'] || CurrentSong?.mediaId,
         localPath
-      })
+      });
       await TrackPlayer.play();
     } else {
       setMessage('URL not found, ignoring this song.')
@@ -87,6 +86,10 @@ export default async function () {
   TrackPlayer.addEventListener(Event.PlaybackState, async event => {
     const progress = await TrackPlayer.getProgress();
     if ([State.Playing, State.Paused].includes(event.state)) {
+      const currentSong = useCurrentTrack.getState().track;
+      if (currentSong?.url.includes('http')) {
+        stream.update(currentSong?.mediaId || '', accessToken || '');
+      }
       sendMessage({
         state: event.state,
         ...progress
@@ -100,13 +103,13 @@ export default async function () {
     const currentSongIndex = queue.findIndex(t => t.mediaId === data.songId);
     if (data?.songId === currentSong?.mediaId) {
       if (Math.abs((progress.position - data?.position) || 0) > 5)
-        toast('They seeked a song.')
+        toast('They seeked a song.');
       else
-        toast('They are playing a song.')
+        toast('They are playing a song.');
       await TrackPlayer.seekTo(data.position);
     } else {
       await TrackPlayer.skip(currentSongIndex, data?.position || 0);
-      toast('They skipped a song.')
+      toast('They skipped a song.');
     }
     await TrackPlayer.play();
   })
@@ -121,6 +124,10 @@ export default async function () {
     }
     await TrackPlayer.pause();
     toast('They paused a song.')
+  })
+  commandEmitter.on('buffering', async () => {
+    await TrackPlayer.pause();
+    toast('They are buffering, Please wait :(');
   })
   commandEmitter.on('skip', async data => {
     const songIndex = queue.findIndex(t => t.mediaId === data.songId)
@@ -145,9 +152,12 @@ export default async function () {
         const { success, song } = await get(data?.songId);
         let songIndex;
         if (success && song !== undefined) {
+          const saveSong = await stream.get(song?.ytUrl || '');
+          const headers = saveSong?.headers;
+          const localPath = saveSong?.localPath;
           await addSong({
             mediaId: song?.id || song?.mediaId || Date.now().toString(),
-            url: song.url || '',
+            url: headers?.filePath || localPath || song.url || '',
             artist: song.artist || 'Ilyafy',
             artwork: song.thumbnail || require('../assets/images/background.png'),
             title: song?.title || 'Unknown Song'

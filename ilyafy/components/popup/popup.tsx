@@ -17,7 +17,15 @@ const Popup = ({
   const [loading, setLoading] = useState<boolean | null>(null);
   const execFunction = async () => {
     setLoading(true);
-    func && (await func());
+    func &&
+      (await func()
+        .then(() => {
+          showPopup(false);
+          setValue('');
+        })
+        .catch(() => {
+          setLoading(false);
+        }));
     setLoading(null);
   };
   return (

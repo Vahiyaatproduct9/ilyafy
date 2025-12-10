@@ -2,9 +2,17 @@ import { domain } from "../../path/path";
 import RNFB from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import useMessage from "../../store/useMessage";
+import useSocketStore from "../../store/useSocketStore";
+import TrackPlayer from "react-native-track-player";
 const setMessage = useMessage.getState().setMessage;
+const downloadList = new Set<string>();
+const sendMessage = useSocketStore.getState().sendMessage;
 export default {
-  async get(url: string) {
+  async get(url: string): Promise<{
+    localPath?: string;
+    headers?: any;
+    metadata?: any;
+  } | undefined> {
     const serverUrl = `${domain}/stream?url=${url}`;
     const localPath = `${RNFB.fs.dirs.CacheDir}/temp.aac`;
     try {
@@ -39,15 +47,22 @@ export default {
               toFile: parmanentPath,
               background: true,
               begin: () => {
-                console.log('Download started!')
-                setMessage('Reading Song...')
+                console.log('Download started!');
+                sendMessage({
+                  state: 'buffering',
+                });
+                setMessage('Reading Song...');
               },
               progress: progressData => {
-                console.log('Downloaded ', progressData.bytesWritten / progressData.contentLength * 100, '%');
+                const downloaded = (progressData.bytesWritten / (1024 * 1024)).toFixed(2);
+                const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
+                console.log(`Downloaded ${downloaded} of ${total} MB.`);
+                setMessage(`Reading ${downloaded} of ${total} MB.`)
               }
-            }).promise.then(() => {
-              console.log(('Download Complete!'));
-            }).catch((err) => {
+            }).promise.then(async () => {
+              console.log('Download Complete!');
+              await TrackPlayer.play();
+            }).catch(err => {
               console.log('Some Error Occured: ', err);
             })
             resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info });
@@ -56,18 +71,22 @@ export default {
           console.log('Buffer mode');
           await RNFS.copyFile(localPath, parmanentPath);
           // if (await RNFB.fs.exists(localPath)) RNFB.fs.unlink(localPath);
-          resolve({ localPath: res.path(), headers: { ...headers, filePath: parmanentPath }, metadata: undefined });
+          resolve({
+            localPath: res.path(),
+            headers: { ...headers, filePath: parmanentPath },
+            metadata: undefined
+          });
           return;
         })
-          .catch((err) => {
+          .catch(err => {
             console.error('Download error:', err);
             setMessage('Ooops!')
             if (!started) reject(err);
           })
       })
     } catch (error) {
-      setMessage('Ooops!')
-      console.error('Error in stream :(', error)
+      setMessage('Ooops!');
+      console.error('Error in stream :(', error);
     }
   },
   async update(songId: string, accessToken: string): Promise<{
@@ -79,7 +98,12 @@ export default {
     const localPath = `${RNFB.fs.dirs.CacheDir}/${songId}.aac`;
     const parmanentPath = `${RNFS.DocumentDirectoryPath}/${songId}.aac`;
     try {
-      if (await RNFS.exists(parmanentPath)) RNFS.unlink(parmanentPath);
+      if (downloadList.has(songId)) {
+        setMessage('Reading, Please wait...');
+        console.log('Already downloading');
+        return;
+      }
+      if (await RNFS.exists(parmanentPath)) await RNFS.unlink(parmanentPath);
       console.log('Streaming Chunks to ', parmanentPath);
       let started = false;
       let headers: any = null;
@@ -104,19 +128,26 @@ export default {
           headers = await res.info().headers;
           if (headers['Content-Type'].includes('application/json')) {
             const info = await res.json();
+
             await RNFS.downloadFile({
               fromUrl: info?.url || '',
               toFile: parmanentPath,
               begin: () => {
-                console.log('Download started!')
+                console.log('Download started!');
+                downloadList.add(songId);
               },
               progress: progressData => {
-                console.log('Downloaded ', progressData.bytesWritten / progressData.contentLength * 100, '%');
+                const downloaded = (progressData.bytesWritten / (1024 * 1024)).toFixed(2);
+                const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
+                console.log(`Downloaded ${downloaded} of ${total} MB.`);
+                setMessage(`Reading ${downloaded} of ${total} MB.`)
               }
             }).promise.then(() => {
               console.log(('Download Complete!'));
             }).catch((err) => {
               console.log('Some Error Occured: ', err);
+            }).finally(() => {
+              downloadList.delete(songId);
             })
             resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info })
             return;
@@ -128,8 +159,8 @@ export default {
         })
           .catch(err => {
             console.log('Updating Error');
-            setMessage('Ooops!')
-            reject(err)
+            setMessage('Ooops!');
+            reject(err);
           })
       })
     } catch (error) {

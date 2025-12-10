@@ -1,14 +1,11 @@
 import Animated, {
   Extrapolation,
-  FadeInLeft,
   interpolate,
   interpolateColor,
-  useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import {
   View,
@@ -143,9 +140,12 @@ const Main = () => {
           playerAnimation,
           {
             shadowRadius: 10,
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.3,
+            shadowColor: '#000000',
           },
         ]}
-        className={'z-50 absolute self-center overflow-hidden'}
+        className={'z-10 absolute self-center overflow-hidden'}
       >
         <GestureHandlerRootView>
           <GestureDetector gesture={panGesture}>

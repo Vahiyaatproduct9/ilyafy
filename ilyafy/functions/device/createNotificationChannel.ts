@@ -4,7 +4,7 @@ export default () => {
   notifee.createChannel({
     id: 'playlist',
     name: 'Playlist',
-    importance: AndroidImportance.DEFAULT
+    importance: AndroidImportance.DEFAULT,
   })
   notifee.createChannel({
     id: 'poke',
@@ -13,21 +13,20 @@ export default () => {
   })
   messaging().setBackgroundMessageHandler(async data => {
     console.log('Background Message recieved: ', data);
-
   })
   messaging().onMessage(async data => {
     console.log('Foreground Message revieved: ', data);
+    const channelId = String(data?.data?.event) || 'playlist';
     notifee.displayNotification({
       title: data.notification?.title,
       body: data.notification?.body,
-
       android: {
-        channelId: String(data?.data?.event) || 'poke',
+        channelId,
         badgeIconType: AndroidBadgeIconType.LARGE,
         smallIcon: 'ic_small_icon',
         importance: AndroidImportance.HIGH,
-        onlyAlertOnce: true,
-        actions: [{
+        onlyAlertOnce: channelId === 'poke',
+        actions: channelId === 'poke' ? [{
           title: 'Join',
           pressAction: {
             id: 'join'
@@ -37,7 +36,7 @@ export default () => {
           pressAction: {
             id: 'ignore'
           }
-        }],
+        }] : [],
       },
     })
   });
