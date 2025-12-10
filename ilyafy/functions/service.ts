@@ -98,15 +98,17 @@ export default async function () {
   })
   commandEmitter.on(State.Playing, async data => {
     if (!data?.position) return;
-    const currentSong = await TrackPlayer.getActiveTrack()
+    console.log('data:', data);
+    const currentSong = await TrackPlayer.getActiveTrack();
     const progress = await TrackPlayer.getProgress();
     const currentSongIndex = queue.findIndex(t => t.mediaId === data.songId);
     if (data?.songId === currentSong?.mediaId) {
-      if (Math.abs((progress.position - data?.position) || 0) > 5)
+      if (Math.abs((progress.position - data?.position) || 0) > 5) {
         toast('They seeked a song.');
+        await TrackPlayer.seekTo(data.position);
+      }
       else
         toast('They are playing a song.');
-      await TrackPlayer.seekTo(data.position);
     } else {
       await TrackPlayer.skip(currentSongIndex, data?.position || 0);
       toast('They skipped a song.');
@@ -146,6 +148,7 @@ export default async function () {
     if (dif > 5) {
       await TrackPlayer.seekTo(data.position)
     }
+
     if (data?.songId && track && data.songId !== track.mediaId) {
       const index = queue.findIndex(t => t.mediaId === data.songId)
       if (index === -1) {
@@ -167,6 +170,7 @@ export default async function () {
       }
       else await TrackPlayer.skip(index, data.position)
       toast('Fixed errors :)')
+    } else {
     }
     switch (data.status) {
       case State.Playing:

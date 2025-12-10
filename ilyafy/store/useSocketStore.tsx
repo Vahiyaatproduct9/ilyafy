@@ -74,7 +74,7 @@ export default create<wsConnectedion>()((set, get) => ({
     });
     socket.on('message', (message: command) => {
       console.log('Server SENT: ', message);
-      commandEmitter.emit(message.state, message.data);
+      commandEmitter.emit(message.state, message);
     });
     socket.on('connect_error', err => {
       set({ isConnected: false });

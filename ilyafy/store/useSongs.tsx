@@ -44,6 +44,8 @@ export default create(
         return response;
       },
       addSong: async song => {
+        const songExists = get().songs.find(t => t.mediaId === song.mediaId);
+        if (songExists) return;
         get().setSong([...get().songs, song]);
       },
       replace: async song => {
