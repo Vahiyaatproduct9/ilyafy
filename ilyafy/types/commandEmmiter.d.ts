@@ -7,6 +7,7 @@ export type commands = State
     | 'reject'
     | 'error'
     | 'stop'
+    | 'buffering'
 
 export type heartbeatDataType = {
     state: 'heartbeat';

@@ -29,16 +29,23 @@ export default create(
       add: async url => {
         const response = await post(url);
         if (response?.success && response?.song) {
-          set({ songs: [...get().songs, response.song] });
-          await TrackPlayer.add({
-            ...response.song,
-            mediaId: response.song.id || response.song.mediaId,
-          });
+          const song = response?.song;
+          const track = {
+            url: song?.url || '',
+            title: song?.title || 'Unknown Song',
+            artist: song?.artist || 'Ilyafy',
+            artwork: song?.thumbnail || '',
+            mediaId: song?.id || song?.mediaId || Date.now().toString(),
+          };
+          set({ songs: [...get().songs, { ...track, localPath: null }] });
+          await TrackPlayer.add(track);
         }
         setMessage(response?.message || '');
         return response;
       },
       addSong: async song => {
+        const songExists = get().songs.find(t => t.mediaId === song.mediaId);
+        if (songExists) return;
         get().setSong([...get().songs, song]);
       },
       replace: async song => {
@@ -50,9 +57,13 @@ export default create(
       delete: async id => {
         const response = await _delete(id);
         if (response?.success) {
+          const newSongList = get().songs.filter(
+            t => t.mediaId !== id || t.id !== id,
+          );
           set({
-            songs: get().songs.filter(t => t.mediaId !== id || t.id !== id),
+            songs: newSongList,
           });
+          console.log('new song list:', newSongList);
           const queue = await TrackPlayer.getQueue();
           const index = queue.findIndex(t => t.mediaId === id);
           await TrackPlayer.remove(index);
@@ -73,16 +84,15 @@ export default create(
         const at = token || accessToken || '';
         const response = await list(at);
         if (response?.success) {
-          get().setSong(
-            response?.songs?.map(song => {
+          const songs = await Promise.all(
+            (response?.songs || []).map(async song => {
               let localPath;
-              const run = async () => {
-                const filePath = `${RNFS.DownloadDirectoryPath}/${song?.mediaId}.aac`;
-                const fileExists = await RNFS.exists(filePath);
-                if (fileExists) localPath = filePath;
-                else localPath = null;
-              };
-              run();
+              const filePath = `${RNFS.DocumentDirectoryPath}/${
+                song?.mediaId || song?.id || ''
+              }.aac`;
+              const fileExists = await RNFS.exists(filePath);
+              if (fileExists) localPath = filePath;
+              else localPath = null;
               return {
                 url: localPath || song?.url || '',
                 mediaId: song?.id || song?.mediaId || '',
@@ -91,8 +101,9 @@ export default create(
                 title: song?.title || 'Unknown Song',
                 localPath,
               };
-            }) || [],
+            }),
           );
+          get().setSong(songs);
         }
         setMessage(response?.message || '');
         return response;

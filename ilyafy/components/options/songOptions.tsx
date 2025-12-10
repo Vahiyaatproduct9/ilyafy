@@ -24,7 +24,7 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
         entering={FadeInDown}
         exiting={FadeOutDown}
         className={
-          'w-full h-fit bottom-2 self-end rounded-xl p-2 overflow-hidden'
+          'w-full h-fit bottom-2 self-end rounded-xl p-2 overflow-hidden z-[50]'
         }
         style={{ backgroundColor: theme.primary }}
       >
@@ -55,7 +55,7 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
     <AP
       onPress={() => setOptions(null)}
       className={
-        'absolute z-50 flex-row h-full w-full top-0 left-0 bg-[rgba(0,0,0,0.4)] p-2'
+        'absolute flex-row h-full w-full top-0 left-0 bg-[rgba(0,0,0,0.4)] p-2  z-[100]'
       }
     >
       {options}

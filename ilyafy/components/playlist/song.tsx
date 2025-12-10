@@ -51,7 +51,7 @@ const Item = ({
         <View className="items-center justify-center p-2">
           <Icon
             component={Options}
-            onPress={() => showOptionsOf(song.id)}
+            onPress={() => showOptionsOf(song?.mediaId || song?.id || '')}
             fill={theme.text}
             size={28}
           />
