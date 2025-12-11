@@ -6,6 +6,8 @@ type currentTrack = {
   position: number | null;
   duration: number | null;
   isPlaying: boolean;
+  canBePlayed: boolean;
+  shouldPlay: (value: boolean) => void;
   setTrack: () => Promise<void>;
   initializePlayer: () => Promise<void>;
 };
@@ -16,6 +18,10 @@ export default create<currentTrack>((set, get) => ({
   position: null,
   duration: null,
   isPlaying: false,
+  canBePlayed: true,
+  shouldPlay: val => {
+    set({ canBePlayed: val });
+  },
   setTrack: async (remoteTrack?: Track) => {
     const track = remoteTrack || (await TrackPlayer.getActiveTrack()) || null;
     set({ track });

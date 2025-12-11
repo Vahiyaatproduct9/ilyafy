@@ -84,7 +84,6 @@ export default create<wsConnectedion>()((set, get) => ({
   sendMessage: async arg => {
     console.log('sending Message: ', arg);
     if (get().isConnected && get().socket) {
-      console.log('Connected, sending...');
       get().socket?.emit('message', {
         state: 'event',
         userId: get().userId,

@@ -1,3 +1,4 @@
+import notifee from '@notifee/react-native';
 import { domain } from "../../path/path";
 import RNFB from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
@@ -34,7 +35,7 @@ export default {
             console.log('Buffering...');
           }
         });
-        const parmanentPath = `${RNFS.DocumentDirectoryPath}/${Date.now().toString()}`
+        const parmanentPath = `${RNFS.DocumentDirectoryPath}/${Date.now().toString()}.aac`;
         task.then(async res => {
           headers = await res.info().headers;
           console.log('Headers: ', headers);
@@ -52,12 +53,27 @@ export default {
                   state: 'buffering',
                 });
                 setMessage('Reading Song...');
+
               },
               progress: progressData => {
                 const downloaded = (progressData.bytesWritten / (1024 * 1024)).toFixed(2);
                 const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
                 console.log(`Downloaded ${downloaded} of ${total} MB.`);
-                setMessage(`Reading ${downloaded} of ${total} MB.`)
+                setMessage(`Reading ${downloaded} of ${total} MB.`);
+                notifee.displayNotification({
+                  title: 'Ilyafy',
+                  body: `Reading Song..`,
+                  android: {
+                    channelId: 'playlist',
+                    smallIcon: 'ic_launcher', // ensure you have this icon in your resources
+                    ongoing: true,
+                    progress: {
+                      max: parseInt(total, 10),
+                      current: parseInt(downloaded, 10),
+                      indeterminate: false,
+                    },
+                  },
+                });
               }
             }).promise.then(async () => {
               console.log('Download Complete!');
@@ -141,6 +157,20 @@ export default {
                 const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
                 console.log(`Downloaded ${downloaded} of ${total} MB.`);
                 setMessage(`Reading ${downloaded} of ${total} MB.`)
+                notifee.displayNotification({
+                  title: 'Ilyafy',
+                  body: `Reading Song..`,
+                  android: {
+                    channelId: 'playlist',
+                    smallIcon: 'ic_launcher', // ensure you have this icon in your resources
+                    ongoing: true,
+                    progress: {
+                      max: parseInt(total, 10),
+                      current: parseInt(downloaded, 10),
+                      indeterminate: false,
+                    },
+                  },
+                });
               }
             }).promise.then(() => {
               console.log(('Download Complete!'));
