@@ -1,28 +1,32 @@
 import { Image, Pressable, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
-import theme from '../../data/color/theme';
+import Animated, {
+  AnimatedStyle,
+  FadeInDown,
+  FadeOutUp,
+} from 'react-native-reanimated';
 import Icon from '../icons/icon';
 import Options from '../../assets/icons/options.svg';
 import TrackPlayer, { Track } from 'react-native-track-player';
+import control from '../../functions/stream/control';
+import theme from '../../data/color/theme';
 const image = require('../../assets/images/background.png');
 const Item = ({
   i,
   song,
   showOptionsOf,
+  colors,
 }: {
   i: number | null;
   song: Track;
   showOptionsOf: (i: string) => void;
+  colors: AnimatedStyle;
 }) => {
   const changeSong = async () => {
     console.log('song:', song);
-    console.log('Song Changed!');
     const queue = await TrackPlayer.getQueue();
-    console.log('Queue:', queue);
     const index = queue.findIndex(t => t.mediaId === song?.mediaId || '');
-    console.log('index:', index);
-    await TrackPlayer.skip(index);
-    await TrackPlayer.play();
+    await control.remoteSkip(index, 0);
+    await control.remotePlay();
   };
   return (
     <Pressable
@@ -34,11 +38,11 @@ const Item = ({
         entering={FadeInDown}
         exiting={FadeOutUp}
         className={'flex-row flex-1 rounded-2xl p-1'}
-        style={{ backgroundColor: theme.primary }}
+        style={colors}
       >
         <Image
           source={song?.artwork ? { uri: song.artwork } : image}
-          className="h-20 w-20 rounded-2xl self-center "
+          className="h-20 w-20 rounded-2xl self-center"
         />
         <View className="p-3 flex-1">
           <Text className="font-semibold text-xl" style={{ color: theme.text }}>

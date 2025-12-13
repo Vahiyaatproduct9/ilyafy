@@ -9,6 +9,8 @@ import useProfile from './useProfile';
 import list from '../api/playlist/list';
 import TrackPlayer from 'react-native-track-player';
 import { CTrack } from '../types/songs';
+import useCurrentTrack from './useCurrentTrack';
+import stream from '../functions/stream/stream';
 // import useCurrentTrack from './useCurrentTrack';
 type songList = {
   songs: CTrack[];
@@ -37,14 +39,20 @@ export default create(
             artwork: song?.thumbnail || '',
             mediaId: song?.id || song?.mediaId || Date.now().toString(),
           };
-          set({ songs: [...get().songs, { ...track, localPath: null }] });
+          if (get().songs.find(t => t.mediaId === track.mediaId)) {
+            setMessage('Song already exists in the playlist.');
+          } else {
+            set({ songs: [...get().songs, track] });
+          }
           await TrackPlayer.add(track);
         }
         setMessage(response?.message || '');
         return response;
       },
       addSong: async song => {
-        const songExists = get().songs.find(t => t.mediaId === song.mediaId);
+        const songExists = get().songs.find(
+          t => t.mediaId === song.mediaId || song.id === t.id,
+        );
         if (songExists) return;
         get().setSong([...get().songs, song]);
       },
@@ -65,7 +73,11 @@ export default create(
           });
           console.log('new song list:', newSongList);
           const queue = await TrackPlayer.getQueue();
+          const currentTrack = useCurrentTrack.getState().track;
           const index = queue.findIndex(t => t.mediaId === id);
+          if (currentTrack?.mediaId === id) {
+            await TrackPlayer.skipToNext();
+          }
           await TrackPlayer.remove(index);
         }
         setMessage(response?.message || '');
@@ -92,7 +104,16 @@ export default create(
               }.aac`;
               const fileExists = await RNFS.exists(filePath);
               if (fileExists) localPath = filePath;
-              else localPath = null;
+              else {
+                const fetchedSong = await stream.get(
+                  song?.url || '',
+                  song?.mediaId || song?.id,
+                );
+                const headers = fetchedSong?.headers;
+                const metadata = fetchedSong?.metadata;
+                localPath =
+                  headers?.filePath || localPath || metadata?.url || undefined;
+              }
               return {
                 url: localPath || song?.url || '',
                 mediaId: song?.id || song?.mediaId || '',

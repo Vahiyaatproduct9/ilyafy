@@ -69,6 +69,6 @@ export default async function () {
     if (![State.Playing, State.Paused].includes(event.state)) {
       control.remotePlaybackState(event.state)
     }
-  })
+  });
 };
 commandListener();

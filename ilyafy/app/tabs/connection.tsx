@@ -1,20 +1,21 @@
 import { View, Text, Dimensions } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import theme from '../../data/color/theme';
 import getRoommate from '../../api/room/getRoommate';
 import useProfile from '../../store/useProfile';
 import Button from '../../components/buttons/button1';
 import pokeUser from '../../api/room/pokeUser';
+import useDeviceSetting from '../../store/useDeviceSetting';
 
 const Connection = () => {
+  const colors = useDeviceSetting(s => s.colors);
   const width = Dimensions.get('window').width - 16;
   const [partner, setPartner] = useState<
     | []
     | {
-      id: string;
-      name: string;
-      email: string;
-    }[]
+        id: string;
+        name: string;
+        email: string;
+      }[]
   >();
   const room_part_of = useProfile().profile?.room_part_of;
   useEffect(() => {
@@ -40,10 +41,10 @@ const Connection = () => {
   return (
     <View
       className="flex-1 h-full items-center justify-center p-5"
-      style={{ width, backgroundColor: theme.background }}
+      style={{ width, backgroundColor: colors.background }}
     >
       <Button label="POKE" onPress={pokeUser} />
-      <Text className="p-5 text-xl font-bold" style={{ color: theme.text }}>
+      <Text className="p-5 text-xl font-bold" style={{ color: colors.text }}>
         Paired with
       </Text>
       {partner?.map((item, i) => {
@@ -51,13 +52,13 @@ const Connection = () => {
           <View className="p-4" key={i}>
             <View className="gap-2 justify-between flex-row">
               <Text
-                style={{ color: theme.text }}
+                style={{ color: colors.text }}
                 className="font-semibold text-xl"
               >
                 Name:
               </Text>
               <Text
-                style={{ color: theme.text }}
+                style={{ color: colors.text }}
                 className="font-normal text-xl"
               >
                 {item?.name || ''}
@@ -65,13 +66,13 @@ const Connection = () => {
             </View>
             <View className="gap-2 justify-between flex-row">
               <Text
-                style={{ color: theme.text }}
+                style={{ color: colors.text }}
                 className="font-semibold text-xl"
               >
                 Email:
               </Text>
               <Text
-                style={{ color: theme.text }}
+                style={{ color: colors.text }}
                 className="font-normal text-xl"
               >
                 {item?.email || ''}

@@ -2,9 +2,9 @@ import { Text, Pressable } from 'react-native';
 import React, { Dispatch, SetStateAction, useMemo } from 'react';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { songProp } from '../../types/songs';
-import theme from '../../data/color/theme';
 import Button from '../buttons/button1';
 import { Track } from 'react-native-track-player';
+import useDeviceSetting from '../../store/useDeviceSetting';
 
 type functionList = {
   title: string;
@@ -18,6 +18,7 @@ type optionProp = {
 };
 
 const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
+  const colors = useDeviceSetting(s => s.colors);
   const options = useMemo(() => {
     return (
       <Animated.View
@@ -26,12 +27,12 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
         className={
           'w-full h-fit bottom-2 self-end rounded-xl p-2 overflow-hidden z-[50]'
         }
-        style={{ backgroundColor: theme.primary }}
+        style={{ backgroundColor: colors.primary }}
       >
-        <Text className="font-semibold text-xl" style={{ color: theme.text }}>
+        <Text className="font-semibold text-xl" style={{ color: colors.text }}>
           {song?.title || ''}
         </Text>
-        <Text className="text-l self-end" style={{ color: theme.text }}>
+        <Text className="text-l self-end" style={{ color: colors.text }}>
           {song?.artist || ''}
         </Text>
         {functionList?.map((f, i) => {
@@ -40,7 +41,7 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
               key={i}
               label={f.title}
               containerClassName="p-3 rounded-xl w-full mt-4"
-              containerStyle={{ backgroundColor: theme.secondary }}
+              containerStyle={{ backgroundColor: colors.secondary }}
               textClassName="color-gray-400 font-bold"
               onPress={f?.func}
             />
@@ -48,7 +49,14 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
         })}
       </Animated.View>
     );
-  }, [functionList, song?.artist, song?.title]);
+  }, [
+    colors.primary,
+    colors.secondary,
+    colors.text,
+    functionList,
+    song?.artist,
+    song?.title,
+  ]);
   console.log('song: ', song);
   const AP = Animated.createAnimatedComponent(Pressable);
   return (

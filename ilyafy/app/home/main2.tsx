@@ -19,9 +19,13 @@ const Main = () => {
   // const [options, setOptions] = useState<string | null>(null);
   // const [playlist, setPlaylist] = useState<PlaylistProp | []>([]);
   const { setBackend, backend } = useBackend();
-  const Connect = async () => {
+  const toggleConnect = async () => {
     setLoading(true);
-    console.log('Connecting socket!');
+    if (isConnected) {
+      useSocketStore.getState().disconnect();
+      setLoading(null);
+      return;
+    }
     connect();
     setLoading(null);
     commandEmitter.on('reject', () => {
@@ -53,8 +57,8 @@ const Main = () => {
         textStyle={{
           color: theme.text,
         }}
-        disabled={isConnected}
-        onPress={Connect}
+        disabled={loading ? true : false}
+        onPress={toggleConnect}
       />
     );
   };

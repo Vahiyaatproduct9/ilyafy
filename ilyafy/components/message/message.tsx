@@ -5,11 +5,12 @@ import Animated, {
   FadeOutRight,
   FadeOutUp,
 } from 'react-native-reanimated';
-import theme from '../../data/color/theme';
 import useMessage from '../../store/useMessage';
+import useDeviceSetting from '../../store/useDeviceSetting';
 
 const Message = () => {
   const { message, setMessage } = useMessage();
+  const colors = useDeviceSetting(s => s.colors);
   useEffect(() => {
     if (message.length > 0) {
       setTimeout(() => {
@@ -24,7 +25,7 @@ const Message = () => {
         exiting={FadeOutUp.duration(250)}
         className={'absolute top-2 w-[95%] self-center rounded-2xl z-50 p-5'}
         style={{
-          backgroundColor: theme.accent,
+          backgroundColor: colors.accent,
         }}
       >
         <Animated.Text
@@ -32,7 +33,7 @@ const Message = () => {
           exiting={FadeOutRight.duration(500)}
           className={`font-semibold text-center`}
           style={{
-            color: theme.text,
+            color: colors.text,
           }}
         >
           {message}

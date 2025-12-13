@@ -50,7 +50,7 @@ export class SessionGateway {
     @MessageBody() data: { roomId: string, userId: string; state: string, progress?: string, event?: object }
   ) {
     const room = this.localSockets.get(data.roomId);
-    console.log('local Sockets: ', this.localSockets);
+    // console.log('local Sockets: ', this.localSockets);
     if (!room || !room.has(socket.id)) {
       console.log('socket id:', socket.id);
       console.log('room:', room);
@@ -61,7 +61,9 @@ export class SessionGateway {
       if (s === socket.id) continue;
       this.server.to(s).emit('message', data);
     }
-    console.log('Message from socket ', socket.id, ': ', data);
+    if (data.state !== 'heartbeat') {
+      console.log('Message from socket ', socket.id, ': ', data);
+    }
   }
 
   @SubscribeMessage('join')

@@ -1,5 +1,6 @@
 import TrackPlayer, { Event, State, Track } from 'react-native-track-player';
 import { create } from 'zustand';
+import useDeviceSetting from './useDeviceSetting';
 type currentTrack = {
   track: Track | null;
   initialized: boolean;
@@ -31,8 +32,8 @@ export default create<currentTrack>((set, get) => ({
     TrackPlayer.addEventListener(
       Event.PlaybackActiveTrackChanged,
       async data => {
-        console.log('Active Track Changed!');
         set({ track: data.track });
+        useDeviceSetting.getState().loadColor(data?.track);
         const { position, duration } = await TrackPlayer.getProgress();
         set({ position, duration });
       },

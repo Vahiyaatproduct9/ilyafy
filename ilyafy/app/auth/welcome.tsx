@@ -42,23 +42,6 @@ const Welcome = () => {
       .map((_, i) => {
         return <AnimatedCircle key={i} />;
       });
-  // const Login = async () => {
-  //   try {
-  //     await authorize();
-  //   } catch (err) {
-  //     console.error('Error: ', err);
-  //   }
-  // };
-  // const Logout = async () => {
-  //   try {
-  //     await clearSession();
-  //   } catch (err) {
-  //     console.log('Error:', err);
-  //   }
-  // };
-  // useEffect(() => {
-  //   console.log('User: ', user);
-  // }, [user]);
   return (
     <View
       className={`flex-1 items-center justify-center p-4`}

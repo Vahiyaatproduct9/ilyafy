@@ -9,8 +9,13 @@ export default () => {
   })
   notifee.createChannel({
     id: 'poke',
-    name: 'Default Channel',
+    name: 'Poke',
     importance: AndroidImportance.HIGH
+  })
+  notifee.createChannel({
+    id: 'downloads',
+    name: 'Downloads',
+    importance: AndroidImportance.DEFAULT,
   })
   setBackgroundMessageHandler(messaging(), async data => {
     console.log('Background Message recieved: ', data);

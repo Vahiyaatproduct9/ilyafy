@@ -29,3 +29,11 @@ export type signUp = {
   success?: boolean;
   userId?: string;
 }
+
+export type themeType = {
+  background: string;
+  primary: string;
+  secondary: string;
+  text: string;
+  accent: string;
+};

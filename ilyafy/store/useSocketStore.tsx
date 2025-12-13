@@ -9,6 +9,7 @@ interface wsConnectedion {
   socket: Socket | null;
   isConnected: boolean;
   connect: () => void;
+  disconnect: () => void;
   userId: string | null;
   sendMessage: (arg: Object | []) => Promise<boolean>;
   roomId: string | null;
@@ -80,6 +81,13 @@ export default create<wsConnectedion>()((set, get) => ({
       set({ isConnected: false });
       console.error('Socket Connect Error: ', err);
     });
+  },
+  disconnect: () => {
+    if (get().socket) {
+      get().socket?.disconnect();
+      set({ isConnected: false, socket: null });
+      console.log('Socket Disconnected Manually!');
+    }
   },
   sendMessage: async arg => {
     console.log('sending Message: ', arg);

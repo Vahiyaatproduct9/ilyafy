@@ -10,16 +10,15 @@ import useSongs from "../../store/useSongs";
 import useCurrentTrack from "../../store/useCurrentTrack";
 const userId = useSocketStore.getState().userId;
 const roomId = useProfile.getState().profile?.room_part_of;
-const queue = await TrackPlayer.getQueue();
-const track = await TrackPlayer.getActiveTrack();
 const addSong = useSongs.getState().addSong;
 const shouldPlay = useCurrentTrack.getState().shouldPlay;
-const executePlay = () => commandEmitter.on(State.Playing, async data => {
+export const executePlay = () => commandEmitter.on(State.Playing, async data => {
   shouldPlay(true);
   if (!data?.position) return;
   console.log('data:', data);
   const currentSong = await TrackPlayer.getActiveTrack();
   const progress = await TrackPlayer.getProgress();
+  const queue = await TrackPlayer.getQueue();
   const currentSongIndex = queue.findIndex(t => t.mediaId === data.songId);
   if (data?.songId === currentSong?.mediaId) {
     if (Math.abs((progress.position - data?.position) || 0) > 5) {
@@ -34,10 +33,11 @@ const executePlay = () => commandEmitter.on(State.Playing, async data => {
   }
   await TrackPlayer.play();
 })
-const executePause = () => commandEmitter.on(State.Paused, async data => {
+export const executePause = () => commandEmitter.on(State.Paused, async data => {
   shouldPlay(true);
   if (!data?.position) return;
-  const currentSong = await TrackPlayer.getActiveTrack()
+  const currentSong = await TrackPlayer.getActiveTrack();
+  const queue = await TrackPlayer.getQueue();
   const currentSongIndex = queue.findIndex(t => t.mediaId === data.songId);
   if (data?.songId === currentSong?.mediaId) {
     await TrackPlayer.seekTo(data.position);
@@ -47,29 +47,36 @@ const executePause = () => commandEmitter.on(State.Paused, async data => {
   await TrackPlayer.pause();
   toast('They paused a song.');
 })
-const executeBuffering = () => commandEmitter.on(State.Buffering, async () => {
+export const executeBuffering = () => commandEmitter.on(State.Buffering, async () => {
   await TrackPlayer.pause();
   shouldPlay(false);
   toast('They are buffering, Please wait :(');
 })
-const executeSkip = () => commandEmitter.on('skip', async data => {
+export const executeReady = () => commandEmitter.on(State.Ready, async () => {
+  shouldPlay(true);
+  toast('They are ready to play!');
+});
+export const executeSkip = () => commandEmitter.on('skip', async data => {
+  const queue = await TrackPlayer.getQueue();
   const songIndex = queue.findIndex(t => t.mediaId === data.songId)
   await TrackPlayer.skip(songIndex, data.position);
   await TrackPlayer.play();
   toast('They skipped a song.')
 })
-const executeStop = () => commandEmitter.on(State.Ended, async () => {
+export const executeStop = () => commandEmitter.on(State.Ended, async () => {
   await TrackPlayer.pause();
   toast('Playlist Ended :(')
 })
-const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data: heartbeatDataType) => {
+export const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data: heartbeatDataType) => {
   if (data.userId === userId || data.roomId !== roomId) return;
   const localProgress = await TrackPlayer.getProgress()
   const dif = Math.abs(data.position - localProgress.position)
   if (dif > 5) {
     await TrackPlayer.seekTo(data.position)
   }
+  const track = await TrackPlayer.getActiveTrack();
   if (data?.songId && track && data.songId !== track.mediaId) {
+    const queue = await TrackPlayer.getQueue();
     const index = queue.findIndex(t => t.mediaId === data.songId)
     if (index === -1) {
       const { success, song } = await get(data?.songId);
@@ -83,8 +90,8 @@ const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data: heart
         saveSong && await addSong({
           mediaId: song?.id || song?.mediaId || Date.now().toString(),
           url: headers?.filePath || localPath || song.url || '',
-          artist: song.artist || 'Ilyafy',
-          artwork: song.thumbnail || require('../assets/images/background.png'),
+          artist: song?.artist || 'Ilyafy',
+          artwork: song?.thumbnail || require('../../assets/images/background.png'),
           title: song?.title || 'Unknown Song'
         })
         songIndex && await TrackPlayer.skip(songIndex, data?.position);
@@ -110,6 +117,7 @@ export default () => {
   executePlay();
   executePause();
   executeBuffering();
+  executeReady();
   executeSkip();
   executeStop();
   executeHeartbeat();

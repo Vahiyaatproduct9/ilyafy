@@ -36,7 +36,7 @@ class Control {
     this.sendMessage({
       ...progress,
       ...arg,
-      state: 'skip'
+      state: State.Playing,
     })
   }
   public async remotePlay() {

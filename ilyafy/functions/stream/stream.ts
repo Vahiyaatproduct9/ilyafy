@@ -9,13 +9,13 @@ const setMessage = useMessage.getState().setMessage;
 const downloadList = new Set<string>();
 const sendMessage = useSocketStore.getState().sendMessage;
 export default {
-  async get(url: string): Promise<{
+  async get(url: string, id?: string): Promise<{
     localPath?: string;
     headers?: any;
     metadata?: any;
   } | undefined> {
-    const serverUrl = `${domain}/stream?url=${url}`;
-    const localPath = `${RNFB.fs.dirs.CacheDir}/temp.aac`;
+    const serverUrl = `${domain}/stream?url=${id || url}`;
+    const localPath = `${RNFB.fs.dirs.CacheDir}/${id || 'temp'}.aac`;
     try {
       if (await RNFB.fs.exists(localPath)) await RNFB.fs.unlink(localPath);
       console.log('Streaming Chunks to ', localPath);
@@ -35,7 +35,7 @@ export default {
             console.log('Buffering...');
           }
         });
-        const parmanentPath = `${RNFS.DocumentDirectoryPath}/${Date.now().toString()}.aac`;
+        const parmanentPath = `${RNFS.DocumentDirectoryPath}/${id || Date.now().toString()}.aac`;
         task.then(async res => {
           headers = await res.info().headers;
           console.log('Headers: ', headers);
@@ -43,6 +43,8 @@ export default {
             const info = await res.json();
             console.log('Info:', info);
             console.log('Meta mode:', res.path());
+            let resolved = false;
+            let minBuffer = 1024 * 256 // 256kB
             await RNFS.downloadFile({
               fromUrl: info.url || '',
               toFile: parmanentPath,
@@ -53,35 +55,43 @@ export default {
                   state: 'buffering',
                 });
                 setMessage('Reading Song...');
-
               },
               progress: progressData => {
                 const downloaded = (progressData.bytesWritten / (1024 * 1024)).toFixed(2);
                 const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
                 console.log(`Downloaded ${downloaded} of ${total} MB.`);
-                setMessage(`Reading ${downloaded} of ${total} MB.`);
-                notifee.displayNotification({
-                  title: 'Ilyafy',
-                  body: `Reading Song..`,
-                  android: {
-                    channelId: 'playlist',
-                    smallIcon: 'ic_launcher', // ensure you have this icon in your resources
-                    ongoing: true,
-                    progress: {
-                      max: parseInt(total, 10),
-                      current: parseInt(downloaded, 10),
-                      indeterminate: false,
+                let percent = Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100);
+                if (progressData.bytesWritten >= minBuffer && !resolved) {
+                  resolved = true;
+                  resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info })
+                }
+                if (percent > 100) percent = 100;
+                if (percent < 90) {
+                  notifee.displayNotification({
+                    id: 'reading-song',
+                    title: 'Reading Song',
+                    body: `Read ${downloaded} of ${total} MB.`,
+                    android: {
+                      channelId: 'downloads',
+                      smallIcon: 'ic_small_icon',
+                      ongoing: true,
+                      onlyAlertOnce: true,
+                      progress: {
+                        max: 100,
+                        current: Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100),
+                      },
                     },
-                  },
-                });
+                  });
+                } else {
+                  notifee.cancelNotification('reading-song');
+                }
               }
             }).promise.then(async () => {
               console.log('Download Complete!');
               await TrackPlayer.play();
             }).catch(err => {
               console.log('Some Error Occured: ', err);
-            })
-            resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info });
+            });
             return;
           }
           console.log('Buffer mode');
@@ -144,6 +154,7 @@ export default {
           headers = await res.info().headers;
           if (headers['Content-Type'].includes('application/json')) {
             const info = await res.json();
+            let resolved = false;
 
             await RNFS.downloadFile({
               fromUrl: info?.url || '',
@@ -156,21 +167,31 @@ export default {
                 const downloaded = (progressData.bytesWritten / (1024 * 1024)).toFixed(2);
                 const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
                 console.log(`Downloaded ${downloaded} of ${total} MB.`);
-                setMessage(`Reading ${downloaded} of ${total} MB.`)
-                notifee.displayNotification({
-                  title: 'Ilyafy',
-                  body: `Reading Song..`,
-                  android: {
-                    channelId: 'playlist',
-                    smallIcon: 'ic_launcher', // ensure you have this icon in your resources
-                    ongoing: true,
-                    progress: {
-                      max: parseInt(total, 10),
-                      current: parseInt(downloaded, 10),
-                      indeterminate: false,
+                let percent = Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100);
+                if (progressData.bytesWritten >= minBuffer && !resolved) {
+                  resolved = true;
+                  resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info })
+                }
+                if (percent > 100) percent = 100;
+                if (percent < 90) {
+                  notifee.displayNotification({
+                    id: songId,
+                    title: 'Reading Song',
+                    body: `Read ${downloaded} of ${total} MB.`,
+                    android: {
+                      channelId: 'downloads',
+                      smallIcon: 'ic_small_icon',
+                      ongoing: true,
+                      onlyAlertOnce: true,
+                      progress: {
+                        max: 100,
+                        current: Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100),
+                      },
                     },
-                  },
-                });
+                  });
+                } else {
+                  notifee.cancelNotification(songId);
+                }
               }
             }).promise.then(() => {
               console.log(('Download Complete!'));
@@ -179,7 +200,6 @@ export default {
             }).finally(() => {
               downloadList.delete(songId);
             })
-            resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info })
             return;
           }
           await RNFS.copyFile(res.path(), parmanentPath);

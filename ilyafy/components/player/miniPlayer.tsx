@@ -8,16 +8,24 @@ import Pause from '../../assets/icons/pause.svg';
 import Next from '../../assets/icons/next.svg';
 import useCurrentTrack from '../../store/useCurrentTrack';
 import TrackPlayer from 'react-native-track-player';
+import control from '../../functions/stream/control';
+import useMessage from '../../store/useMessage';
 
 const MiniPlayer = ({ style }: { style: AnimatedStyle }) => {
   const isPlaying = useCurrentTrack(s => s.isPlaying);
+  const setMessage = useMessage.getState().setMessage;
+  const canBePlayed = useCurrentTrack(s => s.canBePlayed);
   const track = useCurrentTrack(s => s.track);
   async function togglePlay() {
     if (isPlaying) await TrackPlayer.pause();
-    else await TrackPlayer.play();
+    else if (canBePlayed) await control.remotePlay();
+    else setMessage('They are buffering, please wait!');
   }
   async function skipSong() {
-    await TrackPlayer.skipToNext();
+    await control.remoteSkip(
+      ((await TrackPlayer.getActiveTrackIndex()) || 0) + 1,
+      0,
+    );
   }
   return (
     <Animated.View
@@ -26,7 +34,7 @@ const MiniPlayer = ({ style }: { style: AnimatedStyle }) => {
     >
       <View className="flex-1">
         <Text
-          className={'font-semibold text-2xl'}
+          className={'font-semibold text-xl'}
           style={{
             color: theme.text,
           }}
