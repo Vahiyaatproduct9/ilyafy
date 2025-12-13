@@ -49,7 +49,7 @@ export default async function () {
     const headers = updatedSong?.headers;
     const metadata = updatedSong?.metadata;
     const localPath = updatedSong?.localPath;
-    const url = headers?.filePath || localPath || metadata?.url || undefined;
+    const url = localPath || headers?.filePath || metadata?.url || undefined;
     if (url) {
       replaceSong({
         title: metadata?.title || headers['X-Track-Title'] || 'Unknown Song',

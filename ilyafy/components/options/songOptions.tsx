@@ -1,24 +1,39 @@
 import { Text, Pressable } from 'react-native';
-import React, { Dispatch, SetStateAction, useMemo } from 'react';
+import React, { Dispatch, SetStateAction, useMemo, useCallback } from 'react';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
-import { songProp } from '../../types/songs';
 import Button from '../buttons/button1';
 import { Track } from 'react-native-track-player';
 import useDeviceSetting from '../../store/useDeviceSetting';
-
-type functionList = {
-  title: string;
-  func: () => void;
-}[];
+import useSongs from '../../store/useSongs';
+import useMessage from '../../store/useMessage';
 
 type optionProp = {
-  song?: songProp | Track | undefined;
-  setOptions: Dispatch<SetStateAction<string | null>>;
-  functionList?: functionList;
+  song: Track;
+  setSong: Dispatch<SetStateAction<Track | null>>;
 };
 
-const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
+const SongOptions = ({ song, setSong }: optionProp) => {
   const colors = useDeviceSetting(s => s.colors);
+  const del = useSongs(s => s.delete);
+  const setMessage = useMessage(s => s.setMessage);
+  const delSong = useCallback(async () => {
+    const response = await del(song?.mediaId || '');
+    setMessage(response?.message || '');
+    if (response?.success) {
+      setSong(null);
+    }
+  }, [del, setMessage, setSong, song?.mediaId]);
+
+  const functionList = useMemo(() => {
+    return [
+      {
+        title: 'Delete',
+        func: delSong,
+      },
+    ];
+  }, [delSong]);
+  console.log('song: ', song);
+  const AP = Animated.createAnimatedComponent(Pressable);
   const options = useMemo(() => {
     return (
       <Animated.View
@@ -57,11 +72,9 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
     song?.artist,
     song?.title,
   ]);
-  console.log('song: ', song);
-  const AP = Animated.createAnimatedComponent(Pressable);
   return (
     <AP
-      onPress={() => setOptions(null)}
+      onPress={() => setSong(null)}
       className={
         'absolute flex-row h-full w-full top-0 left-0 bg-[rgba(0,0,0,0.4)] p-2  z-[100]'
       }

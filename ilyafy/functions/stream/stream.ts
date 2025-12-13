@@ -14,7 +14,12 @@ export default {
     headers?: any;
     metadata?: any;
   } | undefined> {
-    const serverUrl = `${domain}/stream?url=${id || url}`;
+    if (downloadList.has(id || '')) {
+      setMessage('Reading, Please wait...');
+      console.log('Already downloading');
+      return;
+    }
+    const serverUrl = `${domain}/stream?url=${url || ''}`;
     const localPath = `${RNFB.fs.dirs.CacheDir}/${id || 'temp'}.aac`;
     try {
       if (await RNFB.fs.exists(localPath)) await RNFB.fs.unlink(localPath);
@@ -28,6 +33,7 @@ export default {
           fileCache: true,
           appendExt: 'aac',
         }).fetch('GET', serverUrl);
+        downloadList.add(id || '');
         task.progress({ interval: 100 }, (recieved) => {
           console.log(`Downloaded ${recieved} bytes`);
           if (recieved >= minBuffer && !started) {
@@ -35,7 +41,7 @@ export default {
             console.log('Buffering...');
           }
         });
-        const parmanentPath = `${RNFS.DocumentDirectoryPath}/${id || Date.now().toString()}.aac`;
+        const parmanentPath = `${RNFS.CachesDirectoryPath}/${id || Date.now().toString()}.aac`;
         task.then(async res => {
           headers = await res.info().headers;
           console.log('Headers: ', headers);
@@ -43,8 +49,7 @@ export default {
             const info = await res.json();
             console.log('Info:', info);
             console.log('Meta mode:', res.path());
-            let resolved = false;
-            let minBuffer = 1024 * 256 // 256kB
+            // let resolved = false;
             await RNFS.downloadFile({
               fromUrl: info.url || '',
               toFile: parmanentPath,
@@ -54,48 +59,52 @@ export default {
                 sendMessage({
                   state: 'buffering',
                 });
-                setMessage('Reading Song...');
+                setMessage('Please wait, Reading Songs');
               },
               progress: progressData => {
                 const downloaded = (progressData.bytesWritten / (1024 * 1024)).toFixed(2);
                 const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
                 console.log(`Downloaded ${downloaded} of ${total} MB.`);
-                let percent = Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100);
-                if (progressData.bytesWritten >= minBuffer && !resolved) {
-                  resolved = true;
-                  resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info })
-                }
-                if (percent > 100) percent = 100;
-                if (percent < 90) {
-                  notifee.displayNotification({
-                    id: 'reading-song',
-                    title: 'Reading Song',
-                    body: `Read ${downloaded} of ${total} MB.`,
-                    android: {
-                      channelId: 'downloads',
-                      smallIcon: 'ic_small_icon',
-                      ongoing: true,
-                      onlyAlertOnce: true,
-                      progress: {
-                        max: 100,
-                        current: Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100),
-                      },
-                    },
-                  });
-                } else {
-                  notifee.cancelNotification('reading-song');
-                }
+                // let percent = Math.ceil(progressData.bytesWritten / minBuffer * 100);
+                // if (progressData.bytesWritten >= minBuffer && !resolved) {
+                //   resolved = true;
+
+                // }
+                // if (percent > 100) percent = 100;
+                // if (percent < 90) {
+                //   notifee.displayNotification({
+                //     id: `${id || progressData.jobId}`,
+                //     title: 'Reading Song',
+                //     android: {
+                //       channelId: 'downloads',
+                //       smallIcon: 'ic_small_icon',
+                //       ongoing: true,
+                //       onlyAlertOnce: true,
+                //       progress: {
+                //         max: minBuffer,
+                //         current: progressData.bytesWritten,
+                //       },
+                //     },
+                //   });
+                // } else {
+                //   notifee.cancelNotification(`${id || progressData.jobId}`);
+                // }
               }
             }).promise.then(async () => {
               console.log('Download Complete!');
+              resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info })
               await TrackPlayer.play();
             }).catch(err => {
               console.log('Some Error Occured: ', err);
+            }).finally(() => {
+              downloadList.delete(id || '');
             });
             return;
           }
           console.log('Buffer mode');
-          await RNFS.copyFile(localPath, parmanentPath);
+          await RNFS.copyFile(localPath, parmanentPath).finally(() => {
+            downloadList.delete(id || '');
+          });
           // if (await RNFB.fs.exists(localPath)) RNFB.fs.unlink(localPath);
           resolve({
             localPath: res.path(),
@@ -122,7 +131,7 @@ export default {
   } | undefined> {
     const updateUrl = `${domain}/stream?id=${songId}`;
     const localPath = `${RNFB.fs.dirs.CacheDir}/${songId}.aac`;
-    const parmanentPath = `${RNFS.DocumentDirectoryPath}/${songId}.aac`;
+    const parmanentPath = `${RNFS.CachesDirectoryPath}/${songId}.aac`;
     try {
       if (downloadList.has(songId)) {
         setMessage('Reading, Please wait...');
@@ -154,7 +163,7 @@ export default {
           headers = await res.info().headers;
           if (headers['Content-Type'].includes('application/json')) {
             const info = await res.json();
-            let resolved = false;
+            // let resolved = false;
 
             await RNFS.downloadFile({
               fromUrl: info?.url || '',
@@ -167,32 +176,32 @@ export default {
                 const downloaded = (progressData.bytesWritten / (1024 * 1024)).toFixed(2);
                 const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
                 console.log(`Downloaded ${downloaded} of ${total} MB.`);
-                let percent = Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100);
-                if (progressData.bytesWritten >= minBuffer && !resolved) {
-                  resolved = true;
-                  resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info })
-                }
-                if (percent > 100) percent = 100;
-                if (percent < 90) {
-                  notifee.displayNotification({
-                    id: songId,
-                    title: 'Reading Song',
-                    body: `Read ${downloaded} of ${total} MB.`,
-                    android: {
-                      channelId: 'downloads',
-                      smallIcon: 'ic_small_icon',
-                      ongoing: true,
-                      onlyAlertOnce: true,
-                      progress: {
-                        max: 100,
-                        current: Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100),
-                      },
-                    },
-                  });
-                } else {
-                  notifee.cancelNotification(songId);
-                }
+                // let percent = Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100);
+                // if (progressData.bytesWritten >= minBuffer && !resolved) {
+                //   resolved = true;
+                resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info })
               }
+              // if (percent > 100) percent = 100;
+              // if (percent < 90) {
+              //   notifee.displayNotification({
+              //     id: songId,
+              //     title: 'Reading Song',
+              //     body: `Read ${downloaded} of ${total} MB.`,
+              //     android: {
+              //       channelId: 'downloads',
+              //       smallIcon: 'ic_small_icon',
+              //       ongoing: true,
+              //       onlyAlertOnce: true,
+              //       progress: {
+              //         max: 100,
+              //         current: Math.ceil(parseFloat(downloaded) / parseFloat(total) * 100),
+              //       },
+              //     },
+              //   });
+              // } else {
+              //   notifee.cancelNotification(songId);
+              // }
+              // }
             }).promise.then(() => {
               console.log(('Download Complete!'));
             }).catch((err) => {

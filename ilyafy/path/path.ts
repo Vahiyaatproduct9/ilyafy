@@ -4,4 +4,4 @@
 export default '10.57.210.8'
 // export const domain = 'http://localhost:8080'
 // export const domain = backend || 'https://zgmmrk31-8080.inc1.devtunnels.ms'
-export const domain = 'http://10.232.35.8:8080'
+export const domain = 'http://10.102.54.8:8080'

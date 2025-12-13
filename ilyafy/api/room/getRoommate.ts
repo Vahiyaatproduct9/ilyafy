@@ -1,6 +1,6 @@
 import { domain } from "../../path/path";
 import useProfile from "../../store/useProfile";
-export default async (): Promise<{
+export default async (accessToken?: string): Promise<{
   success: boolean;
   user?: {
     id: string;
@@ -10,11 +10,11 @@ export default async (): Promise<{
   };
   message?: string
 } | undefined> => {
-  const accessToken = useProfile.getState().accessToken
+  const lAccessToken = accessToken || useProfile.getState().accessToken
   const res = await fetch(`${domain}/auth/users/roommate`, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${accessToken}`
+      'Authorization': `Bearer ${lAccessToken}`
     }
   });
   const response = await res.json();

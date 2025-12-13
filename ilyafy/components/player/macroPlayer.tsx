@@ -57,7 +57,7 @@ const MacroPlayer = (props: {
   const track = useCurrentTrack(s => s.track);
   const colors = useDeviceSetting(s => s.colors);
   async function togglePlay() {
-    if (isPlaying) await TrackPlayer.pause();
+    if (isPlaying) control.remotePause();
     else if (canBePlayed) await control.remotePlay();
     else setMessage('They are buffering, please wait!');
   }

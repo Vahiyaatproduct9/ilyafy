@@ -9,17 +9,18 @@ import Options from '../../assets/icons/options.svg';
 import TrackPlayer, { Track } from 'react-native-track-player';
 import control from '../../functions/stream/control';
 import theme from '../../data/color/theme';
+import { Dispatch, SetStateAction } from 'react';
 const image = require('../../assets/images/background.png');
 const Item = ({
   i,
   song,
-  showOptionsOf,
   colors,
+  setSelectedSong,
 }: {
   i: number | null;
   song: Track;
-  showOptionsOf: (i: string) => void;
   colors: AnimatedStyle;
+  setSelectedSong: Dispatch<SetStateAction<Track | null>>;
 }) => {
   const changeSong = async () => {
     console.log('song:', song);
@@ -55,7 +56,7 @@ const Item = ({
         <View className="items-center justify-center p-2">
           <Icon
             component={Options}
-            onPress={() => showOptionsOf(song?.mediaId || song?.id || '')}
+            onPress={() => setSelectedSong(song || null)}
             fill={theme.text}
             size={28}
           />

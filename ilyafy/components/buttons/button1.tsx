@@ -111,6 +111,7 @@ const Bead = ({ i }: { i: number }) => {
       key={i}
       style={[
         animate,
+        // eslint-disable-next-line react-native/no-inline-styles
         {
           borderRadius: 100,
           padding: 5,

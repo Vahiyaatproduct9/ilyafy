@@ -17,7 +17,7 @@ const MiniPlayer = ({ style }: { style: AnimatedStyle }) => {
   const canBePlayed = useCurrentTrack(s => s.canBePlayed);
   const track = useCurrentTrack(s => s.track);
   async function togglePlay() {
-    if (isPlaying) await TrackPlayer.pause();
+    if (isPlaying) await control.remotePause();
     else if (canBePlayed) await control.remotePlay();
     else setMessage('They are buffering, please wait!');
   }

@@ -96,35 +96,74 @@ export default create(
         const at = token || accessToken || '';
         const response = await list(at);
         if (response?.success) {
-          const songs = await Promise.all(
-            (response?.songs || []).map(async song => {
-              let localPath;
-              const filePath = `${RNFS.DocumentDirectoryPath}/${
-                song?.mediaId || song?.id || ''
-              }.aac`;
-              const fileExists = await RNFS.exists(filePath);
-              if (fileExists) localPath = filePath;
-              else {
-                const fetchedSong = await stream.get(
-                  song?.url || '',
-                  song?.mediaId || song?.id,
-                );
-                const headers = fetchedSong?.headers;
-                const metadata = fetchedSong?.metadata;
-                localPath =
-                  headers?.filePath || localPath || metadata?.url || undefined;
-              }
+          get().setSong(
+            response?.songs?.map(song => {
               return {
-                url: localPath || song?.url || '',
+                url: song?.url || '',
                 mediaId: song?.id || song?.mediaId || '',
                 artist: song?.artist || 'Ilyafy',
                 artwork: song?.thumbnail || undefined,
                 title: song?.title || 'Unknown Song',
-                localPath,
+                localPath: undefined,
               };
-            }),
+            }) || [],
           );
-          get().setSong(songs);
+          for (const song of response?.songs || []) {
+            let localPath;
+            const filePath = `${RNFS.CachesDirectoryPath}/${
+              song?.mediaId || song?.id || ''
+            }.aac`;
+            const fileExists = await RNFS.exists(filePath);
+            if (fileExists) localPath = filePath;
+            else {
+              const fetchedSong = await stream.get(
+                song?.ytUrl || '',
+                song?.mediaId || song?.id,
+              );
+              const headers = fetchedSong?.headers;
+              const metadata = fetchedSong?.metadata;
+              localPath =
+                headers?.filePath || localPath || metadata?.url || undefined;
+            }
+            get().replace({
+              url: localPath || song?.url || '',
+              mediaId: song?.id || song?.mediaId || '',
+              artist: song?.artist || 'Ilyafy',
+              artwork: song?.thumbnail || undefined,
+              title: song?.title || 'Unknown Song',
+              localPath,
+            });
+          }
+
+          // const songs = await Promise.all(
+          //   (response?.songs || []).map(async song => {
+          //     let localPath;
+          //     const filePath = `${RNFS.CachesDirectoryPath}/${
+          //       song?.mediaId || song?.id || ''
+          //     }.aac`;
+          //     const fileExists = await RNFS.exists(filePath);
+          //     if (fileExists) localPath = filePath;
+          //     else {
+          //       const fetchedSong = await stream.get(
+          //         song?.ytUrl || '',
+          //         song?.mediaId || song?.id,
+          //       );
+          //       const headers = fetchedSong?.headers;
+          //       const metadata = fetchedSong?.metadata;
+          //       localPath =
+          //         headers?.filePath || localPath || metadata?.url || undefined;
+          //     }
+          //     return {
+          //       url: localPath || song?.url || '',
+          //       mediaId: song?.id || song?.mediaId || '',
+          //       artist: song?.artist || 'Ilyafy',
+          //       artwork: song?.thumbnail || undefined,
+          //       title: song?.title || 'Unknown Song',
+          //       localPath,
+          //     };
+          //   }),
+          // );
+          // get().setSong(songs);
         }
         setMessage(response?.message || '');
         return response;

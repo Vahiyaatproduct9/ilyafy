@@ -1,5 +1,11 @@
 import { View, Dimensions, TextInput, Text } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,31 +15,28 @@ import Icon from '../../components/icons/icon';
 import Add from '../../assets/icons/add.svg';
 import Search from '../../assets/icons/search.svg';
 import Popup from '../../components/popup/popup';
-import SongOptions from '../../components/options/songOptions';
 import Item from '../../components/playlist/song';
 import useProfile from '../../store/useProfile';
 import useSongs from '../../store/useSongs';
 import EmptyPlaylist from '../../components/blank/emptyPlaylist';
-import useMessage from '../../store/useMessage';
+// import useMessage from '../../store/useMessage';
 import useDeviceSetting from '../../store/useDeviceSetting';
-const Playlist = () => {
+import { Track } from 'react-native-track-player';
+const Playlist = ({
+  setSong,
+}: {
+  setSong: Dispatch<SetStateAction<Track | null>>;
+}) => {
   const [addShown, showAddScreen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean | null>(null);
-  const [options, setOptions] = useState<string | null>(null);
   const [value, setValue] = useState<string>('');
-  const setMessage = useMessage(s => s.setMessage);
+  // const setMessage = useMessage(s => s.setMessage);
   const accessToken = useProfile(s => s.accessToken);
   const width = Dimensions.get('window').width - 16;
-  const { add, delete: del, load } = useSongs();
+  const { add, load } = useSongs();
   const songs = useSongs(s => s.songs);
   const colors = useDeviceSetting(s => s.colors);
-  const delSong = async () => {
-    const response = await del(options || '');
-    setMessage(response?.message || '');
-    if (response?.success) {
-      setOptions(null);
-    }
-  };
+
   const loadSongs = useCallback(async () => {
     await load(accessToken || '');
   }, [accessToken, load]);
@@ -58,12 +61,6 @@ const Playlist = () => {
   async function addSong() {
     return await add(value);
   }
-  const functionList = [
-    {
-      title: 'Delete',
-      func: () => delSong(),
-    },
-  ];
   const primaryColor = useSharedValue(colors.primary);
 
   useEffect(() => {
@@ -86,13 +83,6 @@ const Playlist = () => {
           value={value}
           func={addSong}
           showPopup={showAddScreen}
-        />
-      )}
-      {options && (
-        <SongOptions
-          song={songs.filter(t => t.id === options)[0]}
-          setOptions={setOptions}
-          functionList={functionList}
         />
       )}
       <View className="justify-end w-full gap-2 flex-row p-2">
@@ -126,7 +116,7 @@ const Playlist = () => {
               colors={rPrimaryColorStyle}
               song={item}
               i={index}
-              showOptionsOf={setOptions}
+              setSelectedSong={setSong}
             />
           )}
           ListFooterComponent={

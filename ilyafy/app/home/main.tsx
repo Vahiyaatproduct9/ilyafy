@@ -23,6 +23,7 @@ import { RefObject, useEffect, useRef } from 'react';
 import { AnimatedScrollView } from 'react-native-reanimated/lib/typescript/component/ScrollView';
 import Connection from '../tabs/connection';
 import useProfile from '../../store/useProfile';
+import React from 'react';
 import {
   Gesture,
   GestureDetector,
@@ -32,12 +33,15 @@ import {
 import MiniPlayer from '../../components/player/miniPlayer';
 import MacroPlayer from '../../components/player/macroPlayer';
 import useDeviceSetting from '../../store/useDeviceSetting';
+import SongOptions from '../../components/options/songOptions';
+import { Track } from 'react-native-track-player';
 const tabButtons = ['Playlist', 'Pair', 'Main'];
 const Main = () => {
   const colors = useDeviceSetting(s => s.colors);
   const parentRef = useRef<GestureType | undefined>(undefined);
   const controlRef = useRef<GestureType | undefined>(undefined);
   const scrollRef = useRef<AnimatedScrollView | null>(null);
+  const [selectedSong, setSong] = React.useState<Track | null>(null);
   const width = Dimensions.get('window').width - 16;
   const height = Dimensions.get('window').height;
   const scrollX = useSharedValue(80);
@@ -57,6 +61,7 @@ const Main = () => {
       animated: true,
     });
   }
+
   const panGesture = Gesture.Pan()
     .onUpdate(e => {
       translateY.value = withSpring(-e.translationY + translateY.value, {
@@ -146,6 +151,7 @@ const Main = () => {
         scrollRef={scrollRef}
         width={width}
         scrollHandler={scrollHandler}
+        setSong={setSong}
       />
 
       <Animated.View
@@ -177,6 +183,7 @@ const Main = () => {
           </GestureDetector>
         </GestureHandlerRootView>
       </Animated.View>
+      {selectedSong && <SongOptions song={selectedSong} setSong={setSong} />}
     </Animated.View>
   );
 };
@@ -187,9 +194,15 @@ type ScrollViewProps = {
   width: number;
   scrollHandler: (arg: NativeSyntheticEvent<NativeScrollEvent>) => void;
   scrollRef: RefObject<AnimatedScrollView | null>;
+  setSong: React.Dispatch<React.SetStateAction<Track | null>>;
 };
 
-const ScrollView = ({ scrollRef, width, scrollHandler }: ScrollViewProps) => {
+const ScrollView = ({
+  scrollRef,
+  width,
+  scrollHandler,
+  setSong,
+}: ScrollViewProps) => {
   const room_part_of = useProfile().profile?.room_part_of;
   return (
     <Animated.ScrollView
@@ -204,7 +217,7 @@ const ScrollView = ({ scrollRef, width, scrollHandler }: ScrollViewProps) => {
       pagingEnabled
       className={'rounded-[28px] mt-4'}
     >
-      <Playlist />
+      <Playlist setSong={setSong} />
       {room_part_of && room_part_of.length !== 0 ? (
         <Connection />
       ) : (
