@@ -8,7 +8,8 @@ export default async function ({ url, proxy }: { url: string, proxy?: string }) 
     const dlp = spawn("yt-dlp", [
       '--force-ipv4',
       // "--proxy",
-      // proxy || PRXY() || process.env.PROXY_SAMPLE || '',
+      // // proxy || PRXY() || process.env.PROXY_SAMPLE || '',
+      // proxy || process.env.PROXY_SAMPLE || '',
       "-j",
       url
     ])

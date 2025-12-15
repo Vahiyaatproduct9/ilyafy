@@ -54,7 +54,8 @@ export default create(
           t => t.mediaId === song.mediaId || song.id === t.id,
         );
         if (songExists) return;
-        get().setSong([...get().songs, song]);
+        console.log('Adding song:', song);
+        set({ songs: [...get().songs, song] });
       },
       replace: async song => {
         const queue = get().songs;
@@ -94,23 +95,25 @@ export default create(
       },
       load: async token => {
         const at = token || accessToken || '';
+        const songBatch: CTrack[] = [];
         const response = await list(at);
         if (response?.success) {
-          get().setSong(
-            response?.songs?.map(song => {
-              return {
-                url: song?.url || '',
-                mediaId: song?.id || song?.mediaId || '',
-                artist: song?.artist || 'Ilyafy',
-                artwork: song?.thumbnail || undefined,
-                title: song?.title || 'Unknown Song',
-                localPath: undefined,
-              };
-            }) || [],
-          );
+          get().setSong([]);
+          // get().setSong(
+          //   response?.songs?.map(song => {
+          //     return {
+          //       url: song?.url || '',
+          //       mediaId: song?.id || song?.mediaId || '',
+          //       artist: song?.artist || 'Ilyafy',
+          //       artwork: song?.thumbnail || undefined,
+          //       title: song?.title || 'Unknown Song',
+          //       localPath: undefined,
+          //     };
+          //   }) || [],
+          // );
           for (const song of response?.songs || []) {
             let localPath;
-            const filePath = `${RNFS.CachesDirectoryPath}/${
+            const filePath = `${RNFS.DocumentDirectoryPath}/${
               song?.mediaId || song?.id || ''
             }.aac`;
             const fileExists = await RNFS.exists(filePath);
@@ -120,50 +123,27 @@ export default create(
                 song?.ytUrl || '',
                 song?.mediaId || song?.id,
               );
-              const headers = fetchedSong?.headers;
+              console.log('FETCHEDSONG:', fetchedSong);
+
+              // const headers = fetchedSong?.headers;
               const metadata = fetchedSong?.metadata;
               localPath =
-                headers?.filePath || localPath || metadata?.url || undefined;
+                // headers?.filePath ||
+                fetchedSong?.localPath || metadata?.url || undefined;
             }
-            get().replace({
+            // get().addSong();
+            const newSong = {
               url: localPath || song?.url || '',
               mediaId: song?.id || song?.mediaId || '',
               artist: song?.artist || 'Ilyafy',
               artwork: song?.thumbnail || undefined,
               title: song?.title || 'Unknown Song',
               localPath,
-            });
+            };
+            songBatch.push(newSong);
+            get().setSong([...songBatch]);
+            console.log('songs after adding:', get().songs);
           }
-
-          // const songs = await Promise.all(
-          //   (response?.songs || []).map(async song => {
-          //     let localPath;
-          //     const filePath = `${RNFS.CachesDirectoryPath}/${
-          //       song?.mediaId || song?.id || ''
-          //     }.aac`;
-          //     const fileExists = await RNFS.exists(filePath);
-          //     if (fileExists) localPath = filePath;
-          //     else {
-          //       const fetchedSong = await stream.get(
-          //         song?.ytUrl || '',
-          //         song?.mediaId || song?.id,
-          //       );
-          //       const headers = fetchedSong?.headers;
-          //       const metadata = fetchedSong?.metadata;
-          //       localPath =
-          //         headers?.filePath || localPath || metadata?.url || undefined;
-          //     }
-          //     return {
-          //       url: localPath || song?.url || '',
-          //       mediaId: song?.id || song?.mediaId || '',
-          //       artist: song?.artist || 'Ilyafy',
-          //       artwork: song?.thumbnail || undefined,
-          //       title: song?.title || 'Unknown Song',
-          //       localPath,
-          //     };
-          //   }),
-          // );
-          // get().setSong(songs);
         }
         setMessage(response?.message || '');
         return response;

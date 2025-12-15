@@ -61,7 +61,7 @@ export default async function () {
       });
       await TrackPlayer.play();
     } else {
-      setMessage('URL not found, ignoring this song.')
+      setMessage('Already Reading.')
       console.log('URL not found');
     }
   });
