@@ -1,6 +1,12 @@
 import messaging, { onMessage, setBackgroundMessageHandler } from '@react-native-firebase/messaging';
 import notifee, { AndroidBadgeIconType, AndroidImportance } from '@notifee/react-native';
 import useSongs from '../../store/useSongs';
+type notificationDatatype = {
+  songDetails?: any;
+  event: 'playlist' | 'poke';
+  code?: 'add' | 'delete';
+  songId?: string;
+}
 export default () => {
   notifee.createChannel({
     id: 'playlist',
@@ -22,10 +28,11 @@ export default () => {
   })
   onMessage(messaging(), async data => {
     console.log('Foreground Message received: ', data);
-    const stringDetails = data?.data?.songDetails;
+    const notificationData: notificationDatatype = data.data as notificationDatatype;
+    const stringDetails = notificationData?.songDetails;
     const songDetails = typeof stringDetails === 'string' ? JSON.parse(stringDetails) : stringDetails;
-    const addSong = useSongs.getState().addSong;
-    if (songDetails) {
+    if (songDetails && notificationData?.event === 'playlist' && notificationData?.code === 'add') {
+      const addSong = useSongs.getState().addSong;
       const track = {
         url: songDetails.url || '',
         title: songDetails.title || 'Unknown Song',
@@ -34,6 +41,9 @@ export default () => {
         mediaId: songDetails.id || Date.now().toString(),
       };
       await addSong(track);
+    } else if (notificationData?.event === 'playlist' && notificationData?.code === 'delete') {
+      const removeSong = useSongs.getState().removeSong;
+      await removeSong(notificationData?.songId || '')
     }
     const channelId = String(data?.data?.event) || 'playlist';
     notifee.displayNotification({

@@ -14,9 +14,12 @@ import stream from '../functions/stream/stream';
 // import useCurrentTrack from './useCurrentTrack';
 type songList = {
   songs: CTrack[];
+  isLoading: boolean;
+  setLoading: (arg: boolean) => void;
   add: typeof post;
   addSong: (arg: CTrack) => Promise<void>;
   delete: typeof _delete;
+  removeSong: (id: string) => Promise<void>;
   setSong: (arg: CTrack[]) => void;
   load: typeof list;
   replace: (song: CTrack) => Promise<void>;
@@ -28,6 +31,10 @@ export default create(
   persist<songList>(
     (set, get) => ({
       songs: [],
+      isLoading: false,
+      setLoading: arg => {
+        set({ isLoading: arg });
+      },
       add: async url => {
         const response = await post(url);
         if (response?.success && response?.song) {
@@ -50,39 +57,60 @@ export default create(
         return response;
       },
       addSong: async song => {
-        const songExists = get().songs.find(
-          t => t.mediaId === song.mediaId || song.id === t.id,
-        );
-        if (songExists) return;
+        const songExists = get().songs.find(t => t.mediaId === song?.mediaId);
+        if (songExists) {
+          get().replace(song);
+          return;
+        }
         console.log('Adding song:', song);
-        set({ songs: [...get().songs, song] });
+        await TrackPlayer.add(song).then(() => {
+          set({ songs: [...get().songs, song] });
+        });
       },
       replace: async song => {
         const queue = get().songs;
         const index = queue.findIndex(t => t.mediaId === song?.mediaId);
+        if (index === -1) {
+          console.log('Song not found.');
+          return;
+        }
         queue[index] = song;
-        get().setSong(queue);
+        await TrackPlayer.add(song).then(() => {
+          set({ songs: [...queue] });
+        });
       },
       delete: async id => {
         const response = await _delete(id);
         if (response?.success) {
-          const newSongList = get().songs.filter(
-            t => t.mediaId !== id || t.id !== id,
-          );
+          const newSongList = get().songs.filter(t => t.mediaId !== id);
+          console.log('New Song List: ', newSongList);
           set({
             songs: newSongList,
           });
           console.log('new song list:', newSongList);
           const queue = await TrackPlayer.getQueue();
-          const currentTrack = useCurrentTrack.getState().track;
+          // const currentTrack = useCurrentTrack.getState().track;
           const index = queue.findIndex(t => t.mediaId === id);
-          if (currentTrack?.mediaId === id) {
-            await TrackPlayer.skipToNext();
-          }
+          // if (currentTrack?.mediaId === id) {
+          //   await TrackPlayer.skipToNext();
+          // }
           await TrackPlayer.remove(index);
         }
         setMessage(response?.message || '');
         return response;
+      },
+      removeSong: async id => {
+        const newQueue = get().songs.filter(t => t.mediaId !== id);
+        const queue = await TrackPlayer.getQueue();
+        const index = queue.findIndex(t => t.mediaId === id);
+        if (index === -1) {
+          console.log('Already removed.');
+          setMessage('Already deleted Song.');
+          return;
+        }
+        TrackPlayer.remove(index).then(() => {
+          set({ songs: newQueue });
+        });
       },
       setSong: async arg => {
         set({ songs: arg });
@@ -94,44 +122,32 @@ export default create(
         );
       },
       load: async token => {
+        get().setLoading(true);
         const at = token || accessToken || '';
         const songBatch: CTrack[] = [];
         const response = await list(at);
         if (response?.success) {
           get().setSong([]);
-          // get().setSong(
-          //   response?.songs?.map(song => {
-          //     return {
-          //       url: song?.url || '',
-          //       mediaId: song?.id || song?.mediaId || '',
-          //       artist: song?.artist || 'Ilyafy',
-          //       artwork: song?.thumbnail || undefined,
-          //       title: song?.title || 'Unknown Song',
-          //       localPath: undefined,
-          //     };
-          //   }) || [],
-          // );
           for (const song of response?.songs || []) {
             let localPath;
             const filePath = `${RNFS.DocumentDirectoryPath}/${
               song?.mediaId || song?.id || ''
             }.aac`;
             const fileExists = await RNFS.exists(filePath);
-            if (fileExists) localPath = filePath;
-            else {
+            if (fileExists) {
+              localPath = filePath;
+              console.log('Stats: ', await RNFS.stat(filePath));
+            } else {
               const fetchedSong = await stream.get(
                 song?.ytUrl || '',
                 song?.mediaId || song?.id,
               );
               console.log('FETCHEDSONG:', fetchedSong);
-
-              // const headers = fetchedSong?.headers;
               const metadata = fetchedSong?.metadata;
               localPath =
                 // headers?.filePath ||
                 fetchedSong?.localPath || metadata?.url || undefined;
             }
-            // get().addSong();
             const newSong = {
               url: localPath || song?.url || '',
               mediaId: song?.id || song?.mediaId || '',
@@ -141,11 +157,13 @@ export default create(
               localPath,
             };
             songBatch.push(newSong);
-            get().setSong([...songBatch]);
+            // get().setSong(songBatch);
+            get().addSong(newSong);
             console.log('songs after adding:', get().songs);
           }
         }
         setMessage(response?.message || '');
+        get().setLoading(false);
         return response;
       },
     }),

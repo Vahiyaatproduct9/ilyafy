@@ -1,4 +1,4 @@
-import { View, Dimensions, TextInput, Text } from 'react-native';
+import { View, Dimensions, TextInput, Text, Image } from 'react-native';
 import React, {
   Dispatch,
   SetStateAction,
@@ -22,6 +22,7 @@ import EmptyPlaylist from '../../components/blank/emptyPlaylist';
 // import useMessage from '../../store/useMessage';
 import useDeviceSetting from '../../store/useDeviceSetting';
 import { Track } from 'react-native-track-player';
+import Loading from '../../components/blank/loading';
 const Playlist = ({
   setSong,
 }: {
@@ -35,6 +36,7 @@ const Playlist = ({
   const width = Dimensions.get('window').width - 16;
   const { add, load } = useSongs();
   const songs = useSongs(s => s.songs);
+  const isLoading = useSongs(s => s.isLoading);
   const colors = useDeviceSetting(s => s.colors);
 
   const loadSongs = useCallback(async () => {
@@ -107,7 +109,11 @@ const Playlist = ({
         />
       </View>
       {songs.length === 0 ? (
-        <EmptyPlaylist />
+        isLoading ? (
+          <Loading />
+        ) : (
+          <EmptyPlaylist />
+        )
       ) : (
         <Animated.FlatList
           data={songs || []}
@@ -120,14 +126,18 @@ const Playlist = ({
             />
           )}
           ListFooterComponent={
-            <View className="w-full p-14 mb-[80px] justify-center items-center">
-              <Text
-                className="text-xl font-normal"
-                style={{ color: colors.text }}
-              >
-                You've reached the end!
-              </Text>
-            </View>
+            isLoading ? (
+              <Loading />
+            ) : (
+              <View className="w-full p-14 mb-[80px] justify-center items-center">
+                <Text
+                  className="text-xl font-normal"
+                  style={{ color: colors.text }}
+                >
+                  You've reached the end!
+                </Text>
+              </View>
+            )
           }
           className={'w-full'}
         />

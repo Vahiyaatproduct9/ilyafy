@@ -143,9 +143,9 @@ export default class PLaylist {
               url: insertSong.url || '',
               playable: insertSong.playable || ''
             }),
-
           },
-          event: 'playlist'
+          event: 'playlist',
+          code: 'add'
         },
         fcmToken: insertSong.playlists?.rooms?.users.find(t => t.id === data?.id)?.fcm_token || ''
       })
@@ -187,7 +187,8 @@ export default class PLaylist {
         data: {
           songId
         },
-        event: 'playlist'
+        event: 'playlist',
+        code: 'delete'
       },
       fcmToken: fcm_token || ''
     })

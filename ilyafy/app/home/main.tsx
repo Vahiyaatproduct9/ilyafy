@@ -45,9 +45,6 @@ const Main = () => {
   const width = Dimensions.get('window').width - 16;
   const height = Dimensions.get('window').height;
   const scrollX = useSharedValue(80);
-  useEffect(() => {
-    console.log('colors:', colors);
-  }, [colors]);
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: e => {
       scrollX.value = e.contentOffset.x;

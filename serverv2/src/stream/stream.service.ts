@@ -30,8 +30,8 @@ export default class StreamService {
     if (audioFormat) {
       const res = await fetch(audioFormat?.url, { method: 'HEAD' });
       console.log(res.status, res.ok, res.headers.get('Content-Type'));
-      // if (res.ok) {
-      if (false) {
+      if (res.ok) {
+        // if (false) {
         writable.json({
           success: true,
           ...audioFormat,
@@ -49,7 +49,7 @@ export default class StreamService {
         writable.setHeader('Cache-Control', "no-cache");
         writable.setHeader('Connection', "keep-alive");
         writable.setHeader('Transfer-Encoding', 'chunked');
-        // writable.setHeader('Content-Length', parseInt(audioFormat?.filesize || '0'));
+        writable.setHeader('Content-Length', parseInt(audioFormat?.filesize || '0'));
         writable.setHeader("X-Track-Thumb", metadata?.thumbnail || "");
         writable.setHeader("X-Track-Artist", metadata?.artist || metadata?.uploader || "");
         writable.setHeader("X-Track-Title", metadata?.title || "");
