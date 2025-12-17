@@ -10,6 +10,7 @@ import TrackPlayer, { Track } from 'react-native-track-player';
 import control from '../../functions/stream/control';
 import theme from '../../data/color/theme';
 import { Dispatch, SetStateAction } from 'react';
+import useSongs from '../../store/useSongs';
 const image = require('../../assets/images/background.png');
 const Item = ({
   i,
@@ -26,6 +27,12 @@ const Item = ({
     console.log('song:', song);
     const queue = await TrackPlayer.getQueue();
     const index = queue.findIndex(t => t.mediaId === song?.mediaId || '');
+    if (index === -1) {
+      await TrackPlayer.reset().then(() => {
+        const songList = useSongs?.getState()?.songs;
+        TrackPlayer.add(songList);
+      });
+    }
     await control.remoteSkip(index, 0);
     await control.remotePlay();
   };

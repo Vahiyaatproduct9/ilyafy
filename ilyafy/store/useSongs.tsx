@@ -185,7 +185,6 @@ export default create(
               }
               get().addSong(newSong);
               console.log('songs after adding:', get().songs);
-              return;
             }
           }
           setMessage(response?.message || '');

@@ -8,6 +8,7 @@ import control from './control';
 const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
 const sendMessage = useSocketStore?.getState()?.sendMessage;
+const minBuffer = 200 * 1024 // 256kb
 export default {
   async get(url: string, id: string): Promise<{
     localPath?: string;
@@ -38,7 +39,6 @@ export default {
       let started = false;
       let headers: any = null;
       let repeats: number = 0;
-      const minBuffer = 256 * 1024 // 256kb
       return new Promise((resolve, reject) => {
         const task = RNFB.config({
           path: tempPath,
@@ -146,7 +146,6 @@ export default {
       let started = false;
       let headers: any = null;
       let repeats: number = 0;
-      const minBuffer = 256 * 1024; // 256kb
       return new Promise((resolve, reject) => {
         const task = RNFB.config({
           path: tempPath,
