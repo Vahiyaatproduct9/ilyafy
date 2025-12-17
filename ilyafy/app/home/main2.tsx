@@ -11,18 +11,18 @@ import useBackend from '../../store/useBackend';
 const Main = () => {
   const width = Dimensions.get('window').width - 16;
   const [loading, setLoading] = useState<boolean | null>(null);
-  const setProfile = useProfile.getState().setProfile;
-  const profile = useProfile.getState().profile;
+  const setProfile = useProfile?.getState()?.setProfile;
+  const profile = useProfile?.getState()?.profile;
   const roomId = profile?.room_part_of;
   const connect = useSocketStore().connect;
-  const isConnected = useSocketStore.getState().isConnected;
+  const isConnected = useSocketStore?.getState()?.isConnected;
   // const [options, setOptions] = useState<string | null>(null);
   // const [playlist, setPlaylist] = useState<PlaylistProp | []>([]);
   const { setBackend, backend } = useBackend();
   const toggleConnect = async () => {
     setLoading(true);
     if (isConnected) {
-      useSocketStore.getState().disconnect();
+      useSocketStore?.getState()?.disconnect();
       setLoading(null);
       return;
     }

@@ -1,13 +1,13 @@
 import TrackPlayer, { Progress, State } from "react-native-track-player";
 import useSocketStore from "../../store/useSocketStore";
-import stream from "./stream";
-import useProfile from "../../store/useProfile";
+// import stream from "./stream";
+// import useProfile from "../../store/useProfile";
 import useCurrentTrack from "../../store/useCurrentTrack";
 import toast from "../../components/message/toast";
 class Control {
   private readonly sendMessage: (arg: object) => Promise<boolean>;
   constructor() {
-    this.sendMessage = useSocketStore.getState().sendMessage;
+    this.sendMessage = useSocketStore?.getState()?.sendMessage;
   }
   private async sigPause() {
     const progress = await TrackPlayer.getProgress();
@@ -40,14 +40,14 @@ class Control {
     })
   }
   public async remotePlay() {
-    const canBePlayed = useCurrentTrack.getState().canBePlayed;
-    TrackPlayer.getActiveTrack()
-      .then(track => {
-        if (track?.url.includes('http')) {
-          const accessToken = useProfile.getState().accessToken;
-          stream.update(track?.mediaId || '', accessToken || '');
-        }
-      });
+    const canBePlayed = useCurrentTrack?.getState()?.canBePlayed;
+    // TrackPlayer.getActiveTrack()
+    //   .then(track => {
+    //     if (track?.url.includes('http')) {
+    //       const accessToken = useProfile?.getState()?.accessToken;
+    //       stream.update(track?.mediaId || '', accessToken || '');
+    //     }
+    //   });
     if (!canBePlayed) {
       toast('They are buffering, please wait!');
       return;

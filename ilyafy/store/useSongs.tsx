@@ -9,7 +9,6 @@ import useProfile from './useProfile';
 import list from '../api/playlist/list';
 import TrackPlayer from 'react-native-track-player';
 import { CTrack } from '../types/songs';
-import useCurrentTrack from './useCurrentTrack';
 import stream from '../functions/stream/stream';
 // import useCurrentTrack from './useCurrentTrack';
 type songList = {
@@ -24,9 +23,28 @@ type songList = {
   load: typeof list;
   replace: (song: CTrack) => Promise<void>;
 };
-const setMessage = useMessage.getState().setMessage;
-const accessToken = useProfile.getState().accessToken;
-// const currentSong = useCurrentTrack.getState().track;
+const setMessage = useMessage?.getState()?.setMessage;
+const accessToken = useProfile?.getState()?.accessToken;
+// const currentSong = useCurrentTrack?.getState()?.track;
+const fetchedSong = async (url: string, id: string) => {
+  const fetchedSong = await stream.get(url, id);
+  if (!fetchedSong) {
+    setMessage('Some Error Occured X(');
+    return undefined;
+  }
+  const metadata = fetchedSong?.metadata;
+  const headers = fetchedSong?.headers;
+  const localPath = fetchedSong?.localPath || metadata?.url || undefined;
+  const newSong = {
+    url: localPath || '',
+    mediaId: id,
+    artist: headers['X-Track-Artist'] || metadata?.artist || 'Ilyafy',
+    artwork: headers['X-Track-Thumb'] || metadata?.thumbnail || undefined,
+    title: headers['X-Track-Title'] || metadata?.title || 'Unknown Song',
+    localPath,
+  };
+  return newSong;
+};
 export default create(
   persist<songList>(
     (set, get) => ({
@@ -36,30 +54,53 @@ export default create(
         set({ isLoading: arg });
       },
       add: async url => {
-        const response = await post(url);
-        if (response?.success && response?.song) {
-          const song = response?.song;
-          const track = {
-            url: song?.url || '',
-            title: song?.title || 'Unknown Song',
-            artist: song?.artist || 'Ilyafy',
-            artwork: song?.thumbnail || '',
-            mediaId: song?.id || song?.mediaId || Date.now().toString(),
-          };
-          if (get().songs.find(t => t.mediaId === track.mediaId)) {
-            setMessage('Song already exists in the playlist.');
-          } else {
-            set({ songs: [...get().songs, track] });
+        get().setLoading(true);
+        return new Promise(async (resolve, reject) => {
+          const response = await post(url);
+          if (response?.success && response?.song) {
+            resolve(response);
+            const song = response?.song;
+            const newSong = await fetchedSong(url, song?.id);
+            if (!newSong) {
+              reject('Song Not Found X(');
+              setMessage('Song Not Found X(');
+              return;
+            }
+            get().addSong(newSong);
+            get().setLoading(false);
+            return;
           }
-          await TrackPlayer.add(track);
-        }
-        setMessage(response?.message || '');
-        return response;
+          reject(new Error('Fetch Failed'));
+          setMessage('Network Error.');
+          get().setLoading(false);
+        });
       },
       addSong: async song => {
         const songExists = get().songs.find(t => t.mediaId === song?.mediaId);
         if (songExists) {
+          if (song?.url.includes('http')) {
+            const newSong = await fetchedSong(song?.url, song?.mediaId || '');
+            if (!newSong) {
+              setMessage("Couldn't fetch song X(");
+              console.error('Error in useSongs.');
+              return;
+            }
+            get().replace(newSong);
+            return;
+          }
           get().replace(song);
+          return;
+        }
+        if (song?.url?.includes('http')) {
+          const newSong = await fetchedSong(song?.url, song?.mediaId || '');
+          if (!newSong) {
+            setMessage("Couldn't fetch song X(");
+            console.error('Error in useSongs.');
+            return;
+          }
+          await TrackPlayer.add(newSong).then(() => {
+            set({ songs: [...get().songs, newSong] });
+          });
           return;
         }
         console.log('Adding song:', song);
@@ -74,8 +115,7 @@ export default create(
           console.log('Song not found.');
           return;
         }
-        queue[index] = song;
-        await TrackPlayer.add(song).then(() => {
+        await TrackPlayer.add(song, index).then(() => {
           set({ songs: [...queue] });
         });
       },
@@ -83,18 +123,14 @@ export default create(
         const response = await _delete(id);
         if (response?.success) {
           const newSongList = get().songs.filter(t => t.mediaId !== id);
-          console.log('New Song List: ', newSongList);
           set({
             songs: newSongList,
           });
-          console.log('new song list:', newSongList);
           const queue = await TrackPlayer.getQueue();
-          // const currentTrack = useCurrentTrack.getState().track;
           const index = queue.findIndex(t => t.mediaId === id);
-          // if (currentTrack?.mediaId === id) {
-          //   await TrackPlayer.skipToNext();
-          // }
-          await TrackPlayer.remove(index);
+          await TrackPlayer.remove(index).then(() => {
+            RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${id}.acc`);
+          });
         }
         setMessage(response?.message || '');
         return response;
@@ -124,47 +160,38 @@ export default create(
       load: async token => {
         get().setLoading(true);
         const at = token || accessToken || '';
-        const songBatch: CTrack[] = [];
         const response = await list(at);
         if (response?.success) {
           get().setSong([]);
           for (const song of response?.songs || []) {
-            let localPath;
             const filePath = `${RNFS.DocumentDirectoryPath}/${
               song?.mediaId || song?.id || ''
             }.aac`;
             const fileExists = await RNFS.exists(filePath);
             if (fileExists) {
-              localPath = filePath;
               console.log('Stats: ', await RNFS.stat(filePath));
+              get().addSong({
+                url: filePath || '',
+                mediaId: song?.mediaId || song?.id || '',
+                title: song?.title || 'Unknown Song',
+                artist: song?.artist || 'Ilyafy',
+                artwork:
+                  song?.thumbnail || require('../assets/images/background.png'),
+              });
             } else {
-              const fetchedSong = await stream.get(
-                song?.ytUrl || '',
-                song?.mediaId || song?.id,
-              );
-              console.log('FETCHEDSONG:', fetchedSong);
-              const metadata = fetchedSong?.metadata;
-              localPath =
-                // headers?.filePath ||
-                fetchedSong?.localPath || metadata?.url || undefined;
+              const newSong = await fetchedSong(song?.ytUrl, song?.id);
+              if (!newSong) {
+                return { success: false, message: "Couldn't Fetch Song." };
+              }
+              get().addSong(newSong);
+              console.log('songs after adding:', get().songs);
+              return;
             }
-            const newSong = {
-              url: localPath || song?.url || '',
-              mediaId: song?.id || song?.mediaId || '',
-              artist: song?.artist || 'Ilyafy',
-              artwork: song?.thumbnail || undefined,
-              title: song?.title || 'Unknown Song',
-              localPath,
-            };
-            songBatch.push(newSong);
-            // get().setSong(songBatch);
-            get().addSong(newSong);
-            console.log('songs after adding:', get().songs);
           }
+          setMessage(response?.message || '');
+          get().setLoading(false);
+          return response;
         }
-        setMessage(response?.message || '');
-        get().setLoading(false);
-        return response;
       },
     }),
     {

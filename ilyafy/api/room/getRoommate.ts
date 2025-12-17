@@ -10,7 +10,7 @@ export default async (accessToken?: string): Promise<{
   };
   message?: string
 } | undefined> => {
-  const lAccessToken = accessToken || useProfile.getState().accessToken
+  const lAccessToken = accessToken || useProfile?.getState()?.accessToken
   const res = await fetch(`${domain}/auth/users/roommate`, {
     method: 'GET',
     headers: {

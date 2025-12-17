@@ -26,10 +26,10 @@ export default create<wsConnectedion>()((set, get) => ({
   isConnected: false,
   roomId: null,
   connect: () => {
-    const profile = useProfile.getState().profile;
+    const profile = useProfile?.getState()?.profile;
     const roomId = profile?.room_part_of || Date.now().toString();
     const userId = profile?.id || Date.now().toString();
-    const accessToken = useProfile.getState().accessToken;
+    const accessToken = useProfile?.getState()?.accessToken;
     set({ userId, roomId });
     const socket: Socket = io(`${domain}`, {
       transports: ['websocket'],

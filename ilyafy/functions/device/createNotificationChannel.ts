@@ -32,7 +32,7 @@ export default () => {
     const stringDetails = notificationData?.songDetails;
     const songDetails = typeof stringDetails === 'string' ? JSON.parse(stringDetails) : stringDetails;
     if (songDetails && notificationData?.event === 'playlist' && notificationData?.code === 'add') {
-      const addSong = useSongs.getState().addSong;
+      const addSong = useSongs?.getState()?.addSong;
       const track = {
         url: songDetails.url || '',
         title: songDetails.title || 'Unknown Song',
@@ -42,7 +42,7 @@ export default () => {
       };
       await addSong(track);
     } else if (notificationData?.event === 'playlist' && notificationData?.code === 'delete') {
-      const removeSong = useSongs.getState().removeSong;
+      const removeSong = useSongs?.getState()?.removeSong;
       await removeSong(notificationData?.songId || '')
     }
     const channelId = String(data?.data?.event) || 'playlist';

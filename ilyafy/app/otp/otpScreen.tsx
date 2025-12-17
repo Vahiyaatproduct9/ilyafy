@@ -12,7 +12,7 @@ const Otp = () => {
   const [code, setCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean | null>(null);
   const isValid = code.length === 6;
-  const email = useProfile.getState().email;
+  const email = useProfile?.getState()?.email;
   const setMessage = useMessage().setMessage;
   useEffect(() => {
     if (isValid) {

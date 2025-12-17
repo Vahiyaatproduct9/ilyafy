@@ -13,7 +13,7 @@ import useMessage from '../../store/useMessage';
 
 const MiniPlayer = ({ style }: { style: AnimatedStyle }) => {
   const isPlaying = useCurrentTrack(s => s.isPlaying);
-  const setMessage = useMessage.getState().setMessage;
+  const setMessage = useMessage?.getState()?.setMessage;
   const canBePlayed = useCurrentTrack(s => s.canBePlayed);
   const track = useCurrentTrack(s => s.track);
   async function togglePlay() {

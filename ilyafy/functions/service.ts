@@ -8,9 +8,9 @@ import useMessage from '../store/useMessage';
 import control from './stream/control';
 export default async function () {
   // CONTAINS ONLY REMOTE!!!!!!!!!!
-  const replaceSong = useSongs.getState().replace;
-  const accessToken = useProfile.getState().accessToken;
-  const setMessage = useMessage.getState().setMessage;
+  const replaceSong = useSongs?.getState()?.replace;
+  const accessToken = useProfile?.getState()?.accessToken;
+  const setMessage = useMessage?.getState()?.setMessage;
   TrackPlayer.addEventListener(Event.RemotePlay, () => {
     control.remotePlay();
   });
@@ -42,7 +42,7 @@ export default async function () {
     setMessage(s.message);
     console.log('playback error:', s)
     // tell server to update the database
-    const CurrentSong = useCurrentTrack.getState().track;
+    const CurrentSong = useCurrentTrack?.getState()?.track;
     const updatedSong = await stream.update(CurrentSong?.mediaId || '', accessToken || '');
     console.log('songid:', CurrentSong?.mediaId);
     console.log('Update Song:', updatedSong);

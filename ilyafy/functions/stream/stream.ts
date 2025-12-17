@@ -5,18 +5,15 @@ import RNFS from 'react-native-fs';
 import useMessage from "../../store/useMessage";
 import useSocketStore from "../../store/useSocketStore";
 import control from './control';
-import useSongs from "../../store/useSongs";
-const setMessage = useMessage.getState().setMessage;
+const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
-const sendMessage = useSocketStore.getState().sendMessage;
-const setLoading = useSongs.getState().setLoading;
+const sendMessage = useSocketStore?.getState()?.sendMessage;
 export default {
   async get(url: string, id: string): Promise<{
     localPath?: string;
     headers?: any;
     metadata?: any;
   } | undefined> {
-    setLoading(true);
     const fileExists = await RNFS.exists(`${RNFS.DocumentDirectoryPath}/${id}.aac`);
     if (fileExists) {
       console.log('File exists:', id);
@@ -76,12 +73,13 @@ export default {
               fileCache: true,
               path: localPath,
               overwrite: true
-            }).fetch('GET', info?.url)
+            }).fetch('GET', info?.url);
             await control.remoteBuffer();
-            downloadFile.progress({ interval: 100 }, res => {
+            downloadFile.progress({ interval: 500 }, res => {
               downloadList.add(id);
+              console.log('downloaded: ', res / 1024, 'KB')
               if (res >= minBuffer && !resolved) {
-                console.log('downloaded: ', res / 1024, 'KB')
+                resolved = true;
                 resolve({ localPath, headers, metadata: info });
               }
             })
@@ -96,7 +94,6 @@ export default {
             }).finally(async () => {
               await RNFS.unlink(tempPath);
             })
-            setLoading(false);
             return;
           }
           console.log('Buffer mode');
@@ -117,7 +114,6 @@ export default {
               reject(err);
             })
           downloadList.delete(id);
-          setLoading(false);
         })
           .catch(err => {
             console.error('Download error:', err);
@@ -136,7 +132,6 @@ export default {
     headers?: any;
     metadata?: any;
   } | undefined> {
-    setLoading(true);
     const updateUrl = `${domain}/stream?id=${songId}`;
     const localPath = `${RNFS.DocumentDirectoryPath}/${songId}.aac`;
     const tempPath = `${RNFS.CachesDirectoryPath}/${songId}.aac`;
@@ -184,8 +179,9 @@ export default {
             control.remoteBuffer();
             downloadFile.progress({ interval: 100 }, res => {
               downloadList.add(songId);
+              console.log('downloaded: ', res / 1024, 'KB')
               if (res >= minBuffer && !resolved) {
-                console.log('downloaded: ', res / 1024, 'KB')
+                resolved = true;
                 resolve({ localPath, headers, metadata: info });
               }
             })
@@ -201,7 +197,6 @@ export default {
               .finally(async () => {
                 await RNFS.unlink(tempPath)
               })
-            setLoading(false);
             return;
           }
           setMessage('Reading Complete!');
@@ -217,7 +212,6 @@ export default {
               reject(err);
               console.log('Error updating:', err);
             })
-          setLoading(false);
           return;
         })
           .catch(err => {

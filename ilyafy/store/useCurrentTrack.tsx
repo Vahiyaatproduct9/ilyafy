@@ -33,7 +33,7 @@ export default create<currentTrack>((set, get) => ({
       Event.PlaybackActiveTrackChanged,
       async data => {
         set({ track: data.track });
-        useDeviceSetting.getState().loadColor(data?.track);
+        useDeviceSetting?.getState()?.loadColor(data?.track);
         const { position, duration } = await TrackPlayer.getProgress();
         set({ position, duration });
       },

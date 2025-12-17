@@ -17,11 +17,11 @@ import { commandEmitter } from '../../store/useSocketStore';
 
 const Connection = () => {
   const [loading, setLoading] = useState<boolean>(false);
-  const setMessage = useMessage.getState().setMessage;
+  const setMessage = useMessage?.getState()?.setMessage;
   const accessToken = useProfile(s => s.accessToken);
   const colors = useDeviceSetting(s => s.colors);
   const width = Dimensions.get('window').width - 16;
-  const isConnected = useSocketStore.getState().isConnected;
+  const isConnected = useSocketStore?.getState()?.isConnected;
   const connect = useSocketStore().connect;
   const [partner, setPartner] = useState<
     | []
@@ -70,7 +70,7 @@ const Connection = () => {
   };
   const toggleConnect = async () => {
     if (isConnected) {
-      useSocketStore.getState().disconnect();
+      useSocketStore?.getState()?.disconnect();
       return;
     }
     connect();

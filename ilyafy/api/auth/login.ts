@@ -4,9 +4,9 @@ import useProfile from "../../store/useProfile";
 import messaging from "@react-native-firebase/messaging";
 export default async ({ email, password }: { email: string; password: string }) => {
   const fcmToken = await messaging().getToken();
-  const setAccessToken = useProfile.getState().setAccessToken;
-  const setRefreshToken = useProfile.getState().setRefreshToken;
-  const setProfile = useProfile.getState().setProfile;
+  const setAccessToken = useProfile?.getState()?.setAccessToken;
+  const setRefreshToken = useProfile?.getState()?.setRefreshToken;
+  const setProfile = useProfile?.getState()?.setProfile;
   const res = await fetch(`${domain}/auth/users/signin`, {
     method: 'POST',
     headers: {

@@ -21,7 +21,7 @@ import useSongs from '../../store/useSongs';
 import EmptyPlaylist from '../../components/blank/emptyPlaylist';
 // import useMessage from '../../store/useMessage';
 import useDeviceSetting from '../../store/useDeviceSetting';
-import { Track } from 'react-native-track-player';
+import TrackPlayer, { Event, Track } from 'react-native-track-player';
 import Loading from '../../components/blank/loading';
 const Playlist = ({
   setSong,
@@ -59,6 +59,9 @@ const Playlist = ({
   }, [loadSongs]);
   useEffect(() => {
     console.log('Songs:', songs);
+    (async () => {
+      console.log('Queue:', await TrackPlayer.getQueue());
+    })();
   }, [songs]);
   async function addSong() {
     return await add(value);

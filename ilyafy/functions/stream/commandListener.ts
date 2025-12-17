@@ -8,13 +8,18 @@ import { heartbeatDataType } from "../../types/commandEmmiter";
 import get from "../../api/playlist/get";
 import useSongs from "../../store/useSongs";
 import useCurrentTrack from "../../store/useCurrentTrack";
-const userId = useSocketStore.getState().userId;
-const roomId = useProfile.getState().profile?.room_part_of;
-const addSong = useSongs.getState().addSong;
-const shouldPlay = useCurrentTrack.getState().shouldPlay;
+import control from "./control";
+const userId = useSocketStore?.getState()?.userId;
+const roomId = useProfile?.getState()?.profile?.room_part_of;
+const addSong = useSongs?.getState()?.addSong;
+const shouldPlay = useCurrentTrack?.getState()?.shouldPlay;
 export const executePlay = () => commandEmitter.on(State.Playing, async data => {
   shouldPlay(true);
-  if (!data?.position) return;
+  if (!data?.position || data?.position === 0) {
+    await TrackPlayer.pause()
+    toast('They are facing some Error!')
+    return;
+  };
   console.log('data:', data);
   const currentSong = await TrackPlayer.getActiveTrack();
   const progress = await TrackPlayer.getProgress();
@@ -56,6 +61,21 @@ export const executeReady = () => commandEmitter.on(State.Ready, async () => {
   shouldPlay(true);
   toast('They are ready to play!');
 });
+
+export const executeSeek = () => commandEmitter.on('seek', async data => {
+  const { state } = await TrackPlayer.getPlaybackState();
+  data?.position && await TrackPlayer.seekTo(data?.position)
+    .then(() => {
+      if (state === State.Playing) {
+        control.remotePlay()
+      } else if (state === State.Paused) {
+        control.remotePause()
+      } else {
+        TrackPlayer.pause();
+        toast('They are in ' + state + 'state.');
+      }
+    })
+})
 export const executeSkip = () => commandEmitter.on('skip', async data => {
   const queue = await TrackPlayer.getQueue();
   const songIndex = queue.findIndex(t => t.mediaId === data.songId)
@@ -82,7 +102,7 @@ export const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data
       const { success, song } = await get(data?.songId);
       let songIndex;
       if (success && song !== undefined) {
-        const accessToken = useProfile.getState().accessToken;
+        const accessToken = useProfile?.getState()?.accessToken;
         const saveSong = await stream.update(song?.mediaId || '', accessToken || '');
         const headers = saveSong?.headers;
         songIndex = headers['X-Id'];
@@ -117,6 +137,7 @@ export default () => {
   executePlay();
   executePause();
   executeBuffering();
+  executeSeek();
   executeReady();
   executeSkip();
   executeStop();
