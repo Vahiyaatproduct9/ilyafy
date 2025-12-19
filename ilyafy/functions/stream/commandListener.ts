@@ -90,6 +90,20 @@ export const executeStop = () => commandEmitter.on(State.Ended, async () => {
 export const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data: heartbeatDataType) => {
   if (data.userId === userId || data.roomId !== roomId) return;
   const localProgress = await TrackPlayer.getProgress()
+  const tracks = useSongs.getState().songs;
+  const currentTrack = useCurrentTrack.getState().track;
+  if (currentTrack?.mediaId !== data.songId) {
+    const currentRemoteSongIndex = tracks.findIndex(t => t.mediaId === data.songId);
+    if (currentRemoteSongIndex === -1) {
+      // get song from server
+
+      await TrackPlayer.reset().then(async () => {
+        await TrackPlayer.add(tracks);
+      });
+
+    }
+    await TrackPlayer.skip(currentRemoteSongIndex, data.position);
+  }
   const dif = Math.abs(data.position - localProgress.position)
   if (dif > 5) {
     await TrackPlayer.seekTo(data.position)

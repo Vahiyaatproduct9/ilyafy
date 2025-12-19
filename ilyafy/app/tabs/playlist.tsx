@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import theme from '../../data/color/theme';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -21,7 +22,7 @@ import useSongs from '../../store/useSongs';
 import EmptyPlaylist from '../../components/blank/emptyPlaylist';
 // import useMessage from '../../store/useMessage';
 import useDeviceSetting from '../../store/useDeviceSetting';
-import TrackPlayer, { Event, Track } from 'react-native-track-player';
+import TrackPlayer, { Track } from 'react-native-track-player';
 import Loading from '../../components/blank/loading';
 const Playlist = ({
   setSong,
@@ -77,6 +78,7 @@ const Playlist = ({
       backgroundColor: primaryColor.value,
     };
   });
+  const [searchItem, setSearchItem] = useState<string>('');
   return (
     <View
       className="flex-1 gap-2 items-center"
@@ -94,7 +96,9 @@ const Playlist = ({
         <View className="flex-1 flex-row items-center border-2 border-white rounded-full">
           <Icon component={Search} size={28} className="ml-4" fill="white" />
           <TextInput
-            style={{ color: colors.text }}
+            value={searchItem}
+            onChangeText={setSearchItem}
+            style={{ color: theme.text }}
             inlineImageLeft="../../assets/icons/search.svg"
             className="flex-1 font-semibold px-6"
             placeholder="Search Songs you've Saved"
@@ -108,7 +112,7 @@ const Playlist = ({
           onPress={() => showAddScreen(true)}
           className="border-[2px] border-white"
           size={28}
-          fill={colors.text}
+          fill={theme.text}
         />
       </View>
       {songs.length === 0 ? (
@@ -135,7 +139,7 @@ const Playlist = ({
               <View className="w-full p-14 mb-[80px] justify-center items-center">
                 <Text
                   className="text-xl font-normal"
-                  style={{ color: colors.text }}
+                  style={{ color: theme.text }}
                 >
                   You've reached the end!
                 </Text>

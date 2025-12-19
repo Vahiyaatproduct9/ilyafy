@@ -53,10 +53,10 @@ const Item = ({
           className="h-20 w-20 rounded-2xl self-center"
         />
         <View className="p-3 flex-1">
-          <Text className="font-semibold text-xl" style={{ color: theme.text }}>
+          <Text className="font-semibold text-xl" style={{ color: 'white' }}>
             {song?.title || 'Unknown Song'}
           </Text>
-          <Text className="font-thin text-l" style={{ color: theme.text }}>
+          <Text className="font-thin text-l" style={{ color: 'white' }}>
             {song?.artist || 'Unknown Artist'}
           </Text>
         </View>

@@ -43,31 +43,61 @@ export default async function () {
     console.log('playback error:', s)
     // tell server to update the database
     const CurrentSong = useCurrentTrack?.getState()?.track;
-    const updatedSong = await stream.update(CurrentSong?.mediaId || '', accessToken || '');
-    console.log('songid:', CurrentSong?.mediaId);
+    const CurrentSongId = CurrentSong?.mediaId;
+    await control.remoteSkip((await TrackPlayer.getActiveTrackIndex() || 0) + 1, 0)
+    const updatedSong = await stream.update(CurrentSongId || '', accessToken || '');
+    console.log('songid:', CurrentSongId);
     console.log('Update Song:', updatedSong);
     const headers = updatedSong?.headers;
     const metadata = updatedSong?.metadata;
     const localPath = updatedSong?.localPath;
     const url = localPath || headers?.filePath || metadata?.url || undefined;
+    const newSongObject = {
+      title: metadata?.title || headers['X-Track-Title'] || 'Unknown Song',
+      url,
+      artist: metadata?.artist || headers['X-Track-Artist'] || 'Ilyafy',
+      artwork: metadata?.thumbnail || headers['X-Track-Thumb'] || '',
+      mediaId: metadata?.id || headers['X-Id'] || CurrentSong?.mediaId,
+      localPath
+    };
+    console.log('New Song Object:', newSongObject);
     if (url) {
-      replaceSong({
-        title: metadata?.title || headers['X-Track-Title'] || 'Unknown Song',
-        url,
-        artist: metadata?.artist || headers['X-Track-Artist'] || 'Ilyafy',
-        artwork: metadata?.thumbnail || headers['X-Track-Thumb'] || '',
-        mediaId: metadata?.id || headers['X-Id'] || CurrentSong?.mediaId,
-        localPath
-      });
+      replaceSong(newSongObject);
       await TrackPlayer.play();
     } else {
       setMessage('Already Reading.')
       console.log('URL not found');
     }
   });
-  TrackPlayer.addEventListener(Event.PlaybackState, async event => {
-    if (![State.Playing, State.Paused].includes(event.state)) {
-      control.remotePlaybackState(event.state)
+  let bufferingTimeout: number | null = null;
+  TrackPlayer.addEventListener(Event.PlaybackState, async (event) => {
+    // Clear the timeout if the state is no longer buffering
+    if (event.state !== State.Buffering && bufferingTimeout) {
+      clearTimeout(bufferingTimeout);
+      bufferingTimeout = null;
+    }
+
+    switch (event.state) {
+      case State.Buffering:
+      case State.Ready:
+        // If we start buffering and no timeout is set, create one.
+        if (!bufferingTimeout) {
+          bufferingTimeout = setTimeout(() => {
+            control.remoteBuffer();
+            bufferingTimeout = null; // Clear after firing
+          }, 500);
+        }
+        break;
+
+      case State.Playing:
+      case State.Paused:
+        // Do nothing for these states, as they are handled by other remote event listeners.
+        break;
+
+      default:
+        // For all other states (e.g., Ready, Loading, Stopped, Ended), send the state directly.
+        control.remotePlaybackState(event.state);
+        break;
     }
   });
 };

@@ -66,7 +66,9 @@ export default create(
               setMessage('Song Not Found X(');
               return;
             }
-            get().addSong(newSong);
+            await TrackPlayer.add(newSong).then(() => {
+              set({ songs: [...get().songs, newSong] });
+            });
             get().setLoading(false);
             return;
           }

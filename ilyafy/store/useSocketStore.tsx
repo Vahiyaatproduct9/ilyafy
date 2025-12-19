@@ -38,10 +38,22 @@ export default create<wsConnectedion>()((set, get) => ({
     // const ws = new WebSocket('wss://ilyafy.onrender.com');
     set({ socket: socket });
     socket.connect();
-    socket.on('connect', () => {
+    socket.on('connect', async () => {
       set({ isConnected: true });
       console.log('Socket Connected!');
       socket.emit('join', { accessToken, roomId });
+      const state = await TrackPlayer.getPlaybackState();
+      const progress = await TrackPlayer.getProgress();
+      if (get().isConnected) {
+        socket.emit('message', {
+          state: 'heartbeat',
+          status: state.state,
+          ...progress,
+          userId: get().userId,
+          roomId: get().roomId,
+          songId: (await TrackPlayer.getActiveTrack())?.mediaId || undefined,
+        });
+      }
     });
     setInterval(async () => {
       const state = await TrackPlayer.getPlaybackState();

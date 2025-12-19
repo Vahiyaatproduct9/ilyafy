@@ -50,7 +50,7 @@ export default function App() {
       }
     }
   });
-  notifee.onBackgroundEvent(data => {
+  notifee.onBackgroundEvent(async data => {
     const { type, detail } = data;
     console.log('type & detail: ', data);
   });

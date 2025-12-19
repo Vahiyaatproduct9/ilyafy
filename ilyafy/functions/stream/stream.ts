@@ -8,7 +8,7 @@ import control from './control';
 const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
 const sendMessage = useSocketStore?.getState()?.sendMessage;
-const minBuffer = 200 * 1024 // 256kb
+const minBuffer = 132 * 1024 // 256kb
 export default {
   async get(url: string, id: string): Promise<{
     localPath?: string;
@@ -75,9 +75,9 @@ export default {
               overwrite: true
             }).fetch('GET', info?.url);
             await control.remoteBuffer();
-            downloadFile.progress({ interval: 500 }, res => {
+            downloadFile.progress({ interval: 100 }, res => {
               downloadList.add(id);
-              console.log('downloaded: ', res / 1024, 'KB')
+              console.log('downloaded: ', res / 1024, 'KB of ', id);
               if (res >= minBuffer && !resolved) {
                 resolved = true;
                 resolve({ localPath, headers, metadata: info });
@@ -155,7 +155,7 @@ export default {
           Authorization: `Bearer ${accessToken}`
         });
         task.progress({ interval: 100 }, (recieved) => {
-          console.log(`Updated ${recieved} bytes.`);
+          console.log(`Updated ${recieved / 1024} KB.`);
           // if (recieved >= minBuffer && !started) {
           if (repeats === 20 && !started) {
             started = true;

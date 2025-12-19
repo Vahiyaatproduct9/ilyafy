@@ -27,7 +27,7 @@ import {
   PanGesture,
 } from 'react-native-gesture-handler';
 import useCurrentTrack from '../../store/useCurrentTrack';
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, { Track } from 'react-native-track-player';
 import SongOptions from '../options/songOptions';
 import control from '../../functions/stream/control';
 import useDeviceSetting from '../../store/useDeviceSetting';
@@ -49,7 +49,7 @@ const MacroPlayer = (props: {
   const controlGesture = Gesture.Pan()
     .simultaneousWithExternalGesture(progressRef)
     .withRef(props.refProp);
-  const [optionsShown, setOptionsShown] = useState<string | null>(null);
+  const [optionsShown, setOptionsShown] = useState<Track | null>(null);
   const isPlaying = useCurrentTrack(s => s.isPlaying);
   const isConnected = useSocketStore(s => s.isConnected);
   const duration = useCurrentTrack(s => s.duration);
@@ -107,24 +107,7 @@ const MacroPlayer = (props: {
     };
   });
 
-  const functionList: { title: string; func: () => Promise<any> }[] = [
-    {
-      title: 'Delete',
-      func: async () => {
-        await deleteSong(optionsShown || '')
-          .then(res => {
-            setMessage(res?.message || '');
-            if (res?.success) {
-              setOptionsShown(null);
-            }
-          })
-          .catch(err => {
-            setMessage('Error deleting song.');
-            console.log('Error deleting song:', err);
-          });
-      },
-    },
-  ];
+
   const primaryColor = useSharedValue(colors.primary);
   useEffect(() => {
     primaryColor.value = withSpring(colors.primary, { duration: 1500 });
@@ -173,16 +156,15 @@ const MacroPlayer = (props: {
 
         <Icon
           component={Options}
-          onPress={() => setOptionsShown(track?.mediaId || '')}
+          onPress={() => setOptionsShown(track || null)}
           size={30}
           fill={colors.text}
         />
       </View>
       {optionsShown && (
         <SongOptions
-          setOptions={setOptionsShown}
-          functionList={functionList}
-          song={track ? track : undefined}
+          setSong={setOptionsShown}
+          song={optionsShown}
         />
       )}
       <Animated.View
