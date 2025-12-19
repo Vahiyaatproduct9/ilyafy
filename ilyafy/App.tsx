@@ -15,6 +15,7 @@ import Invitation from './app/tabs/invitation';
 import useSocketStore from './store/useSocketStore';
 import refreshJWT from './functions/auth/refreshJWT';
 import useCurrentTrack from './store/useCurrentTrack';
+import storagePermission from './permissions/storagePermission';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
     SystemNavigationBar.stickyImmersive();
     const init = async () => {
       await notificationPermission();
+      await storagePermission();
     };
     init();
     profile && (async () => await refreshJWT())();
@@ -48,7 +50,7 @@ export default function App() {
       }
     }
   });
-  notifee.onBackgroundEvent(data => {
+  notifee.onBackgroundEvent(async data => {
     const { type, detail } = data;
     console.log('type & detail: ', data);
   });

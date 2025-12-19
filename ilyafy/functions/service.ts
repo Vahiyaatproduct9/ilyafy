@@ -1,184 +1,104 @@
 import TrackPlayer, { Event, State } from 'react-native-track-player';
-import useSocketStore, { commandEmitter } from '../store/useSocketStore';
-import { heartbeatDataType } from '../types/commandEmmiter';
 import useProfile from '../store/useProfile';
-import toast from '../components/message/toast';
-import get from '../api/playlist/get';
 import useSongs from '../store/useSongs';
+import commandListener from './stream/commandListener';
 import useCurrentTrack from '../store/useCurrentTrack';
 import stream from './stream/stream';
 import useMessage from '../store/useMessage';
+import control from './stream/control';
 export default async function () {
-  const addSong = useSongs.getState().addSong;
-  const replaceSong = useSongs.getState().replace;
-  const accessToken = useProfile.getState().accessToken;
-  const sendMessage = useSocketStore.getState().sendMessage;
-  const setMessage = useMessage.getState().setMessage;
-  const userId = useSocketStore.getState().userId;
-  const roomId = useProfile.getState().profile?.room_part_of;
-  const queue = await TrackPlayer.getQueue();
-  const track = await TrackPlayer.getActiveTrack();
-  TrackPlayer.addEventListener(Event.RemotePlay, async () => {
-    await TrackPlayer.play();
+  // CONTAINS ONLY REMOTE!!!!!!!!!!
+  const replaceSong = useSongs?.getState()?.replace;
+  const accessToken = useProfile?.getState()?.accessToken;
+  const setMessage = useMessage?.getState()?.setMessage;
+  TrackPlayer.addEventListener(Event.RemotePlay, () => {
+    control.remotePlay();
   });
-  TrackPlayer.addEventListener(Event.RemotePause, async () => {
-    await TrackPlayer.pause();
+  TrackPlayer.addEventListener(Event.RemotePause, () => {
+    control.remotePause();
   });
   TrackPlayer.addEventListener(Event.RemoteSeek, async ({ position }) => {
-    await TrackPlayer.seekTo(position)
+    control.remoteSeek(position)
   })
   TrackPlayer.addEventListener(Event.RemoteStop, async () => {
     await TrackPlayer.stop()
-    sendMessage({
-      state: 'stop',
-    })
+    control.remotePlaybackState(State.Ended)
   });
   TrackPlayer.addEventListener(Event.RemoteSkip, async event => {
-    await TrackPlayer.skip(event.index)
-    await TrackPlayer.play();
+    control.remoteSkip(event.index)
     console.log('Skipped: ', event)
   })
   TrackPlayer.addEventListener(Event.RemoteNext, async () => {
     await TrackPlayer.skipToNext()
-    await TrackPlayer.play();
+    const currentIndex = await TrackPlayer.getActiveTrackIndex();
+    currentIndex && control.remoteSkip(currentIndex, 0)
   })
   TrackPlayer.addEventListener(Event.RemotePrevious, async () => {
     await TrackPlayer.skipToPrevious()
-    await TrackPlayer.play();
+    const currentIndex = await TrackPlayer.getActiveTrackIndex();
+    currentIndex && control.remoteSkip(currentIndex, 0)
   })
-  TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, async event => {
-    const progress = await TrackPlayer.getProgress();
-    sendMessage({
-      state: 'skip',
-      ...event,
-      songId: event.track?.mediaId || '',
-      ...progress
-    })
-  });
-  TrackPlayer.addEventListener(Event.PlaybackError, async () => {
-    sendMessage({
-      state: 'error',
-    });
+  TrackPlayer.addEventListener(Event.PlaybackError, async (s) => {
+    setMessage(s.message);
+    console.log('playback error:', s)
     // tell server to update the database
-    const CurrentSong = useCurrentTrack.getState().track;
-    const updatedSong = await stream.update(CurrentSong?.mediaId || '', accessToken || '');
-    console.log('songid:', CurrentSong?.mediaId);
+    const CurrentSong = useCurrentTrack?.getState()?.track;
+    const CurrentSongId = CurrentSong?.mediaId;
+    await control.remoteSkip((await TrackPlayer.getActiveTrackIndex() || 0) + 1, 0)
+    const updatedSong = await stream.update(CurrentSongId || '', accessToken || '');
+    console.log('songid:', CurrentSongId);
     console.log('Update Song:', updatedSong);
     const headers = updatedSong?.headers;
     const metadata = updatedSong?.metadata;
     const localPath = updatedSong?.localPath;
-    const url = headers?.filePath || localPath || metadata?.url || undefined;
+    const url = localPath || headers?.filePath || metadata?.url || undefined;
+    const newSongObject = {
+      title: metadata?.title || headers['X-Track-Title'] || 'Unknown Song',
+      url,
+      artist: metadata?.artist || headers['X-Track-Artist'] || 'Ilyafy',
+      artwork: metadata?.thumbnail || headers['X-Track-Thumb'] || '',
+      mediaId: metadata?.id || headers['X-Id'] || CurrentSong?.mediaId,
+      localPath
+    };
+    console.log('New Song Object:', newSongObject);
     if (url) {
-      replaceSong({
-        title: metadata?.title || headers['X-Track-Title'] || 'Unknown Song',
-        url,
-        artist: metadata?.artist || headers['X-Track-Artist'] || 'Ilyafy',
-        artwork: metadata?.thumbnail || headers['X-Track-Thumb'] || '',
-        mediaId: metadata?.id || headers['X-Id'] || CurrentSong?.mediaId,
-        localPath
-      });
+      replaceSong(newSongObject);
       await TrackPlayer.play();
     } else {
-      setMessage('URL not found, ignoring this song.')
+      setMessage('Already Reading.')
       console.log('URL not found');
     }
   });
-  TrackPlayer.addEventListener(Event.PlaybackState, async event => {
-    const progress = await TrackPlayer.getProgress();
-    if ([State.Playing, State.Paused].includes(event.state)) {
-      const currentSong = useCurrentTrack.getState().track;
-      if (currentSong?.url.includes('http')) {
-        stream.update(currentSong?.mediaId || '', accessToken || '');
-      }
-      sendMessage({
-        state: event.state,
-        ...progress
-      })
-    }
-  })
-  commandEmitter.on(State.Playing, async data => {
-    if (!data?.position) return;
-    console.log('data:', data);
-    const currentSong = await TrackPlayer.getActiveTrack();
-    const progress = await TrackPlayer.getProgress();
-    const currentSongIndex = queue.findIndex(t => t.mediaId === data.songId);
-    if (data?.songId === currentSong?.mediaId) {
-      if (Math.abs((progress.position - data?.position) || 0) > 5) {
-        toast('They seeked a song.');
-        await TrackPlayer.seekTo(data.position);
-      }
-      else
-        toast('They are playing a song.');
-    } else {
-      await TrackPlayer.skip(currentSongIndex, data?.position || 0);
-      toast('They skipped a song.');
-    }
-    await TrackPlayer.play();
-  })
-  commandEmitter.on(State.Paused, async data => {
-    if (!data?.position) return;
-    const currentSong = await TrackPlayer.getActiveTrack()
-    const currentSongIndex = queue.findIndex(t => t.mediaId === data.songId);
-    if (data?.songId === currentSong?.mediaId) {
-      await TrackPlayer.seekTo(data.position);
-    } else {
-      await TrackPlayer.skip(currentSongIndex, data?.position || 0);
-    }
-    await TrackPlayer.pause();
-    toast('They paused a song.')
-  })
-  commandEmitter.on('buffering', async () => {
-    await TrackPlayer.pause();
-    toast('They are buffering, Please wait :(');
-  })
-  commandEmitter.on('skip', async data => {
-    const songIndex = queue.findIndex(t => t.mediaId === data.songId)
-    await TrackPlayer.skip(songIndex, data.position);
-    await TrackPlayer.play();
-    toast('They skipped a song.')
-  })
-  commandEmitter.on('stop', async () => {
-    await TrackPlayer.pause();
-    toast('They exited :(')
-  })
-  commandEmitter.on('heartbeat', async (data: heartbeatDataType) => {
-    if (data.userId === userId || data.roomId !== roomId) return;
-    const localProgress = await TrackPlayer.getProgress()
-    const dif = Math.abs(data.position - localProgress.position)
-    if (dif > 5) {
-      await TrackPlayer.seekTo(data.position)
+  let bufferingTimeout: number | null = null;
+  TrackPlayer.addEventListener(Event.PlaybackState, async (event) => {
+    // Clear the timeout if the state is no longer buffering
+    if (event.state !== State.Buffering && bufferingTimeout) {
+      clearTimeout(bufferingTimeout);
+      bufferingTimeout = null;
     }
 
-    if (data?.songId && track && data.songId !== track.mediaId) {
-      const index = queue.findIndex(t => t.mediaId === data.songId)
-      if (index === -1) {
-        const { success, song } = await get(data?.songId);
-        let songIndex;
-        if (success && song !== undefined) {
-          const saveSong = await stream.get(song?.ytUrl || '');
-          const headers = saveSong?.headers;
-          const localPath = saveSong?.localPath;
-          await addSong({
-            mediaId: song?.id || song?.mediaId || Date.now().toString(),
-            url: headers?.filePath || localPath || song.url || '',
-            artist: song.artist || 'Ilyafy',
-            artwork: song.thumbnail || require('../assets/images/background.png'),
-            title: song?.title || 'Unknown Song'
-          })
-          songIndex && await TrackPlayer.skip(songIndex, data?.position);
+    switch (event.state) {
+      case State.Buffering:
+      case State.Ready:
+        // If we start buffering and no timeout is set, create one.
+        if (!bufferingTimeout) {
+          bufferingTimeout = setTimeout(() => {
+            control.remoteBuffer();
+            bufferingTimeout = null; // Clear after firing
+          }, 500);
         }
-      }
-      else await TrackPlayer.skip(index, data.position)
-      toast('Fixed errors :)')
-    } else {
-    }
-    switch (data.status) {
+        break;
+
       case State.Playing:
-        await TrackPlayer.play()
+      case State.Paused:
+        // Do nothing for these states, as they are handled by other remote event listeners.
         break;
+
       default:
-        await TrackPlayer.pause();
+        // For all other states (e.g., Ready, Loading, Stopped, Ended), send the state directly.
+        control.remotePlaybackState(event.state);
         break;
     }
-  })
+  });
 };
+commandListener();

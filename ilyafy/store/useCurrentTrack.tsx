@@ -1,11 +1,14 @@
 import TrackPlayer, { Event, State, Track } from 'react-native-track-player';
 import { create } from 'zustand';
+import useDeviceSetting from './useDeviceSetting';
 type currentTrack = {
   track: Track | null;
   initialized: boolean;
   position: number | null;
   duration: number | null;
   isPlaying: boolean;
+  canBePlayed: boolean;
+  shouldPlay: (value: boolean) => void;
   setTrack: () => Promise<void>;
   initializePlayer: () => Promise<void>;
 };
@@ -16,6 +19,10 @@ export default create<currentTrack>((set, get) => ({
   position: null,
   duration: null,
   isPlaying: false,
+  canBePlayed: true,
+  shouldPlay: val => {
+    set({ canBePlayed: val });
+  },
   setTrack: async (remoteTrack?: Track) => {
     const track = remoteTrack || (await TrackPlayer.getActiveTrack()) || null;
     set({ track });
@@ -25,8 +32,8 @@ export default create<currentTrack>((set, get) => ({
     TrackPlayer.addEventListener(
       Event.PlaybackActiveTrackChanged,
       async data => {
-        console.log('Active Track Changed!');
         set({ track: data.track });
+        useDeviceSetting?.getState()?.loadColor(data?.track);
         const { position, duration } = await TrackPlayer.getProgress();
         set({ position, duration });
       },

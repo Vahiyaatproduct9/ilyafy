@@ -1,28 +1,40 @@
 import { Image, Pressable, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
-import theme from '../../data/color/theme';
+import Animated, {
+  AnimatedStyle,
+  FadeInDown,
+  FadeOutUp,
+} from 'react-native-reanimated';
 import Icon from '../icons/icon';
 import Options from '../../assets/icons/options.svg';
 import TrackPlayer, { Track } from 'react-native-track-player';
+import control from '../../functions/stream/control';
+import theme from '../../data/color/theme';
+import { Dispatch, SetStateAction } from 'react';
+import useSongs from '../../store/useSongs';
 const image = require('../../assets/images/background.png');
 const Item = ({
   i,
   song,
-  showOptionsOf,
+  colors,
+  setSelectedSong,
 }: {
   i: number | null;
   song: Track;
-  showOptionsOf: (i: string) => void;
+  colors: AnimatedStyle;
+  setSelectedSong: Dispatch<SetStateAction<Track | null>>;
 }) => {
   const changeSong = async () => {
     console.log('song:', song);
-    console.log('Song Changed!');
     const queue = await TrackPlayer.getQueue();
-    console.log('Queue:', queue);
     const index = queue.findIndex(t => t.mediaId === song?.mediaId || '');
-    console.log('index:', index);
-    await TrackPlayer.skip(index);
-    await TrackPlayer.play();
+    if (index === -1) {
+      await TrackPlayer.reset().then(() => {
+        const songList = useSongs?.getState()?.songs;
+        TrackPlayer.add(songList);
+      });
+    }
+    await control.remoteSkip(index, 0);
+    await control.remotePlay();
   };
   return (
     <Pressable
@@ -34,24 +46,24 @@ const Item = ({
         entering={FadeInDown}
         exiting={FadeOutUp}
         className={'flex-row flex-1 rounded-2xl p-1'}
-        style={{ backgroundColor: theme.primary }}
+        style={colors}
       >
         <Image
           source={song?.artwork ? { uri: song.artwork } : image}
-          className="h-20 w-20 rounded-2xl self-center "
+          className="h-20 w-20 rounded-2xl self-center"
         />
         <View className="p-3 flex-1">
-          <Text className="font-semibold text-xl" style={{ color: theme.text }}>
+          <Text className="font-semibold text-xl" style={{ color: 'white' }}>
             {song?.title || 'Unknown Song'}
           </Text>
-          <Text className="font-thin text-l" style={{ color: theme.text }}>
+          <Text className="font-thin text-l" style={{ color: 'white' }}>
             {song?.artist || 'Unknown Artist'}
           </Text>
         </View>
         <View className="items-center justify-center p-2">
           <Icon
             component={Options}
-            onPress={() => showOptionsOf(song?.mediaId || song?.id || '')}
+            onPress={() => setSelectedSong(song || null)}
             fill={theme.text}
             size={28}
           />

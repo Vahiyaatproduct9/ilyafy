@@ -125,30 +125,32 @@ export default class PLaylist {
         message: 'Some Error Occured X('
       }
     }
-    const { success: userSuccess, data } = verifyToken(token);
+    const { success: userSuccess } = verifyToken(token);
     if (userSuccess) {
-      await notification({
-        message: {
-          title: '+1',
-          body: '1 song added to Playlist!',
-          data: {
-            songDetails: JSON.stringify({
-              id: insertSong.id || '',
-              title: insertSong.title || '',
-              artist: insertSong.artist || '',
-              thumbnail: insertSong.thumbnail || '',
-              added_by: insertSong.added_by || '',
-              added_at: insertSong.added_at || '',
-              ytUrl: insertSong.ytUrl || '',
-              url: insertSong.url || '',
-              playable: insertSong.playable || ''
-            }),
-
+      for (const user of (insertSong?.playlists?.rooms?.users || [])) {
+        notification({
+          message: {
+            title: '+1',
+            body: '1 song added to Playlist!',
+            data: {
+              songDetails: JSON.stringify({
+                id: insertSong.id || '',
+                title: insertSong.title || '',
+                artist: insertSong.artist || '',
+                thumbnail: insertSong.thumbnail || '',
+                added_by: insertSong.added_by || '',
+                added_at: insertSong.added_at || '',
+                ytUrl: insertSong.ytUrl || '',
+                url: insertSong.url || '',
+                playable: insertSong.playable || ''
+              }),
+            },
+            event: 'playlist',
+            code: 'add'
           },
-          event: 'playlist'
-        },
-        fcmToken: insertSong.playlists?.rooms?.users.find(t => t.id === data?.id)?.fcm_token || ''
-      })
+          fcmToken: user?.fcm_token || ''
+        })
+      }
     }
     return {
       success: true,
@@ -159,7 +161,7 @@ export default class PLaylist {
 
   async delete({ headers, songId }: deleteType) {
     const token = getAccessTokenfromHeaders(headers);
-    const { success, id, fcm_token, message } = await this.#getPlaylist(token);
+    const { success, id, users, message } = await this.#getPlaylist(token);
     if (!success) {
       return {
         success,
@@ -180,17 +182,20 @@ export default class PLaylist {
         message: "Couldn't Delete Song :("
       }
     }
-    notification({
-      message: {
-        title: `-${deleteSong.count}`,
-        body: `${deleteSong.count} ${[0, 1].includes(deleteSong.count) ? 'song' : 'songs'} removed from Playlist`,
-        data: {
-          songId
+    for (const user of (users || [])) {
+      notification({
+        message: {
+          title: `-${deleteSong.count} Songs`,
+          body: `${deleteSong.count} ${[0, 1].includes(deleteSong.count) ? 'song' : 'songs'} removed from Playlist`,
+          data: {
+            songId
+          },
+          event: 'playlist',
+          code: 'delete'
         },
-        event: 'playlist'
-      },
-      fcmToken: fcm_token || ''
-    })
+        fcmToken: user.fcm_token || ''
+      })
+    }
     return {
       success: true,
       message: 'Deleted Song!',
@@ -218,6 +223,11 @@ export default class PLaylist {
               select: {
                 id: true
               }
+            },
+            users: {
+              select: {
+                fcm_token: true
+              }
             }
           }
         }
@@ -235,7 +245,7 @@ export default class PLaylist {
       id: playlistId?.rooms?.playlists[0]?.id || '',
       message: 'found.',
       userId: data?.id,
-      fcm_token: playlistId.fcm_token
+      users: playlistId.rooms?.users
     }
   }
 }

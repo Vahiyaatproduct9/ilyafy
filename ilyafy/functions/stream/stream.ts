@@ -1,92 +1,130 @@
+// import notifee from '@notifee/react-native';
 import { domain } from "../../path/path";
 import RNFB from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import useMessage from "../../store/useMessage";
 import useSocketStore from "../../store/useSocketStore";
-import TrackPlayer from "react-native-track-player";
-const setMessage = useMessage.getState().setMessage;
+import control from './control';
+const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
-const sendMessage = useSocketStore.getState().sendMessage;
+const sendMessage = useSocketStore?.getState()?.sendMessage;
+const minBuffer = 132 * 1024 // 256kb
 export default {
-  async get(url: string): Promise<{
+  async get(url: string, id: string): Promise<{
     localPath?: string;
     headers?: any;
     metadata?: any;
   } | undefined> {
-    const serverUrl = `${domain}/stream?url=${url}`;
-    const localPath = `${RNFB.fs.dirs.CacheDir}/temp.aac`;
+    const fileExists = await RNFS.exists(`${RNFS.DocumentDirectoryPath}/${id}.aac`);
+    if (fileExists) {
+      console.log('File exists:', id);
+      return;
+    }
+    if (downloadList.has(id)) {
+      setMessage('Reading, Please wait...');
+      console.log('Already downloading');
+      return;
+    }
+    const serverUrl = `${domain}/stream?url=${url || ''}`;
+    const localPath = `${RNFS.DocumentDirectoryPath}/${id || 'temp'}.aac`;
+    const tempPath = `${RNFS.CachesDirectoryPath}/${id || 'temp'}.aac`;
+    console.log({ localPath });
     try {
-      if (await RNFB.fs.exists(localPath)) await RNFB.fs.unlink(localPath);
+      // if (await RNFB.fs.exists(localPath)) await RNFB.fs.unlink(localPath);
+      if (!localPath) {
+        console.error('FileError: path not found', localPath);
+        return undefined;
+      }
       console.log('Streaming Chunks to ', localPath);
       let started = false;
       let headers: any = null;
-      const minBuffer = 256 * 1024 // 256kb
+      let repeats: number = 0;
       return new Promise((resolve, reject) => {
         const task = RNFB.config({
-          path: localPath,
+          path: tempPath,
           fileCache: true,
-          appendExt: 'aac',
+          overwrite: true,
         }).fetch('GET', serverUrl);
-        task.progress({ interval: 100 }, (recieved) => {
-          console.log(`Downloaded ${recieved} bytes`);
-          if (recieved >= minBuffer && !started) {
-            started = true;
-            console.log('Buffering...');
-          }
+        downloadList.add(id || '');
+        sendMessage({
+          state: 'buffering',
         });
-        const parmanentPath = `${RNFS.DocumentDirectoryPath}/${Date.now().toString()}`
+        task.progress({ interval: 100 }, (recieved) => {
+          repeats++;
+          // console.log(`Downloaded ${recieved} bytes`);
+          if (repeats === 20 && !started) {
+            started = true;
+            console.log('song resolved:', id);
+          }
+          console.log('recieved:', (recieved / (1024)).toFixed(2) + ' KB');
+        });
         task.then(async res => {
           headers = await res.info().headers;
           console.log('Headers: ', headers);
-          if (headers['Content-Type'].includes('application/json')) {
-            const info = await res.json();
-            console.log('Info:', info);
+          const isJson = headers['Content-Type']?.includes('application/json') || headers['content-type']?.includes('application/json');
+
+          if (isJson) {
+            const fileContent = await RNFS.readFile(tempPath, 'utf8');
+            const info = JSON.parse(fileContent);
+            console.log('Redirecting to:', info?.url);
             console.log('Meta mode:', res.path());
-            await RNFS.downloadFile({
-              fromUrl: info.url || '',
-              toFile: parmanentPath,
-              background: true,
-              begin: () => {
-                console.log('Download started!');
-                sendMessage({
-                  state: 'buffering',
-                });
-                setMessage('Reading Song...');
-              },
-              progress: progressData => {
-                const downloaded = (progressData.bytesWritten / (1024 * 1024)).toFixed(2);
-                const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
-                console.log(`Downloaded ${downloaded} of ${total} MB.`);
-                setMessage(`Reading ${downloaded} of ${total} MB.`)
+            let resolved = false;
+            const downloadFile = RNFB.config({
+              fileCache: true,
+              path: localPath,
+              overwrite: true
+            }).fetch('GET', info?.url);
+            await control.remoteBuffer();
+            downloadFile.progress({ interval: 100 }, res => {
+              downloadList.add(id);
+              console.log('downloaded: ', res / 1024, 'KB of ', id);
+              if (res >= minBuffer && !resolved) {
+                resolved = true;
+                resolve({ localPath, headers, metadata: info });
               }
-            }).promise.then(async () => {
-              console.log('Download Complete!');
-              await TrackPlayer.play();
-            }).catch(err => {
-              console.log('Some Error Occured: ', err);
             })
-            resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info });
+            downloadFile.then(() => {
+              console.log('Download Complete!');
+              setMessage('Reading Complete!');
+              control.remotePlay();
+              downloadList.delete(id);
+            }).catch(err => {
+              console.log('Error:', err);
+              setMessage('Some Error Occured :(');
+            }).finally(async () => {
+              await RNFS.unlink(tempPath);
+            })
             return;
           }
           console.log('Buffer mode');
-          await RNFS.copyFile(localPath, parmanentPath);
-          // if (await RNFB.fs.exists(localPath)) RNFB.fs.unlink(localPath);
-          resolve({
-            localPath: res.path(),
-            headers: { ...headers, filePath: parmanentPath },
-            metadata: undefined
-          });
-          return;
+          setMessage('Reading Complete!');
+          await RNFS.copyFile(tempPath, localPath)
+            .then(() => {
+              resolve({
+                localPath,
+                headers,
+                metadata: undefined
+              });
+              RNFS.unlink(tempPath);
+            }, err => {
+              console.log('Error copying:', err);
+              reject(err);
+            }).catch(err => {
+              console.log('Error copying:', err);
+              reject(err);
+            })
+          downloadList.delete(id);
         })
           .catch(err => {
             console.error('Download error:', err);
             setMessage('Ooops!')
-            if (!started) reject(err);
+            reject(err);
           })
       })
     } catch (error) {
       setMessage('Ooops!');
       console.error('Error in stream :(', error);
+      throw error;
     }
   },
   async update(songId: string, accessToken: string): Promise<{
@@ -95,66 +133,84 @@ export default {
     metadata?: any;
   } | undefined> {
     const updateUrl = `${domain}/stream?id=${songId}`;
-    const localPath = `${RNFB.fs.dirs.CacheDir}/${songId}.aac`;
-    const parmanentPath = `${RNFS.DocumentDirectoryPath}/${songId}.aac`;
+    const localPath = `${RNFS.DocumentDirectoryPath}/${songId}.aac`;
+    const tempPath = `${RNFS.CachesDirectoryPath}/${songId}.aac`;
     try {
       if (downloadList.has(songId)) {
         setMessage('Reading, Please wait...');
         console.log('Already downloading');
         return;
       }
-      if (await RNFS.exists(parmanentPath)) await RNFS.unlink(parmanentPath);
-      console.log('Streaming Chunks to ', parmanentPath);
+      if (await RNFS.exists(localPath)) await RNFS.unlink(localPath);
+      console.log('Streaming Chunks to ', localPath);
       let started = false;
       let headers: any = null;
-      const minBuffer = 256 * 1024; // 256kb
+      let repeats: number = 0;
       return new Promise((resolve, reject) => {
         const task = RNFB.config({
-          path: localPath,
+          path: tempPath,
           overwrite: true,
           fileCache: true,
-          appendExt: 'aac'
         }).fetch('PATCH', updateUrl, {
           Authorization: `Bearer ${accessToken}`
         });
         task.progress({ interval: 100 }, (recieved) => {
-          console.log(`Updated ${recieved} bytes.`);
-          if (recieved >= minBuffer && !started) {
+          console.log(`Updated ${recieved / 1024} KB.`);
+          // if (recieved >= minBuffer && !started) {
+          if (repeats === 20 && !started) {
             started = true;
             console.log('Buffering update!');
           }
         });
-        task.then(async (res) => {
+        task.then(async res => {
           headers = await res.info().headers;
-          if (headers['Content-Type'].includes('application/json')) {
-            const info = await res.json();
-
-            await RNFS.downloadFile({
-              fromUrl: info?.url || '',
-              toFile: parmanentPath,
-              begin: () => {
-                console.log('Download started!');
-                downloadList.add(songId);
-              },
-              progress: progressData => {
-                const downloaded = (progressData.bytesWritten / (1024 * 1024)).toFixed(2);
-                const total = (progressData.contentLength / (1024 * 1024)).toFixed(2);
-                console.log(`Downloaded ${downloaded} of ${total} MB.`);
-                setMessage(`Reading ${downloaded} of ${total} MB.`)
+          const isJson = headers['Content-Type']?.includes('application/json') || headers['content-type']?.includes('application/json');
+          if (isJson) {
+            const fileContent = await RNFS.readFile(tempPath);
+            const info = JSON.parse(fileContent);
+            console.log('info:', info)
+            let resolved = false;
+            const downloadFile = RNFB.config({
+              fileCache: true,
+              path: localPath,
+              overwrite: true
+            }).fetch('GET', info?.url)
+            control.remoteBuffer();
+            downloadFile.progress({ interval: 100 }, res => {
+              downloadList.add(songId);
+              console.log('downloaded: ', res / 1024, 'KB')
+              if (res >= minBuffer && !resolved) {
+                resolved = true;
+                resolve({ localPath, headers, metadata: info });
               }
-            }).promise.then(() => {
-              console.log(('Download Complete!'));
-            }).catch((err) => {
-              console.log('Some Error Occured: ', err);
-            }).finally(() => {
-              downloadList.delete(songId);
             })
-            resolve({ localPath: info.url, headers: { ...headers, filePath: parmanentPath }, metadata: info })
+            downloadFile.then(() => {
+              console.log('Download Complete!');
+              downloadList.delete(songId);
+              control.remotePlay();
+            }).catch(err => {
+              console.log('Error:', err);
+              setMessage('Some Error Occured :(');
+              reject(err);
+            })
+              .finally(async () => {
+                await RNFS.unlink(tempPath)
+              })
             return;
           }
-          await RNFS.copyFile(res.path(), parmanentPath);
-          // if (await RNFB.fs.exists(localPath)) RNFB.fs.unlink(localPath);
-          resolve({ localPath: res.path(), headers: { ...headers, filePath: parmanentPath }, metadata: undefined });
+          setMessage('Reading Complete!');
+          downloadList.delete(songId);
+          await RNFS.copyFile(tempPath, localPath)
+            .then(() => {
+              resolve({ localPath, headers, metadata: undefined });
+              RNFS.unlink(tempPath)
+            }, (err) => {
+              reject(err);
+              console.log('Error updating:', err);
+            }).catch(err => {
+              reject(err);
+              console.log('Error updating:', err);
+            })
           return;
         })
           .catch(err => {

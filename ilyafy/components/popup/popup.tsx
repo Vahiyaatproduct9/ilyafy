@@ -1,8 +1,8 @@
 import { Pressable, Text, TextInput, View } from 'react-native';
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
-import theme from '../../data/color/theme';
 import Button from '../buttons/button1';
+import useDeviceSetting from '../../store/useDeviceSetting';
 const Popup = ({
   showPopup,
   func,
@@ -15,6 +15,7 @@ const Popup = ({
   setValue: Dispatch<SetStateAction<string>>;
 }) => {
   const [loading, setLoading] = useState<boolean | null>(null);
+  const colors = useDeviceSetting(s => s.colors);
   const execFunction = async () => {
     setLoading(true);
     func &&
@@ -40,18 +41,18 @@ const Popup = ({
           className={'p-5 rounded-2xl'}
           // eslint-disable-next-line react-native/no-inline-styles
           style={{
-            backgroundColor: theme.primary,
+            backgroundColor: colors.primary,
             boxShadow: '0 0 26px 0 rgba(0,0,0,0.2)',
           }}
           entering={FadeInUp.duration(250)}
           exiting={FadeOutUp.duration(250)}
         >
-          <Text className="font-normal text-xl" style={{ color: theme.text }}>
+          <Text className="font-normal text-xl" style={{ color: colors.text }}>
             Paste a Youtube URL to save!
           </Text>
           <TextInput
             className="px-4 border-2 z-10 font-thin text-xl rounded-full p-2"
-            style={{ borderColor: theme.secondary, color: theme.text }}
+            style={{ borderColor: colors.secondary, color: colors.text }}
             value={value}
             onChangeText={setValue}
             focusable
@@ -60,10 +61,10 @@ const Popup = ({
             label="Add"
             containerClassName="border-2 px-4 min-h-10 min self-end py-1 mt-3 rounded-full"
             textClassName="text-xl font-normal"
-            textStyle={{ color: theme.text }}
+            textStyle={{ color: colors.text }}
             // eslint-disable-next-line react-native/no-inline-styles
             containerStyle={{
-              borderColor: theme.secondary,
+              borderColor: colors.secondary,
               opacity: value.length < 3 ? 0.4 : 1,
             }}
             disabled={value.length < 3}

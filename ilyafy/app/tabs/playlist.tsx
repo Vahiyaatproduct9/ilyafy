@@ -1,33 +1,45 @@
-import { View, Dimensions, TextInput } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { View, Dimensions, TextInput, Text, Image } from 'react-native';
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import theme from '../../data/color/theme';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import Icon from '../../components/icons/icon';
 import Add from '../../assets/icons/add.svg';
 import Search from '../../assets/icons/search.svg';
 import Popup from '../../components/popup/popup';
-import SongOptions from '../../components/options/songOptions';
 import Item from '../../components/playlist/song';
 import useProfile from '../../store/useProfile';
 import useSongs from '../../store/useSongs';
 import EmptyPlaylist from '../../components/blank/emptyPlaylist';
-import useMessage from '../../store/useMessage';
-const Playlist = () => {
+// import useMessage from '../../store/useMessage';
+import useDeviceSetting from '../../store/useDeviceSetting';
+import TrackPlayer, { Track } from 'react-native-track-player';
+import Loading from '../../components/blank/loading';
+const Playlist = ({
+  setSong,
+}: {
+  setSong: Dispatch<SetStateAction<Track | null>>;
+}) => {
   const [addShown, showAddScreen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean | null>(null);
-  const [options, setOptions] = useState<string | null>(null);
   const [value, setValue] = useState<string>('');
-  const setMessage = useMessage(s => s.setMessage);
+  // const setMessage = useMessage(s => s.setMessage);
   const accessToken = useProfile(s => s.accessToken);
   const width = Dimensions.get('window').width - 16;
-  const { add, delete: del, songs, load } = useSongs();
-  const delSong = async () => {
-    const response = await del(options || '');
-    setMessage(response?.message || '');
-    if (response?.success) {
-      setOptions(null);
-    }
-  };
+  const { add, load } = useSongs();
+  const songs = useSongs(s => s.songs);
+  const isLoading = useSongs(s => s.isLoading);
+  const colors = useDeviceSetting(s => s.colors);
+
   const loadSongs = useCallback(async () => {
     await load(accessToken || '');
   }, [accessToken, load]);
@@ -48,20 +60,29 @@ const Playlist = () => {
   }, [loadSongs]);
   useEffect(() => {
     console.log('Songs:', songs);
+    (async () => {
+      console.log('Queue:', await TrackPlayer.getQueue());
+    })();
   }, [songs]);
   async function addSong() {
     return await add(value);
   }
-  const functionList = [
-    {
-      title: 'Delete',
-      func: () => delSong(),
-    },
-  ];
+  const primaryColor = useSharedValue(colors.primary);
+
+  useEffect(() => {
+    primaryColor.value = withSpring(colors.primary, { damping: 1000 });
+  }, [primaryColor, colors.primary]);
+
+  const rPrimaryColorStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: primaryColor.value,
+    };
+  });
+  const [searchItem, setSearchItem] = useState<string>('');
   return (
     <View
       className="flex-1 gap-2 items-center"
-      style={{ width, backgroundColor: theme.secondary }}
+      style={{ width, backgroundColor: colors.secondary }}
     >
       {addShown && (
         <Popup
@@ -71,17 +92,12 @@ const Playlist = () => {
           showPopup={showAddScreen}
         />
       )}
-      {options && (
-        <SongOptions
-          song={songs.filter(t => t.id === options)[0]}
-          setOptions={setOptions}
-          functionList={functionList}
-        />
-      )}
       <View className="justify-end w-full gap-2 flex-row p-2">
         <View className="flex-1 flex-row items-center border-2 border-white rounded-full">
           <Icon component={Search} size={28} className="ml-4" fill="white" />
           <TextInput
+            value={searchItem}
+            onChangeText={setSearchItem}
             style={{ color: theme.text }}
             inlineImageLeft="../../assets/icons/search.svg"
             className="flex-1 font-semibold px-6"
@@ -100,13 +116,36 @@ const Playlist = () => {
         />
       </View>
       {songs.length === 0 ? (
-        <EmptyPlaylist />
+        isLoading ? (
+          <Loading />
+        ) : (
+          <EmptyPlaylist />
+        )
       ) : (
         <Animated.FlatList
           data={songs || []}
           renderItem={({ index, item }) => (
-            <Item song={item} i={index} showOptionsOf={setOptions} />
+            <Item
+              colors={rPrimaryColorStyle}
+              song={item}
+              i={index}
+              setSelectedSong={setSong}
+            />
           )}
+          ListFooterComponent={
+            isLoading ? (
+              <Loading />
+            ) : (
+              <View className="w-full p-14 mb-[80px] justify-center items-center">
+                <Text
+                  className="text-xl font-normal"
+                  style={{ color: theme.text }}
+                >
+                  You've reached the end!
+                </Text>
+              </View>
+            )
+          }
           className={'w-full'}
         />
       )}

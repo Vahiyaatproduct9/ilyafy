@@ -90,7 +90,7 @@ const SignUp = ({ style, whichAuth, setAuth }: signUpProp) => {
   const setMessage = useMessage().setMessage;
   const [confirmPass, setConfirmPass] = useState<string>('');
   const [loading, setLoading] = useState<boolean | null>(null);
-  const storedEmail = useProfile.getState().email;
+  const storedEmail = useProfile?.getState()?.email;
   useEffect(() => {
     setEmail(storedEmail || '');
   }, [storedEmail]);

@@ -1,23 +1,39 @@
 import { Text, Pressable } from 'react-native';
-import React, { Dispatch, SetStateAction, useMemo } from 'react';
+import React, { Dispatch, SetStateAction, useMemo, useCallback } from 'react';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
-import { songProp } from '../../types/songs';
-import theme from '../../data/color/theme';
 import Button from '../buttons/button1';
 import { Track } from 'react-native-track-player';
-
-type functionList = {
-  title: string;
-  func: () => void;
-}[];
+import useDeviceSetting from '../../store/useDeviceSetting';
+import useSongs from '../../store/useSongs';
+import useMessage from '../../store/useMessage';
 
 type optionProp = {
-  song?: songProp | Track | undefined;
-  setOptions: Dispatch<SetStateAction<string | null>>;
-  functionList?: functionList;
+  song: Track;
+  setSong: Dispatch<SetStateAction<Track | null>>;
 };
 
-const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
+const SongOptions = ({ song, setSong }: optionProp) => {
+  const colors = useDeviceSetting(s => s.colors);
+  const del = useSongs(s => s.delete);
+  const setMessage = useMessage(s => s.setMessage);
+  const delSong = useCallback(async () => {
+    const response = await del(song?.mediaId || '');
+    setMessage(response?.message || '');
+    if (response?.success) {
+      setSong(null);
+    }
+  }, [del, setMessage, setSong, song?.mediaId]);
+
+  const functionList = useMemo(() => {
+    return [
+      {
+        title: 'Delete',
+        func: delSong,
+      },
+    ];
+  }, [delSong]);
+  console.log('song: ', song);
+  const AP = Animated.createAnimatedComponent(Pressable);
   const options = useMemo(() => {
     return (
       <Animated.View
@@ -26,12 +42,12 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
         className={
           'w-full h-fit bottom-2 self-end rounded-xl p-2 overflow-hidden z-[50]'
         }
-        style={{ backgroundColor: theme.primary }}
+        style={{ backgroundColor: colors.primary }}
       >
-        <Text className="font-semibold text-xl" style={{ color: theme.text }}>
+        <Text className="font-semibold text-xl" style={{ color: colors.text }}>
           {song?.title || ''}
         </Text>
-        <Text className="text-l self-end" style={{ color: theme.text }}>
+        <Text className="text-l self-end" style={{ color: colors.text }}>
           {song?.artist || ''}
         </Text>
         {functionList?.map((f, i) => {
@@ -40,7 +56,7 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
               key={i}
               label={f.title}
               containerClassName="p-3 rounded-xl w-full mt-4"
-              containerStyle={{ backgroundColor: theme.secondary }}
+              containerStyle={{ backgroundColor: colors.secondary }}
               textClassName="color-gray-400 font-bold"
               onPress={f?.func}
             />
@@ -48,12 +64,17 @@ const SongOptions = ({ song, functionList, setOptions }: optionProp) => {
         })}
       </Animated.View>
     );
-  }, [functionList, song?.artist, song?.title]);
-  console.log('song: ', song);
-  const AP = Animated.createAnimatedComponent(Pressable);
+  }, [
+    colors.primary,
+    colors.secondary,
+    colors.text,
+    functionList,
+    song?.artist,
+    song?.title,
+  ]);
   return (
     <AP
-      onPress={() => setOptions(null)}
+      onPress={() => setSong(null)}
       className={
         'absolute flex-row h-full w-full top-0 left-0 bg-[rgba(0,0,0,0.4)] p-2  z-[100]'
       }

@@ -5,28 +5,33 @@ import { Response } from 'express';
 import { IncomingHttpHeaders } from 'http';
 import prisma from '@libs/prisma';
 import { verifyToken } from '@functions/secret/JWT';
+import { configDotenv } from 'dotenv';
+import { log } from 'console';
+configDotenv();
 @Injectable()
 export default class StreamService {
   async stream({ url, writable, songId }: { url: string, writable: Response, songId?: string }) {
+    // const metadata: any = undefined;
     const metadata: any = await getMetaData({ url });
-    const audioFormat = metadata.formats.find(
+    const audioFormat = metadata?.formats?.find(
       f => f.acodec !== 'none' && f.vcodec === 'none' && f.protocol === 'https'
     );
-    console.log('Audio Format:', audioFormat.url);
+    console.log('Audio Format:', audioFormat?.url);
     if (songId) {
       writable.setHeader("X-Id", songId);
       await prisma.songs.update({
         where: {
           id: songId,
         }, data: {
-          url: audioFormat.url || ''
+          url: audioFormat?.url || ''
         }
       })
     }
     if (audioFormat) {
-      const res = await fetch(audioFormat.url, { method: 'HEAD' });
+      const res = await fetch(audioFormat?.url, { method: 'HEAD' });
       console.log(res.status, res.ok, res.headers.get('Content-Type'));
       if (res.ok) {
+        // if (false) {
         writable.json({
           success: true,
           ...audioFormat,
@@ -38,13 +43,13 @@ export default class StreamService {
         })
         return;
       } else {
-        console.log('HEAD request failed, continuing to stream mode.'); writable.setHeader('Content-Type', audioFormat?.mime_type || 'audio/aac');
+        console.log('HEAD request failed, continuing to stream mode.');
+        log('content length:', audioFormat?.filesize);
+        writable.setHeader('Content-Type', audioFormat?.mime_type || 'audio/aac');
         writable.setHeader('Cache-Control', "no-cache");
         writable.setHeader('Connection', "keep-alive");
         writable.setHeader('Transfer-Encoding', 'chunked');
-        if (audioFormat?.filesize) {
-          writable.setHeader('Content-Length', audioFormat.filesize);
-        }
+        writable.setHeader('Content-Length', parseInt(audioFormat?.filesize || '0'));
         writable.setHeader("X-Track-Thumb", metadata?.thumbnail || "");
         writable.setHeader("X-Track-Artist", metadata?.artist || metadata?.uploader || "");
         writable.setHeader("X-Track-Title", metadata?.title || "");
@@ -55,7 +60,8 @@ export default class StreamService {
     try {
       await audioStream({
         url,
-        writable
+        writable,
+        // proxy: process.env.PROXY_SAMPLE || ''
       });
     } catch (err) {
       console.error('Error streaming audio:', err);
@@ -81,6 +87,8 @@ export default class StreamService {
         id: songId
       }, select: {
         ytUrl: true,
+        title: true,
+        artist: true
       }
     });
     if (!song) {
@@ -90,12 +98,12 @@ export default class StreamService {
       });
       return;
     }
-
+    console.log('updateing song:', song.title, 'by', song.artist);
     await this.stream({ url: song.ytUrl, writable, songId });
   }
 
   async getInfo({ url, writable }: { url: string; writable: Response }) {
-    const metadata: any = await getMetaData({ url });
+    const metadata: any = await getMetaData({ url, proxy: undefined });
     const audioFormat = metadata.formats.find(
       f => f.acodec !== 'none' && f.vcodec === 'none' && f.protocol === 'https'
     );

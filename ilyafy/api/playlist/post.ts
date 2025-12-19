@@ -7,7 +7,7 @@ type postType = {
   message: string;
 } | undefined;
 export default async (url: string): Promise<postType> => {
-  const accessToken = useProfile.getState().accessToken;
+  const accessToken = useProfile?.getState()?.accessToken;
   const res = await fetch(`${domain}/playlist`, {
     method: 'POST',
     headers: {
@@ -17,6 +17,5 @@ export default async (url: string): Promise<postType> => {
     body: JSON.stringify({ url })
   });
   const response = await res.json();
-  console.log('post:', response);
   return response;
 }

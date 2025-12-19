@@ -13,6 +13,7 @@ export default async ({ message, fcmToken }: {
     body: string;
     data?: object;
     event: 'playlist' | 'poke';
+    code?: 'delete' | 'add'
   };
   fcmToken: string;
 }) => {
@@ -24,7 +25,8 @@ export default async ({ message, fcmToken }: {
     token: fcmToken,
     data: {
       ...message.data,
-      event: message.event
+      event: message.event,
+      ...(message.code ? { code: message.code } : {})
     },
   })
     .then(() => {

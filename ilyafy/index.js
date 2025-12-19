@@ -13,4 +13,4 @@ AppRegistry.registerComponent(appName, () => App);
 TrackPlayer.registerPlaybackService(() => service);
 setupPlayer();
 createNotificationChannel();
-useCurrentTrack.getState().initializePlayer();
+useCurrentTrack?.getState()?.initializePlayer();

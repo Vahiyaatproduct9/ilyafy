@@ -9,6 +9,7 @@ interface wsConnectedion {
   socket: Socket | null;
   isConnected: boolean;
   connect: () => void;
+  disconnect: () => void;
   userId: string | null;
   sendMessage: (arg: Object | []) => Promise<boolean>;
   roomId: string | null;
@@ -25,10 +26,10 @@ export default create<wsConnectedion>()((set, get) => ({
   isConnected: false,
   roomId: null,
   connect: () => {
-    const profile = useProfile.getState().profile;
+    const profile = useProfile?.getState()?.profile;
     const roomId = profile?.room_part_of || Date.now().toString();
     const userId = profile?.id || Date.now().toString();
-    const accessToken = useProfile.getState().accessToken;
+    const accessToken = useProfile?.getState()?.accessToken;
     set({ userId, roomId });
     const socket: Socket = io(`${domain}`, {
       transports: ['websocket'],
@@ -37,10 +38,22 @@ export default create<wsConnectedion>()((set, get) => ({
     // const ws = new WebSocket('wss://ilyafy.onrender.com');
     set({ socket: socket });
     socket.connect();
-    socket.on('connect', () => {
+    socket.on('connect', async () => {
       set({ isConnected: true });
       console.log('Socket Connected!');
       socket.emit('join', { accessToken, roomId });
+      const state = await TrackPlayer.getPlaybackState();
+      const progress = await TrackPlayer.getProgress();
+      if (get().isConnected) {
+        socket.emit('message', {
+          state: 'heartbeat',
+          status: state.state,
+          ...progress,
+          userId: get().userId,
+          roomId: get().roomId,
+          songId: (await TrackPlayer.getActiveTrack())?.mediaId || undefined,
+        });
+      }
     });
     setInterval(async () => {
       const state = await TrackPlayer.getPlaybackState();
@@ -81,10 +94,16 @@ export default create<wsConnectedion>()((set, get) => ({
       console.error('Socket Connect Error: ', err);
     });
   },
+  disconnect: () => {
+    if (get().socket) {
+      get().socket?.disconnect();
+      set({ isConnected: false, socket: null });
+      console.log('Socket Disconnected Manually!');
+    }
+  },
   sendMessage: async arg => {
     console.log('sending Message: ', arg);
     if (get().isConnected && get().socket) {
-      console.log('Connected, sending...');
       get().socket?.emit('message', {
         state: 'event',
         userId: get().userId,

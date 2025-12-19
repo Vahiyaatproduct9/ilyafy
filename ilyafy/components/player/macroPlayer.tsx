@@ -1,6 +1,7 @@
 import { View, Text, Dimensions } from 'react-native';
 import React, { RefObject, useEffect, useRef, useState } from 'react';
 import Animated, {
+  Easing,
   Extrapolation,
   interpolate,
   runOnJS,
@@ -10,7 +11,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import theme from '../../data/color/theme';
 import Icon from '../icons/icon';
 import deleteSong from '../../api/playlist/delete';
 import Play from '../../assets/icons/play.svg';
@@ -27,62 +27,51 @@ import {
   PanGesture,
 } from 'react-native-gesture-handler';
 import useCurrentTrack from '../../store/useCurrentTrack';
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, { Track } from 'react-native-track-player';
 import SongOptions from '../options/songOptions';
-// import useSongs from '../../store/useSongs';
+import control from '../../functions/stream/control';
+import useDeviceSetting from '../../store/useDeviceSetting';
+import useMessage from '../../store/useMessage';
+import useSocketStore from '../../store/useSocketStore';
+import {
+  getDuration,
+  getPosition,
+} from '../../functions/miscellanous/getMinutes';
 
 const MacroPlayer = (props: {
   sharedValue: SharedValue<number>;
   panGesture: PanGesture;
   refProp: RefObject<GestureType | undefined>;
 }) => {
+  const setMessage = useMessage(s => s.setMessage);
+  const canBePlayed = useCurrentTrack(s => s.canBePlayed);
   const progressRef = useRef<GestureType | undefined>(undefined);
   const controlGesture = Gesture.Pan()
     .simultaneousWithExternalGesture(progressRef)
     .withRef(props.refProp);
-  const [optionsShown, setOptionsShown] = useState<string | null>(null);
+  const [optionsShown, setOptionsShown] = useState<Track | null>(null);
   const isPlaying = useCurrentTrack(s => s.isPlaying);
+  const isConnected = useSocketStore(s => s.isConnected);
+  const duration = useCurrentTrack(s => s.duration);
+  const position = useCurrentTrack(s => s.position);
   const track = useCurrentTrack(s => s.track);
-  // const setSongs = useSongs(s => s.setSong);
-  // const loadSong = async () => {
-  //   await TrackPlayer.reset();
-  //   setSongs([
-  //     {
-  //       url: require('../../data/test.mp3'),
-  //       title: 'Always1',
-  //       mediaId: 'someything',
-  //       artist: 'Daniel Caesar',
-  //       artwork: require('../../data/test.png'),
-  //     },
-  //     {
-  //       url: require('../../data/test.mp3'),
-  //       title: 'Always2',
-  //       mediaId: 'someything2',
-  //       artist: 'Daniel Caesar',
-  //       artwork: require('../../data/test.png'),
-  //     },
-  //     {
-  //       url: require('../../data/test.mp3'),
-  //       title: 'Always5',
-  //       mediaId: 'someything3',
-  //       artist: 'Daniel Caesar',
-  //       artwork: require('../../assets/images/background2.png'),
-  //     },
-  //   ]);
-  //   await TrackPlayer.play();
-  // };
-  // useEffect(() => {
-  //   loadSong();
-  // }, []);
+  const colors = useDeviceSetting(s => s.colors);
   async function togglePlay() {
-    if (isPlaying) await TrackPlayer.pause();
-    else await TrackPlayer.play();
+    if (isPlaying) control.remotePause();
+    else if (canBePlayed) await control.remotePlay();
+    else setMessage('They are buffering, please wait!');
   }
   async function skipToNext() {
-    await TrackPlayer.skipToNext();
+    await control.remoteSkip(
+      ((await TrackPlayer.getActiveTrackIndex()) || 0) + 1,
+      0,
+    );
   }
   async function skipToPrevious() {
-    await TrackPlayer.skipToPrevious();
+    await control.remoteSkip(
+      ((await TrackPlayer.getActiveTrackIndex()) || 1) - 1,
+      0,
+    );
   }
   const { height, width } = Dimensions.get('window');
 
@@ -118,12 +107,17 @@ const MacroPlayer = (props: {
     };
   });
 
-  const functionList: { title: string; func: () => Promise<any> }[] = [
-    {
-      title: 'Delete',
-      func: () => deleteSong(optionsShown || ''),
-    },
-  ];
+
+  const primaryColor = useSharedValue(colors.primary);
+  useEffect(() => {
+    primaryColor.value = withSpring(colors.primary, { duration: 1500 });
+  }, [colors.primary, primaryColor]);
+  const primaryColorStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: primaryColor.value,
+    };
+  });
+
   return (
     <Animated.View
       className={'absolute overflow-hidden'}
@@ -131,45 +125,52 @@ const MacroPlayer = (props: {
         containerStyle,
         // eslint-disable-next-line react-native/no-inline-styles
         {
-          backgroundColor: theme.primary,
           bottom: 0,
           left: 0,
           right: 0,
           top: 0,
         },
+        primaryColorStyle,
       ]}
     >
       <View className="w-full p-6 items-center flex-row">
         <Icon
           component={Down}
           size={30}
-          // onPress={() => console.log('Heyy')}
-          fill={theme.text}
+          onPress={() =>
+            (props.sharedValue.value = withTiming(80, {
+              duration: 800,
+              easing: Easing.out(Easing.exp),
+            }))
+          }
+          fill={colors.text}
         />
         <View className="flex-1 items-center justify-center">
-          <Text className="text-xl" style={{ color: theme.text }}>
+          <Text className="text-xl" style={{ color: colors.text }}>
             Ilyafy
           </Text>
-          <Text className="" style={{ color: theme.text }}>
-            Connection Mode
+          <Text className="" style={{ color: colors.text }}>
+            {isConnected ? 'Connection Mode' : 'Solo Mode'}
           </Text>
         </View>
 
         <Icon
           component={Options}
-          onPress={() => setOptionsShown(track?.mediaId || '')}
+          onPress={() => setOptionsShown(track || null)}
           size={30}
-          fill={theme.text}
+          fill={colors.text}
         />
       </View>
       {optionsShown && (
         <SongOptions
-          setOptions={setOptionsShown}
-          functionList={functionList}
-          song={track ? track : undefined}
+          setSong={setOptionsShown}
+          song={optionsShown}
         />
       )}
-      <View className="w-full gap-5 p-1 flex-1 items-center justify-center">
+      <Animated.View
+        style={primaryColorStyle}
+        className="w-full gap-5 p-1 flex-1 items-center justify-center"
+      >
         <Animated.Image
           source={
             track
@@ -187,16 +188,29 @@ const MacroPlayer = (props: {
         />
         <GestureDetector gesture={controlGesture}>
           <Animated.View className="w-full p-2">
-            <View className="w-full p-2">
-              <Text
-                className="font-semibold text-2xl"
-                style={{ color: theme.text }}
-              >
-                {track?.title || 'Unknown Song'}
-              </Text>
-              <Text className="text-xl font-thin" style={{ color: theme.text }}>
-                {track?.artist || 'Unknown Artist'}
-              </Text>
+            <View className="w-full p-2 flex-row items-center justify-between">
+              <View className="flex-1">
+                <Text
+                  className="font-semibold text-2xl"
+                  style={{ color: colors.text }}
+                >
+                  {track?.title || 'Unknown Song'}
+                </Text>
+                <Text
+                  className="text-xl font-thin"
+                  style={{ color: colors.text }}
+                >
+                  {track?.artist || 'Unknown Artist'}
+                </Text>
+              </View>
+              <View>
+                <Text style={{ color: colors.text }}>
+                  {`${getPosition(
+                    position || 0,
+                    duration || 0,
+                  )}% of ${getDuration(duration || 0)}`}
+                </Text>
+              </View>
             </View>
             <ProgressBar refProp={progressRef} />
             <View className="flex-row p-2 w-full justify-center gap-10">
@@ -224,7 +238,7 @@ const MacroPlayer = (props: {
             </View>
           </Animated.View>
         </GestureDetector>
-      </View>
+      </Animated.View>
     </Animated.View>
   );
 };
@@ -242,13 +256,12 @@ const ProgressBar = (props: {
     let percentage = (tPosition || 0) / (duration || 1);
     position.value = withTiming(percentage * (width - 16), { duration: 1000 });
   }, [duration, position, tPosition, width]);
-  const seekSongTo = async (i: number) => {
-    await TrackPlayer.seekTo(i);
+  const seekSongTo = (i: number) => {
+    control.remoteSeek(i);
     console.log('Song Seeked!');
   };
   const gestureHandler = Gesture.Pan()
     .onUpdate(e => {
-      console.log('data: ', e.x);
       position.value = e.absoluteX;
     })
     .onEnd(e => {
@@ -273,6 +286,7 @@ const ProgressBar = (props: {
     runOnJS(seekSongTo)(progress);
   });
   const combined = Gesture.Simultaneous(gestureHandler, gestureTapHandler);
+  const colors = useDeviceSetting(s => s.colors);
   const rProgressStyle = useAnimatedStyle(() => {
     return {
       width: position.value,
@@ -283,7 +297,7 @@ const ProgressBar = (props: {
       <Animated.View className={'h-4 w-full'}>
         <Animated.View
           className="h-2 w-full rounded-xl overflow-hidden"
-          style={{ backgroundColor: theme.secondary }}
+          style={{ backgroundColor: colors.secondary }}
         >
           <Animated.View
             className={'bg-slate-600 flex-1 p-1 rounded-xl'}

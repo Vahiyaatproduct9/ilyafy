@@ -20,12 +20,12 @@ export default {
     return await signup(props);
   },
   verify: async (props: verificationProps) => {
-    const setProfile = useProfile.getState().setProfile;
-    const profile = useProfile.getState().profile;
-    const setEmail = useProfile.getState().setEmail;
-    const setName = useProfile.getState().setName;
-    const setAccessToken = useProfile.getState().setAccessToken;
-    const setRefreshToken = useProfile.getState().setRefreshToken;
+    const setProfile = useProfile?.getState()?.setProfile;
+    const profile = useProfile?.getState()?.profile;
+    const setEmail = useProfile?.getState()?.setEmail;
+    const setName = useProfile?.getState()?.setName;
+    const setAccessToken = useProfile?.getState()?.setAccessToken;
+    const setRefreshToken = useProfile?.getState()?.setRefreshToken;
     console.log('Running : verify')
     const res = await fetch(`${domain}/auth/users/verify-email`, {
       method: 'POST',

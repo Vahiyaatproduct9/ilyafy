@@ -1,8 +1,8 @@
 import connect from "../../api/auth/connect"
 import useProfile from "../../store/useProfile";
 export default async ({ email, accessToken }: { email: string, accessToken?: string }) => {
-  const setProfile = useProfile.getState().setProfile;
-  const profile = useProfile.getState().profile;
+  const setProfile = useProfile?.getState()?.setProfile;
+  const profile = useProfile?.getState()?.profile;
   const response: {
     success: boolean;
     message?: string;

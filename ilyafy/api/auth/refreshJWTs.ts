@@ -1,7 +1,7 @@
 import { domain } from "../../path/path";
 import useProfile from "../../store/useProfile";
 export default async (refreshToken?: string) => {
-  const localRefreshToken = useProfile.getState().refreshToken;
+  const localRefreshToken = useProfile?.getState()?.refreshToken;
 
   const res = await fetch(`${domain}/auth/users/refresh-token?refresh`, {
     method: 'POST',
