@@ -1,8 +1,9 @@
 import Animated, {
   Extrapolation,
+  FadeInDown,
+  FadeOutDown,
   interpolate,
   interpolateColor,
-  useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -20,7 +21,7 @@ import Main2 from './main2';
 import Button from '../../components/buttons/button1';
 import Playlist from '../tabs/playlist';
 import Invitation from '../tabs/invitation';
-import { RefObject, useEffect, useRef } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import { AnimatedScrollView } from 'react-native-reanimated/lib/typescript/component/ScrollView';
 import Connection from '../tabs/connection';
 import useProfile from '../../store/useProfile';
@@ -31,12 +32,16 @@ import {
   GestureHandlerRootView,
   GestureType,
 } from 'react-native-gesture-handler';
+import menu from '../../assets/icons/menu.svg';
 import MiniPlayer from '../../components/player/miniPlayer';
 import MacroPlayer from '../../components/player/macroPlayer';
 import useDeviceSetting from '../../store/useDeviceSetting';
 import SongOptions from '../../components/options/songOptions';
 import { Track } from 'react-native-track-player';
-const tabButtons = ['Playlist', 'Pair', 'Main'];
+import useCurrentTrack from '../../store/useCurrentTrack';
+import Icon from '../../components/icons/icon';
+import SideBar from '../../components/options/sideBar';
+const tabButtons = ['Playlist', 'Pair'];
 const Main = () => {
   const colors = useDeviceSetting(s => s.colors);
   const parentRef = useRef<GestureType | undefined>(undefined);
@@ -46,6 +51,8 @@ const Main = () => {
   const width = Dimensions.get('window').width - 16;
   const height = Dimensions.get('window').height;
   const scrollX = useSharedValue(80);
+  const currentTrack = useCurrentTrack(s => s.track);
+  const [sidebarVisible, setSidebarVisible] = useState<boolean>(false);
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: e => {
       scrollX.value = e.contentOffset.x;
@@ -109,10 +116,20 @@ const Main = () => {
       className="h-full w-full p-2 gap-1"
       style={primaryColorStyle}
     >
-      <View className="w-full flex-row item-center justify-between">
-        <Text style={{ color: colors.text }} className="font-bold text-3xl">
-          Ilyafy
-        </Text>
+      {sidebarVisible && <SideBar setSideBarVisible={setSidebarVisible} />}
+
+      <View className="w-full flex-row py-2 mb-6 item-center justify-between">
+        <View className="flex-row justify-center gap-5">
+          <Icon
+            component={menu}
+            fill="white"
+            size={32}
+            onPress={() => setSidebarVisible(true)}
+          />
+          <Text style={{ color: colors.text }} className="font-bold text-3xl">
+            Ilyafy
+          </Text>
+        </View>
         <Text className="text-2xl" style={{ color: colors.text }}>
           Just Music & Us
         </Text>
@@ -152,35 +169,39 @@ const Main = () => {
         setSong={setSong}
       />
 
-      <Animated.View
-        style={[
-          playerAnimation,
-          // eslint-disable-next-line react-native/no-inline-styles
-          {
-            shadowRadius: 10,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.3,
-            shadowColor: '#000000',
-          },
-        ]}
-        className={'z-10 absolute self-center overflow-hidden'}
-      >
-        <GestureHandlerRootView>
-          <GestureDetector gesture={panGesture}>
-            <AP
-              onPress={() => (translateY.value = withSpring(height))}
-              className={'flex-1 bg-red-600'}
-            >
-              <MacroPlayer
-                refProp={controlRef}
-                panGesture={panGesture}
-                sharedValue={translateY}
-              />
-              <MiniPlayer style={microPlayer} />
-            </AP>
-          </GestureDetector>
-        </GestureHandlerRootView>
-      </Animated.View>
+      {currentTrack && (
+        <Animated.View
+          entering={FadeInDown.duration(500)}
+          exiting={FadeOutDown.duration(300)}
+          style={[
+            playerAnimation,
+            // eslint-disable-next-line react-native/no-inline-styles
+            {
+              shadowRadius: 10,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.3,
+              shadowColor: '#000000',
+            },
+          ]}
+          className={'z-10 absolute self-center overflow-hidden'}
+        >
+          <GestureHandlerRootView>
+            <GestureDetector gesture={panGesture}>
+              <AP
+                onPress={() => (translateY.value = withSpring(height))}
+                className={'flex-1 bg-red-600'}
+              >
+                <MacroPlayer
+                  refProp={controlRef}
+                  panGesture={panGesture}
+                  sharedValue={translateY}
+                />
+                <MiniPlayer style={microPlayer} />
+              </AP>
+            </GestureDetector>
+          </GestureHandlerRootView>
+        </Animated.View>
+      )}
       {selectedSong && <SongOptions song={selectedSong} setSong={setSong} />}
     </Animated.View>
   );
@@ -221,7 +242,6 @@ const ScrollView = ({
       ) : (
         <Invitation />
       )}
-      <Main2 />
     </Animated.ScrollView>
   );
 };

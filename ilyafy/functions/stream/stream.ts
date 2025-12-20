@@ -8,7 +8,7 @@ import control from './control';
 const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
 const sendMessage = useSocketStore?.getState()?.sendMessage;
-const minBuffer = 132 * 1024 // 256kb
+const minBuffer = 256 * 1024 // 256kb
 export default {
   async get(url: string, id: string): Promise<{
     localPath?: string;

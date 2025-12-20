@@ -20,7 +20,7 @@ const Hero = ({ setAuth }: props) => {
         containerClassName="p-3 my-2 w-[70%] self-start items-center justify-center
                 rounded-xl rounded-r-[100px]"
         containerStyle={{
-          backgroundColor: theme.primary,
+          backgroundColor: theme?.primary,
         }}
         onPress={() => setAuth('signUpEmail')}
         textClassName="color-slate-100 text-xl font-semibold"
@@ -30,7 +30,7 @@ const Hero = ({ setAuth }: props) => {
         containerClassName="my-2 w-[70%] p-3 self-end items-center justify-center
                   border-2 rounded-xl rounded-l-[100px]"
         containerStyle={{
-          borderColor: theme.primary,
+          borderColor: theme?.primary,
         }}
         textClassName="color-slate-100 text-xl font-semibold"
         onPress={() => setAuth('login')}

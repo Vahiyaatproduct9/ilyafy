@@ -12,28 +12,31 @@ type optionProp = {
   setSong: Dispatch<SetStateAction<Track | null>>;
 };
 
+const AP = Animated.createAnimatedComponent(Pressable);
+
 const SongOptions = ({ song, setSong }: optionProp) => {
   const colors = useDeviceSetting(s => s.colors);
-  const del = useSongs(s => s.delete);
-  const setMessage = useMessage(s => s.setMessage);
-  const delSong = useCallback(async () => {
+  const del = useSongs.getState().delete;
+  const setMessage = useMessage.getState().setMessage;
+
+  const deleteSong = useCallback(async () => {
     const response = await del(song?.mediaId || '');
     setMessage(response?.message || '');
     if (response?.success) {
       setSong(null);
     }
-  }, [del, setMessage, setSong, song?.mediaId]);
+  }, [del, setMessage, setSong, song]);
 
   const functionList = useMemo(() => {
     return [
       {
         title: 'Delete',
-        func: delSong,
+        func: deleteSong,
       },
     ];
-  }, [delSong]);
+  }, [deleteSong]);
+
   console.log('song: ', song);
-  const AP = Animated.createAnimatedComponent(Pressable);
   const options = useMemo(() => {
     return (
       <Animated.View
@@ -64,14 +67,7 @@ const SongOptions = ({ song, setSong }: optionProp) => {
         })}
       </Animated.View>
     );
-  }, [
-    colors.primary,
-    colors.secondary,
-    colors.text,
-    functionList,
-    song?.artist,
-    song?.title,
-  ]);
+  }, [colors.primary, colors.secondary, colors.text, functionList, song]);
   return (
     <AP
       onPress={() => setSong(null)}

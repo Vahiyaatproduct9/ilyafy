@@ -10,6 +10,7 @@ import useCurrentTrack from '../../store/useCurrentTrack';
 import TrackPlayer from 'react-native-track-player';
 import control from '../../functions/stream/control';
 import useMessage from '../../store/useMessage';
+import stripWords from '../../functions/miscellanous/stripWords';
 
 const MiniPlayer = ({ style }: { style: AnimatedStyle }) => {
   const isPlaying = useCurrentTrack(s => s.isPlaying);
@@ -39,7 +40,7 @@ const MiniPlayer = ({ style }: { style: AnimatedStyle }) => {
             color: theme.text,
           }}
         >
-          {track?.title || 'Unknown Song'}
+          {stripWords(track?.title || 'Unknown Song')}
         </Text>
         <Text className="" style={{ color: theme.text }}>
           {track?.artist || 'Ilyafy'}

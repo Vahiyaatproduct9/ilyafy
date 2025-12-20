@@ -1,4 +1,4 @@
-import { View, Dimensions, TextInput, Text, Image } from 'react-native';
+import { View, Dimensions, TextInput, Text } from 'react-native';
 import React, {
   Dispatch,
   SetStateAction,
@@ -24,6 +24,8 @@ import EmptyPlaylist from '../../components/blank/emptyPlaylist';
 import useDeviceSetting from '../../store/useDeviceSetting';
 import TrackPlayer, { Track } from 'react-native-track-player';
 import Loading from '../../components/blank/loading';
+import Fuse, { FuseResult } from 'fuse.js';
+import { CTrack } from '../../types/songs';
 const Playlist = ({
   setSong,
 }: {
@@ -32,11 +34,14 @@ const Playlist = ({
   const [addShown, showAddScreen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean | null>(null);
   const [value, setValue] = useState<string>('');
-  // const setMessage = useMessage(s => s.setMessage);
+  const [searchResult, setSearchResult] = useState<
+    CTrack | FuseResult<CTrack>[] | []
+  >([]);
   const accessToken = useProfile(s => s.accessToken);
   const width = Dimensions.get('window').width - 16;
   const { add, load } = useSongs();
   const songs = useSongs(s => s.songs);
+  const [searchItem, setSearchItem] = useState<string>('');
   const isLoading = useSongs(s => s.isLoading);
   const colors = useDeviceSetting(s => s.colors);
 
@@ -59,6 +64,15 @@ const Playlist = ({
       });
   }, [loadSongs]);
   useEffect(() => {
+    const fuse = new Fuse(songs, {
+      shouldSort: true,
+      keys: ['title', 'artist'],
+    });
+    const searchList = fuse.search(searchItem);
+    if (searchItem.length > 0) setSearchResult(searchList);
+    else setSearchResult([]);
+  }, [songs, searchItem]);
+  useEffect(() => {
     console.log('Songs:', songs);
     (async () => {
       console.log('Queue:', await TrackPlayer.getQueue());
@@ -78,7 +92,6 @@ const Playlist = ({
       backgroundColor: primaryColor.value,
     };
   });
-  const [searchItem, setSearchItem] = useState<string>('');
   return (
     <View
       className="flex-1 gap-2 items-center"
@@ -123,7 +136,11 @@ const Playlist = ({
         )
       ) : (
         <Animated.FlatList
-          data={songs || []}
+          data={
+            searchResult.length > 0
+              ? searchResult.map((i: any) => i.item)
+              : songs || []
+          }
           renderItem={({ index, item }) => (
             <Item
               colors={rPrimaryColorStyle}
