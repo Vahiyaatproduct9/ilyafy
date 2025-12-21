@@ -28,9 +28,8 @@ export default async function ({ url, writable, proxy }: { url: string, writable
       });
     });
   }
-  const ytdlp = spawn(dlpPath, [
-    // "--proxy",
-    // proxy || env.PROXY_SAMPLE || "",
+  const proxyCmd: string[] = ["--proxy", proxy || env.PROXY_SAMPLE || '', "-f", "bestaudio[ext = m4a] / bestaudio", "-o", "-", url];
+  const ytdlp = spawn(dlpPath, proxy ? proxyCmd : [
     "-f",
     "bestaudio[ext=m4a]/bestaudio",
     "-o",

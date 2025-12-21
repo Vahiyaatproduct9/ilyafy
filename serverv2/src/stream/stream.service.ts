@@ -12,9 +12,9 @@ configDotenv();
 export default class StreamService {
   async stream({ url, writable, songId }: { url: string, writable: Response, songId?: string }) {
     // const metadata: any = undefined;
-    const metadata: any = await getMetaData({ url });
+    const metadata: any = await getMetaData({ url, proxy: process.env.PROXY_SAMPLE });
     const audioFormat = metadata?.formats?.find(
-      f => f.acodec !== 'none' && f.vcodec === 'none' && f.protocol === 'https'
+      (f: any) => f.acodec !== 'none' && f.vcodec === 'none' && f.protocol === 'https'
     );
     console.log('Audio Format:', audioFormat?.url);
     if (songId) {
@@ -61,7 +61,7 @@ export default class StreamService {
       await audioStream({
         url,
         writable,
-        // proxy: process.env.PROXY_SAMPLE || ''
+        proxy: process.env.PROXY_SAMPLE || ''
       });
     } catch (err) {
       console.error('Error streaming audio:', err);
