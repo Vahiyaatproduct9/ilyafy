@@ -29,6 +29,6 @@ COPY prisma ./prisma/
 RUN npx prisma generate
 
 EXPOSE 8080
-RUN tree
+# RUN tree
 
 CMD ["node", "dist/main"]
