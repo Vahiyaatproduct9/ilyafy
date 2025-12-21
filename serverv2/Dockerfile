@@ -20,6 +20,9 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN npm install --omit=dev
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 COPY . .
 COPY prisma ./prisma/
 
