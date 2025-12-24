@@ -3,74 +3,11 @@ apply plugin: "com.google.gms.google-services"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
-/**
- * This is the configuration block to customize your React Native Android app.
- * By default you don't need to apply any configuration, just uncomment the lines you need.
- */
 react {
-    /* Folders */
-    //   The root of your project, i.e. where "package.json" lives. Default is '../..'
-    // root = file("../../")
-    //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
-    // reactNativeDir = file("../../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
-    // codegenDir = file("../../node_modules/@react-native/codegen")
-    //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
-    // cliFile = file("../../node_modules/react-native/cli.js")
-
-    /* Variants */
-    //   The list of variants to that are debuggable. For those we're going to
-    //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
-    //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    // debuggableVariants = ["liteDebug", "prodDebug"]
-
-    /* Bundling */
-    //   A list containing the node command and its flags. Default is just 'node'.
-    // nodeExecutableAndArgs = ["node"]
-    //
-    //   The command to run when bundling. By default is 'bundle'
-    // bundleCommand = "ram-bundle"
-    //
-    //   The path to the CLI configuration file. Default is empty.
-    // bundleConfig = file(../rn-cli.config.js)
-    //
-    //   The name of the generated asset file containing your JS bundle
-    // bundleAssetName = "MyApplication.android.bundle"
-    //
-    //   The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
-    // entryFile = file("../js/MyApplication.android.js")
-    //
-    //   A list of extra flags to pass to the 'bundle' commands.
-    //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
-    // extraPackagerArgs = []
-
-    /* Hermes Commands */
-    //   The hermes compiler command to run. By default it is 'hermesc'
-    // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
-    //
-    //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
-    // hermesFlags = ["-O", "-output-source-map"]
-
-    /* Autolinking */
     autolinkLibrariesWithApp()
 }
 
-/**
- * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
- */
-def enableProguardInReleaseBuilds = false
-
-/**
- * The preferred build flavor of JavaScriptCore (JSC)
- *
- * For example, to use the international variant, you can use:
- * `def jscFlavor = io.github.react-native-community:jsc-android-intl:2026004.+`
- *
- * The international variant includes ICU i18n library and necessary data
- * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
- * give correct results when using with locales other than en-US. Note that
- * this variant is about 6MiB larger per architecture than default.
- */
+def enableProguardInReleaseBuilds = true // Set to true as you requested production help
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
@@ -85,8 +22,24 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 2
         versionName "2.0"
+        
+        // Ensure multidex is handled (Native in SDK 24+)
+        multiDexEnabled true
+        
         manifestPlaceholders = [auth0Domain: 'dev-cum37g4rj2kg0uk8.us.auth0.com', auth0Scheme: 'com.ilyafy.auth0']
     }
+
+    // --- ADD THIS BLOCK: Prevents duplicate file errors from NewPipe dependencies ---
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/LICENSE*"
+            excludes += "META-INF/NOTICE*"
+            pickFirsts += "**/libjingle_peerconnection_so.so"
+        }
+    }
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -95,36 +48,46 @@ android {
             keyPassword 'android'
         }
         release {
-        if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-            storeFile file(MYAPP_UPLOAD_STORE_FILE)
-            storePassword MYAPP_UPLOAD_STORE_PASSWORD
-            keyAlias MYAPP_UPLOAD_KEY_ALIAS
-            keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+                storeFile file(MYAPP_UPLOAD_STORE_FILE)
+                storePassword MYAPP_UPLOAD_STORE_PASSWORD
+                keyAlias MYAPP_UPLOAD_KEY_ALIAS
+                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            }
         }
     }
-    }
+
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
-         release {
-        signingConfig signingConfigs.release
-        shrinkResources true
-        minifyEnabled true
-        proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        release {
+            signingConfig signingConfigs.release
+            shrinkResources true
+            minifyEnabled true
+            // Ensure this points to your rules file
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
     }
+
+    compileOptions {
+        coreLibraryDesugaringEnabled true 
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
     }
 }
-// plugins {
-//     id 'com.android.application'
-//     id 'com.google.gms.google-services'
-// }
 
 dependencies {
-    // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    // implementation platform('com.google.firebase:firebase-bom:34.6.0')
-    // implementation 'com.google.firebase:firebase-analytics'
+    
+    // NewPipeExtractor & Desugaring
+    implementation("com.squareup.okhttp3:okhttp:5.3.0")
+    implementation("com.github.teamnewpipe:NewPipeExtractor:0.24.8")
+    coreLibraryDesugaring('com.android.tools:desugar_jdk_libs:2.1.3')
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -132,15 +95,160 @@ dependencies {
         implementation jscFlavor
     }
 }
-// Since our library doesn't invoke codegen automatically we need to do it here.
-// tasks.register('invokeLibraryCodegenTP', Exec) {
-//     workingDir "$rootDir/../../react-native-track-player"
-//     def isWindows = System.getProperty('os.name').toLowerCase().contains('windows')
 
-//     if (isWindows) {
-//         commandLine 'cmd', '/c', 'npx bob build --target codegen'
+// apply plugin: "com.android.application"
+// apply plugin: "com.google.gms.google-services"
+// apply plugin: "org.jetbrains.kotlin.android"
+// apply plugin: "com.facebook.react"
+
+// /**
+//  * This is the configuration block to customize your React Native Android app.
+//  * By default you don't need to apply any configuration, just uncomment the lines you need.
+//  */
+// react {
+//     /* Folders */
+//     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
+//     // root = file("../../")
+//     //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
+//     // reactNativeDir = file("../../node_modules/react-native")
+//     //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
+//     // codegenDir = file("../../node_modules/@react-native/codegen")
+//     //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
+//     // cliFile = file("../../node_modules/react-native/cli.js")
+
+//     /* Variants */
+//     //   The list of variants to that are debuggable. For those we're going to
+//     //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
+//     //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
+//     // debuggableVariants = ["liteDebug", "prodDebug"]
+
+//     /* Bundling */
+//     //   A list containing the node command and its flags. Default is just 'node'.
+//     // nodeExecutableAndArgs = ["node"]
+//     //
+//     //   The command to run when bundling. By default is 'bundle'
+//     // bundleCommand = "ram-bundle"
+//     //
+//     //   The path to the CLI configuration file. Default is empty.
+//     // bundleConfig = file(../rn-cli.config.js)
+//     //
+//     //   The name of the generated asset file containing your JS bundle
+//     // bundleAssetName = "MyApplication.android.bundle"
+//     //
+//     //   The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
+//     // entryFile = file("../js/MyApplication.android.js")
+//     //
+//     //   A list of extra flags to pass to the 'bundle' commands.
+//     //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
+//     // extraPackagerArgs = []
+
+//     /* Hermes Commands */
+//     //   The hermes compiler command to run. By default it is 'hermesc'
+//     // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
+//     //
+//     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
+//     // hermesFlags = ["-O", "-output-source-map"]
+
+//     /* Autolinking */
+//     autolinkLibrariesWithApp()
+// }
+
+// /**
+//  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
+//  */
+// def enableProguardInReleaseBuilds = false
+
+// /**
+//  * The preferred build flavor of JavaScriptCore (JSC)
+//  *
+//  * For example, to use the international variant, you can use:
+//  * `def jscFlavor = io.github.react-native-community:jsc-android-intl:2026004.+`
+//  *
+//  * The international variant includes ICU i18n library and necessary data
+//  * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
+//  * give correct results when using with locales other than en-US. Note that
+//  * this variant is about 6MiB larger per architecture than default.
+//  */
+// def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
+
+// android {
+//     ndkVersion rootProject.ext.ndkVersion
+//     buildToolsVersion rootProject.ext.buildToolsVersion
+//     compileSdk rootProject.ext.compileSdkVersion
+
+//     namespace "com.ilyafy"
+//     defaultConfig {
+//         applicationId "com.ilyafy"
+//         minSdkVersion rootProject.ext.minSdkVersion
+//         targetSdkVersion rootProject.ext.targetSdkVersion
+//         versionCode 2
+//         versionName "2.0"
+//         manifestPlaceholders = [auth0Domain: 'dev-cum37g4rj2kg0uk8.us.auth0.com', auth0Scheme: 'com.ilyafy.auth0']
+//     }
+//     signingConfigs {
+//         debug {
+//             storeFile file('debug.keystore')
+//             storePassword 'android'
+//             keyAlias 'androiddebugkey'
+//             keyPassword 'android'
+//         }
+//         release {
+//         if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+//             storeFile file(MYAPP_UPLOAD_STORE_FILE)
+//             storePassword MYAPP_UPLOAD_STORE_PASSWORD
+//             keyAlias MYAPP_UPLOAD_KEY_ALIAS
+//             keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+//         }
+//     }
+//     }
+//     buildTypes {
+//         debug {
+//             signingConfig signingConfigs.debug
+//         }
+//          release {
+//         signingConfig signingConfigs.release
+//         shrinkResources true
+//         minifyEnabled true
+//         proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+//         }
+//     }
+
+//     // compileOptions {
+//     //     // Required for NewPipeExtractor
+//     //     coreLibraryDesugaringEnabled true 
+//     //     sourceCompatibility JavaVersion.VERSION_1_8
+//     //     targetCompatibility JavaVersion.VERSION_1_8
+//     // }
+
+//     // kotlinOptions {
+//     //     jvmTarget = "1.8"
+//     // }
+
+// }
+// // plugins {
+// //     id 'com.android.application'
+// //     id 'com.google.gms.google-services'
+// // }
+
+// dependencies {
+//     // The version of react-native is set by the React Native Gradle Plugin
+//     implementation("com.facebook.react:react-android")
+
+//     if (hermesEnabled.toBoolean()) {
+//         implementation("com.facebook.react:hermes-android")
 //     } else {
-//         commandLine 'sh', '-c', 'npx bob build --target codegen'
+//         implementation jscFlavor
 //     }
 // }
-// preBuild.dependsOn invokeLibraryCodegenTP
+// // Since our library doesn't invoke codegen automatically we need to do it here.
+// // tasks.register('invokeLibraryCodegenTP', Exec) {
+// //     workingDir "$rootDir/../../react-native-track-player"
+// //     def isWindows = System.getProperty('os.name').toLowerCase().contains('windows')
+
+// //     if (isWindows) {
+// //         commandLine 'cmd', '/c', 'npx bob build --target codegen'
+// //     } else {
+// //         commandLine 'sh', '-c', 'npx bob build --target codegen'
+// //     }
+// // }
+// // preBuild.dependsOn invokeLibraryCodegenTP

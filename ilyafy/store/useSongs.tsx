@@ -5,46 +5,41 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import _delete from '../api/playlist/delete';
 import post from '../api/playlist/post';
-import useProfile from './useProfile';
 import list from '../api/playlist/list';
 import TrackPlayer from 'react-native-track-player';
-import { CTrack } from '../types/songs';
+import { CTrack, songProp } from '../types/songs';
 import getSongDetail from '../api/playlist/get';
 import stream from '../functions/stream/stream';
+import NewPipeModule from '../modules/NewPipeModule';
 // import useCurrentTrack from './useCurrentTrack';
+const thumbnail = require('../assets/images/background.png');
 type songList = {
-  songs: CTrack[];
+  songs: songProp[];
   isLoading: boolean;
   setLoading: (arg: boolean) => void;
   add: typeof post;
   addSong: (arg: CTrack) => Promise<void>;
   delete: typeof _delete;
   removeSong: (id: string) => Promise<void>;
-  setSong: (arg: CTrack[]) => void;
+  setSong: (arg: songProp[]) => void;
   load: typeof list;
   replace: (song: CTrack) => Promise<void>;
 };
 const setMessage = useMessage?.getState()?.setMessage;
-const accessToken = useProfile?.getState()?.accessToken;
-// const currentSong = useCurrentTrack?.getState()?.track;
-const fetchedSong = async (url: string, id: string) => {
-  const fetchedSong = await stream.get(url, id);
-  console.log('Fecthed song: ', fetchedSong);
-  if (!fetchedSong) {
-    setMessage('Some Error Occured X(');
-    return undefined;
-  }
-  const metadata = fetchedSong?.metadata;
-  const headers = fetchedSong?.headers;
-  const localPath = fetchedSong?.localPath || metadata?.url || undefined;
+const fetchedSong = async (url: string, id: string, song?: CTrack) => {
+  const fs = await stream.localGet(url, id);
+  let metadata = fs?.metadata;
+  let localPath = fs?.localPath || metadata?.url || undefined;
   const newSong = {
     url: localPath || metadata?.url || '',
-    mediaId: headers['X-Id'] || id,
-    artist: headers['X-Track-Artist'] || metadata?.artist || 'Ilyafy',
-    artwork: headers['X-Track-Thumb'] || metadata?.thumbnail || undefined,
-    title: headers['X-Track-Title'] || metadata?.title || 'Unknown Song',
+    mediaId: id || song?.id || song?.mediaId,
+    artist: song?.artist || metadata?.artist || 'Ilyafy',
+    artwork: song?.artwork || metadata?.thumbnail || undefined,
+    title: song?.title || metadata?.title || 'Unknown Song',
     localPath,
   };
+  console.log('new Song:::', newSong);
+
   return newSong;
 };
 export default create(
@@ -70,7 +65,11 @@ export default create(
               return;
             }
             await TrackPlayer.add(newSong).then(() => {
-              set({ songs: [...get().songs, newSong] });
+              set({
+                songs: response?.song
+                  ? [...get().songs, response?.song]
+                  : [...get().songs],
+              });
             });
             get().setLoading(false);
             return;
@@ -81,7 +80,7 @@ export default create(
         });
       },
       addSong: async song => {
-        const songExists = get().songs.find(t => t.mediaId === song?.mediaId);
+        const songExists = get().songs.find(t => t.id === song?.mediaId);
         if (songExists) {
           if (song?.url.includes('http')) {
             const songDetails = await getSongDetail(song?.mediaId || '');
@@ -105,8 +104,8 @@ export default create(
           get().replace(song);
           return;
         }
+        const songDetails = await getSongDetail(song?.mediaId || '');
         if (song?.url?.includes('http')) {
-          const songDetails = await getSongDetail(song?.mediaId || '');
           if (!songDetails?.success) {
             console.error("Song doesn't exist in playlist.");
             setMessage('Song does not exist.');
@@ -121,31 +120,44 @@ export default create(
             console.error('Error in useSongs.');
             return;
           }
+          const fetchedSongInfo = songDetails?.song;
           await TrackPlayer.add(newSong).then(() => {
-            set({ songs: [...get().songs, newSong] });
+            fetchedSongInfo &&
+              set({ songs: [...get().songs, fetchedSongInfo] });
           });
           return;
         }
         console.log('Adding song:', song);
         await TrackPlayer.add(song).then(() => {
-          set({ songs: [...get().songs, song] });
+          songDetails?.song &&
+            set({ songs: [...get().songs, songDetails?.song] });
         });
       },
       replace: async song => {
-        const queue = get().songs;
-        const index = queue.findIndex(t => t.mediaId === song?.mediaId);
+        let queue = get().songs;
+        const index = queue.findIndex(t => t.id === song?.mediaId);
         if (index === -1) {
           console.log('Song not found.');
           return;
         }
-        await TrackPlayer.add(song, index).then(() => {
+        const songInfo = queue[index];
+        queue[index] = {
+          ...songInfo,
+          url: song?.url,
+          title: song?.title || songInfo?.title || 'Unknown Song',
+          artist: song?.artist || songInfo?.artist || 'Ilyafy',
+          thumbnail: song?.artwork || songInfo?.thumbnail,
+        };
+        await TrackPlayer.remove(index).then(async () => {
+          await TrackPlayer.add(song, index);
           set({ songs: [...queue] });
         });
+        console.log('trackplayer queue:', await TrackPlayer.getQueue());
       },
       delete: async id => {
         const response = await _delete(id);
         if (response?.success) {
-          const newSongList = get().songs.filter(t => t.mediaId !== id);
+          const newSongList = get().songs.filter(t => t.id !== id);
           set({
             songs: newSongList,
           });
@@ -159,7 +171,7 @@ export default create(
         return response;
       },
       removeSong: async id => {
-        const newQueue = get().songs.filter(t => t.mediaId !== id);
+        const newQueue = get().songs.filter(t => t.id !== id);
         const queue = await TrackPlayer.getQueue();
         const index = queue.findIndex(t => t.mediaId === id);
         if (index === -1) {
@@ -176,44 +188,58 @@ export default create(
         await TrackPlayer.reset();
         await TrackPlayer.add(
           arg.map(i => {
-            return { ...i, mediaId: i.id || i.mediaId };
+            return {
+              ...i,
+              mediaId: i.id,
+            };
           }),
         );
       },
       load: async token => {
         get().setLoading(true);
-        const at = token || accessToken || '';
-        const response = await list(at);
-        if (response?.success) {
-          get().setSong([]);
-          for (const song of response?.songs || []) {
-            const filePath = `${RNFS.DocumentDirectoryPath}/${
-              song?.mediaId || song?.id || ''
-            }.aac`;
-            const fileExists = await RNFS.exists(filePath);
-            if (fileExists) {
-              console.log('Stats: ', await RNFS.stat(filePath));
-              get().addSong({
-                url: filePath || '',
-                mediaId: song?.mediaId || song?.id || '',
-                title: song?.title || 'Unknown Song',
-                artist: song?.artist || 'Ilyafy',
-                artwork:
-                  song?.thumbnail || require('../assets/images/background.png'),
-              });
-            } else {
-              const newSong = await fetchedSong(song?.ytUrl, song?.id);
-              if (!newSong) {
-                return { success: false, message: "Couldn't Fetch Song." };
-              }
-              get().addSong(newSong);
-              console.log('songs after adding:', get().songs);
-            }
-          }
-          setMessage(response?.message || '');
-          get().setLoading(false);
-          return response;
+        const songs = await list(token || '');
+        if (!songs?.success) {
+          setMessage('Network Err X(');
+          return;
         }
+        await TrackPlayer.reset().then(() => get().setSong([]));
+        for (const song of songs?.songs || []) {
+          const filePath = `${RNFS.CachesDirectoryPath}/${song?.id || ''}.aac`;
+          const fileExists = await RNFS.exists(filePath);
+          if (fileExists) {
+            console.log('file stats:', await RNFS.stat(filePath));
+            const songObject: CTrack = {
+              url: filePath || '',
+              mediaId: song?.id || '',
+              title: song?.title || 'Unknown Song',
+              artist: song?.artist || 'Ilyafy',
+              artwork: song?.thumbnail || thumbnail,
+            };
+            get().addSong(songObject);
+          } else {
+            const songDetails = await NewPipeModule.extractStream(song?.ytUrl);
+            console.log('song details:', songDetails);
+            const remoteSongObject: CTrack = {
+              url: songDetails?.audioStream?.url || '',
+              title: songDetails?.title || 'Unknown Song',
+              artist: songDetails?.uploader || 'Ilyafy',
+              mediaId: song?.id,
+              artwork:
+                song?.thumbnail || songDetails?.thumbnailUrl || thumbnail,
+            };
+            await TrackPlayer.add(remoteSongObject).then(() => {
+              set({ songs: [...get().songs, song] });
+              stream.addToDownloadMap(
+                song?.id,
+                songDetails?.audioStream?.url || '',
+              );
+            });
+          }
+        }
+        stream.downloadMap();
+        setMessage(songs?.message || '');
+        get().setLoading(false);
+        return songs;
       },
     }),
     {

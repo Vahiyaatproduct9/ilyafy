@@ -3,18 +3,22 @@ import { domain } from "../../path/path";
 import RNFB from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import useMessage from "../../store/useMessage";
-import useSocketStore from "../../store/useSocketStore";
 import control from './control';
+import NewPipeModule from "../../modules/NewPipeModule";
+import { Track } from "react-native-track-player";
+import useSongs from "../../store/useSongs";
 const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
-const sendMessage = useSocketStore?.getState()?.sendMessage;
+const downloadMap = new Map<string, string>();
 const minBuffer = 256 * 1024 // 256kb
+const thumbnail = require('../../assets/images/background.png');
+type resolvedPromise = {
+  localPath?: string;
+  headers?: any;
+  metadata?: any;
+} | undefined;
 export default {
-  async get(url: string, id: string): Promise<{
-    localPath?: string;
-    headers?: any;
-    metadata?: any;
-  } | undefined> {
+  async get(url: string, id: string): Promise<resolvedPromise> {
     const fileExists = await RNFS.exists(`${RNFS.DocumentDirectoryPath}/${id}.aac`);
     if (fileExists) {
       console.log('File exists:', id);
@@ -30,7 +34,6 @@ export default {
     const tempPath = `${RNFS.CachesDirectoryPath}/${id || 'temp'}.aac`;
     console.log({ localPath });
     try {
-      // if (await RNFB.fs.exists(localPath)) await RNFB.fs.unlink(localPath);
       if (!localPath) {
         console.error('FileError: path not found', localPath);
         return undefined;
@@ -46,9 +49,6 @@ export default {
           overwrite: true,
         }).fetch('GET', serverUrl);
         downloadList.add(id || '');
-        sendMessage({
-          state: 'buffering',
-        });
         task.progress({ interval: 100 }, (recieved) => {
           repeats++;
           // console.log(`Downloaded ${recieved} bytes`);
@@ -86,7 +86,6 @@ export default {
             downloadFile.then(() => {
               console.log('Download Complete!');
               setMessage('Reading Complete!');
-              control.remotePlay();
               downloadList.delete(id);
             }).catch(err => {
               console.log('Error:', err);
@@ -127,11 +126,165 @@ export default {
       throw error;
     }
   },
-  async update(songId: string, accessToken: string): Promise<{
-    localPath?: string;
-    headers?: any;
+  async localGet(ytUrl: string, id: string, state: 'get' | 'update' = 'get'): Promise<resolvedPromise> {
+
+    if (downloadList.has(id)) {
+      setMessage('Reading, Please wait...');
+      console.log('Already downloading');
+      return undefined;
+    };
+    const localPath = `${RNFS.CachesDirectoryPath}/${id || 'temp'}.aac`;
+    const fileExists = await RNFS.exists(localPath);
+    if (state === 'get' && fileExists) {
+      console.log('File Exists:', localPath);
+      return { localPath };
+    }
+    try {
+      if (!localPath) {
+        console.error('FileError: path not found', localPath);
+        return undefined;
+      }
+      const response = await NewPipeModule.extractStream(ytUrl);
+      console.log('Fetch Response: ', response)
+      if (!response) {
+        return await this.get(ytUrl, id);
+      }
+      let resolved = false;
+      return new Promise((resolve, reject) => {
+        downloadList.add(id);
+        const task = RNFB.config({
+          path: localPath,
+          fileCache: true,
+          overwrite: true
+        }).fetch('GET', response?.audioStream?.url || '');
+        function handleResolve() {
+          if (resolved) return;
+          console.log("Not resolved, resolving");
+          resolved = true;
+          const resolveResponse = {
+            localPath,
+            metadata: {
+              ...response,
+              thumbnail: response?.thumbnailUrl || '',
+              title: response?.title || 'Unknown Song',
+              artist: response?.uploader || 'Ilyafy',
+              url: response?.audioStream?.url || '',
+            },
+            headers: undefined
+          };
+          console.log("resolve response:", resolveResponse);
+          resolve(resolveResponse);
+        }
+        task.progress({ interval: 500 }, (rec, total) => {
+          console.log("Downloaded", rec / 1024, "of", total / 1024, "KB from", id);
+          if (rec >= minBuffer && !resolved) {
+            handleResolve();
+          }
+        })
+        task.then(() => {
+          console.log('Download Complete!');
+          setMessage('Reading Complete!');
+          handleResolve();
+        }, (err) => {
+          reject(new Error(err));
+          setMessage('Some Error Occured!');
+          console.log("local fetch error : ", err)
+        }).catch(err => {
+          console.log("Error:", err);
+          setMessage('Some Error Occured :(');
+          resolved = true;
+          reject(err)
+        }).finally(() => {
+          downloadList.delete(id);
+        })
+      })
+    } catch (error) {
+      setMessage('Ooops!' + error);
+      console.error('Error in stream :(', error);
+      throw error;
+    }
+  },
+  async fetchRemote(ytUrl: string, id: string): Promise<{
+    localPath: string;
     metadata?: any;
-  } | undefined> {
+  } | resolvedPromise | undefined> {
+    if (downloadList.has(id)) {
+      setMessage('Reading, Please wait...');
+      console.log('Already downloading');
+      return undefined;
+    };
+    const localPath = `${RNFS.CachesDirectoryPath}/${id || 'temp'}.aac`;
+    const fileExists = await RNFS.exists(localPath);
+    if (fileExists) {
+      return {
+        localPath,
+      }
+    }
+    try {
+      if (!localPath) {
+        console.error('FileError: path not found', localPath);
+        return undefined;
+      }
+      const response = await NewPipeModule.extractStream(ytUrl);
+      console.log('Fetch Response: ', response)
+      if (!response) {
+        return await this.get(ytUrl, id);
+      }
+      let resolved = false;
+      return new Promise((resolve, reject) => {
+        downloadList.add(id);
+        const task = RNFB.config({
+          path: localPath,
+          fileCache: true,
+          overwrite: true
+        }).fetch('GET', response?.audioStream?.url || '');
+        function handleResolve() {
+          if (resolved) return;
+          console.log("Not resolved, resolving");
+          resolved = true;
+          const resolveResponse = {
+            localPath,
+            metadata: {
+              ...response,
+              thumbnail: response?.thumbnailUrl || thumbnail,
+              title: response?.title || 'Unknown Song',
+              artist: response?.uploader || 'Ilyafy',
+              url: response?.audioStream?.url || '',
+            },
+          };
+          console.log("resolve response:", resolveResponse);
+          resolve(resolveResponse);
+        }
+        task.progress({ interval: 500 }, (rec, total) => {
+          console.log(rec / 1024, "/", total / 1024, "KB", id);
+          if (!resolved) {
+            handleResolve();
+          }
+        })
+        task.then(() => {
+          console.log('Download Complete!');
+          setMessage('Reading Complete!');
+          handleResolve();
+        }, (err) => {
+          reject(new Error(err));
+          setMessage('Some Error Occured!');
+          console.log("local fetch error : ", err)
+        }).catch(err => {
+          console.log("Error:", err);
+          setMessage('Some Error Occured :(');
+          resolved = true;
+          reject(err)
+        }).finally(() => {
+          downloadList.delete(id);
+        })
+      })
+    } catch (error) {
+      setMessage('Ooops!' + error);
+      console.error('Error in stream :(', error);
+      throw error;
+    }
+  },
+  async update(songId: string, accessToken: string): Promise<resolvedPromise> {
     const updateUrl = `${domain}/stream?id=${songId}`;
     const localPath = `${RNFS.DocumentDirectoryPath}/${songId}.aac`;
     const tempPath = `${RNFS.CachesDirectoryPath}/${songId}.aac`;
@@ -175,7 +328,6 @@ export default {
               path: localPath,
               overwrite: true
             }).fetch('GET', info?.url)
-            control.remoteBuffer();
             downloadFile.progress({ interval: 100 }, res => {
               downloadList.add(songId);
               console.log('downloaded: ', res / 1024, 'KB')
@@ -223,5 +375,51 @@ export default {
       setMessage('Ooops!')
       console.log('Updating Error:', error);
     }
+  },
+  addToDownloadMap(id: string, url: string) {
+    downloadMap.set(id, url);
+  },
+  async downloadMap() {
+    const songs = useSongs.getState().songs;
+    for (const [id, url] of downloadMap) {
+      const filePath = await this.downloadSong(url || '', id);
+      if (!filePath || typeof filePath !== 'string') {
+        setMessage("Couldn't Read Song! Skipping...");
+        console.error("Coudlnt Read song!");
+        continue;
+      }
+      const currentTrack = songs.find(t => t.id === id);
+      useSongs.getState().replace({
+        mediaId: id,
+        url: filePath || url,
+        title: currentTrack?.title || 'Unkown Song',
+        artist: currentTrack?.artist || 'Ilyafy',
+        artwork: currentTrack?.thumbnail || thumbnail
+      });
+    }
+    downloadMap.clear();
+  },
+  async downloadSong(url: string, id: string, state: 'progressive' | 'full' = 'full'): Promise<string | PromiseRejectedResult> {
+    const filePath = `${RNFS.CachesDirectoryPath}/${id}.aac`;
+    return new Promise((resolve, reject) => {
+      const task = RNFB.config({
+        path: filePath,
+        fileCache: true,
+      }).fetch('GET', url);
+      let resolved = false;
+      task.progress({ interval: 100 }, (received) => {
+        if (state === 'progressive' && received >= minBuffer && !resolved) {
+          resolved = true;
+          resolve(filePath)
+        }
+      });
+      task.then(() => {
+        !resolved && resolve(filePath);
+        resolved = true;
+      }).catch(err => {
+        reject(err);
+        console.error('download Error', err);
+      })
+    })
   }
 }

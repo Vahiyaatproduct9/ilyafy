@@ -41,13 +41,6 @@ class Control {
   }
   public async remotePlay() {
     const canBePlayed = useCurrentTrack?.getState()?.canBePlayed;
-    // TrackPlayer.getActiveTrack()
-    //   .then(track => {
-    //     if (track?.url.includes('http')) {
-    //       const accessToken = useProfile?.getState()?.accessToken;
-    //       stream.update(track?.mediaId || '', accessToken || '');
-    //     }
-    //   });
     if (!canBePlayed) {
       toast('They are buffering, please wait!');
       return;

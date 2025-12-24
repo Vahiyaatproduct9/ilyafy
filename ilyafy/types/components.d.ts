@@ -17,6 +17,7 @@ export type TokenProps = {
 export type signInProps = {
   message: string;
   profile: profile,
+  success: boolean;
   token: {
     accessToken: string;
     refreshToken: string;

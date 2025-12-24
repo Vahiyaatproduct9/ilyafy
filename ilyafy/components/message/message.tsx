@@ -12,13 +12,13 @@ const Message = () => {
   const { message, setMessage } = useMessage();
   const colors = useDeviceSetting(s => s.colors);
   useEffect(() => {
-    if (message.length > 0) {
+    if (message?.length > 0) {
       setTimeout(() => {
         setMessage('');
       }, 3000);
     }
-  }, [message.length, setMessage]);
-  if (message.length > 0)
+  }, [message?.length, setMessage]);
+  if (message?.length > 0)
     return (
       <Animated.View
         entering={FadeInUp.duration(250)}

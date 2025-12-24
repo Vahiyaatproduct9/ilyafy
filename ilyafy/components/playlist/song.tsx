@@ -16,6 +16,7 @@ import { Dispatch, SetStateAction } from 'react';
 import useSongs from '../../store/useSongs';
 const image = require('../../assets/images/background.png');
 import strip from '../../functions/miscellanous/stripWords';
+import { songProp } from '../../types/songs';
 const Item = ({
   i,
   song,
@@ -23,27 +24,27 @@ const Item = ({
   setSelectedSong,
 }: {
   i: number | null;
-  song: Track;
+  song: songProp;
   colors: AnimatedStyle;
   setSelectedSong: Dispatch<SetStateAction<Track | null>>;
 }) => {
   const changeSong = async () => {
     console.log('song:', song);
     const queue = await TrackPlayer.getQueue();
-    const index = queue.findIndex(t => t.mediaId === song?.mediaId || '');
+    const index = queue.findIndex(t => t.mediaId === song?.id || '');
     if (index === -1) {
       await TrackPlayer.reset().then(async () => {
         const songList = useSongs?.getState()?.songs;
         TrackPlayer.add(songList);
-        await TrackPlayer.skip(
-          songList?.findIndex(t => t.mediaId === song?.mediaId || ''),
-        );
+        const trackIndex = songList?.findIndex(t => t.id === song?.id || '');
+        await TrackPlayer.skip(trackIndex);
       });
       await TrackPlayer.play();
       return;
     }
     await control.remoteSkip(index, 0);
     await control.remotePlay();
+    console.log('current track:', await TrackPlayer.getActiveTrack());
   };
   const sizeValue = useSharedValue(1);
   const animatedButton = useAnimatedStyle(() => {
@@ -72,7 +73,7 @@ const Item = ({
         style={colors}
       >
         <Image
-          source={song?.artwork ? { uri: song.artwork } : image}
+          source={song?.thumbnail ? { uri: song.thumbnail } : image}
           className="h-20 w-20 rounded-2xl self-center"
         />
         <View className="p-2 flex-1 justify-evenly">

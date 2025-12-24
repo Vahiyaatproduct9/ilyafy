@@ -8,11 +8,15 @@ import { verifyToken } from '@functions/secret/JWT';
 import { configDotenv } from 'dotenv';
 import { log } from 'console';
 configDotenv();
+const allowProxy = false
 @Injectable()
 export default class StreamService {
   async stream({ url, writable, songId }: { url: string, writable: Response, songId?: string }) {
     // const metadata: any = undefined;
-    const metadata: any = await getMetaData({ url, proxy: process.env.PROXY_SAMPLE });
+    const metadata: any = await getMetaData({
+      url,
+      proxy: allowProxy ? process.env.PROXY_SAMPLE : undefined
+    });
     const audioFormat = metadata?.formats?.find(
       (f: any) => f.acodec !== 'none' && f.vcodec === 'none' && f.protocol === 'https'
     );
@@ -61,7 +65,8 @@ export default class StreamService {
       await audioStream({
         url,
         writable,
-        proxy: process.env.PROXY_SAMPLE || ''
+        proxy: allowProxy ? process.env.PROXY_SAMPLE : undefined
+
       });
     } catch (err) {
       console.error('Error streaming audio:', err);
@@ -103,7 +108,11 @@ export default class StreamService {
   }
 
   async getInfo({ url, writable }: { url: string; writable: Response }) {
-    const metadata: any = await getMetaData({ url, proxy: undefined });
+    const metadata: any = await getMetaData({
+      url,
+      proxy: allowProxy ? process.env.PROXY_SAMPLE : undefined
+
+    });
     const audioFormat = metadata.formats.find(
       f => f.acodec !== 'none' && f.vcodec === 'none' && f.protocol === 'https'
     );

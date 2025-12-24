@@ -116,17 +116,15 @@ export const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data
       const { success, song } = await get(data?.songId);
       let songIndex;
       if (success && song !== undefined) {
-        const accessToken = useProfile?.getState()?.accessToken;
-        const saveSong = await stream.update(song?.mediaId || '', accessToken || '');
-        const headers = saveSong?.headers;
-        songIndex = headers['X-Id'];
+        const saveSong = await stream.localGet(song?.ytUrl || '', song?.id || '');
+        const metadata = saveSong?.metadata;
         const localPath = saveSong?.localPath;
         saveSong && await addSong({
           mediaId: song?.id || song?.mediaId || Date.now().toString(),
-          url: headers?.filePath || localPath || song.url || '',
-          artist: song?.artist || 'Ilyafy',
-          artwork: song?.thumbnail || require('../../assets/images/background.png'),
-          title: song?.title || 'Unknown Song'
+          url: localPath || metadata?.url || song.url || '',
+          artist: song?.artist || metadata?.artist || 'Ilyafy',
+          artwork: song?.thumbnail || metadata?.thumbnail || require('../../assets/images/background.png'),
+          title: song?.title || metadata?.thumbnail || 'Unknown Song'
         })
         songIndex && await TrackPlayer.skip(songIndex, data?.position);
       }

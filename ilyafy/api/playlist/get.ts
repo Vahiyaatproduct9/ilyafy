@@ -8,5 +8,5 @@ export default async (songId: string) => {
     message: string;
   } | undefined = await res.json();
   console.log('Response :', response);
-  return { ...response, song: { ...response?.song, mediaId: response?.song?.id } };
+  return response;
 }

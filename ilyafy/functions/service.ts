@@ -1,15 +1,14 @@
 import TrackPlayer, { Event, State } from 'react-native-track-player';
-import useProfile from '../store/useProfile';
 import useSongs from '../store/useSongs';
 import commandListener from './stream/commandListener';
 import useCurrentTrack from '../store/useCurrentTrack';
 import stream from './stream/stream';
 import useMessage from '../store/useMessage';
 import control from './stream/control';
+import get from '../api/playlist/get';
 export default async function () {
   // CONTAINS ONLY REMOTE!!!!!!!!!!
   const replaceSong = useSongs?.getState()?.replace;
-  const accessToken = useProfile?.getState()?.accessToken;
   const setMessage = useMessage?.getState()?.setMessage;
   TrackPlayer.addEventListener(Event.RemotePlay, () => {
     control.remotePlay();
@@ -44,20 +43,20 @@ export default async function () {
     // tell server to update the database
     const CurrentSong = useCurrentTrack?.getState()?.track;
     const CurrentSongId = CurrentSong?.mediaId;
-    await control.remoteSkip((await TrackPlayer.getActiveTrackIndex() || 0) + 1, 0)
-    const updatedSong = await stream.update(CurrentSongId || '', accessToken || '');
+    await control.remoteSkip((await TrackPlayer.getActiveTrackIndex() || 0) + 1, 0);
+    const songDetails = CurrentSongId ? await get(CurrentSongId) : null;
+    const updatedSong = songDetails?.success ? await stream.localGet(songDetails?.song?.ytUrl || '', CurrentSongId || '', 'update') : null;
     console.log('songid:', CurrentSongId);
     console.log('Update Song:', updatedSong);
-    const headers = updatedSong?.headers;
     const metadata = updatedSong?.metadata;
     const localPath = updatedSong?.localPath;
-    const url = localPath || headers?.filePath || metadata?.url || undefined;
+    const url = localPath || metadata?.url || undefined;
     const newSongObject = {
-      title: metadata?.title || headers['X-Track-Title'] || 'Unknown Song',
+      title: metadata?.title || 'Unknown Song',
       url,
-      artist: metadata?.artist || headers['X-Track-Artist'] || 'Ilyafy',
-      artwork: metadata?.thumbnail || headers['X-Track-Thumb'] || '',
-      mediaId: metadata?.id || headers['X-Id'] || CurrentSong?.mediaId,
+      artist: metadata?.artist || 'Ilyafy',
+      artwork: metadata?.thumbnail || '',
+      mediaId: metadata?.id || CurrentSong?.mediaId,
       localPath
     };
     console.log('New Song Object:', newSongObject);
@@ -91,11 +90,8 @@ export default async function () {
 
       case State.Playing:
       case State.Paused:
-        // Do nothing for these states, as they are handled by other remote event listeners.
         break;
-
       default:
-        // For all other states (e.g., Ready, Loading, Stopped, Ended), send the state directly.
         control.remotePlaybackState(event.state);
         break;
     }

@@ -12,14 +12,12 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Icon from '../icons/icon';
-import deleteSong from '../../api/playlist/delete';
 import Play from '../../assets/icons/play.svg';
 import Down from '../../assets/icons/down.svg';
 import Pause from '../../assets/icons/pause.svg';
 import Options from '../../assets/icons/options.svg';
 import Next from '../../assets/icons/next.svg';
 import Previous from '../../assets/icons/previous.svg';
-// import Playlist from '../../assets/icons/playlist.svg';
 import {
   Gesture,
   GestureDetector,
@@ -107,7 +105,6 @@ const MacroPlayer = (props: {
     };
   });
 
-
   const primaryColor = useSharedValue(colors.primary);
   useEffect(() => {
     primaryColor.value = withSpring(colors.primary, { duration: 1500 });
@@ -162,10 +159,7 @@ const MacroPlayer = (props: {
         />
       </View>
       {optionsShown && (
-        <SongOptions
-          setSong={setOptionsShown}
-          song={optionsShown}
-        />
+        <SongOptions setSong={setOptionsShown} song={optionsShown} />
       )}
       <Animated.View
         style={primaryColorStyle}

@@ -90,6 +90,7 @@ export default class User {
     })
     return {
       token,
+      success: true,
       profile: {
         name: user.name,
         id: user.id,

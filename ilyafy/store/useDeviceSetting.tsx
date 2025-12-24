@@ -20,7 +20,7 @@ export default create<deviceSettings>((set, get) => ({
     background: get()?.theme === 'dark' ? '#6C3E79' : '#FADADD',
     primary: '#F4A9A8',
     secondary: get()?.theme === 'dark' ? '#FADADD' : '#6C3E79',
-    text: get()?.theme === 'dark' ? '#FFFFFF' : '#6C3E79',
+    text: '#FFFFFF',
     accent: '#F4A9A8',
   },
   setColor: (theme: themeType) => {

@@ -19,7 +19,9 @@ export default async ({ email, password }: { email: string; password: string }) 
     })
   })
   const response: signInProps | undefined = await res.json();
-  if (response?.token.success) {
+  console.log('login response:', response);
+
+  if (response?.success) {
     setAccessToken(response?.token?.accessToken || '');
     setRefreshToken(response?.token?.refreshToken || '');
     setProfile(response?.profile)
