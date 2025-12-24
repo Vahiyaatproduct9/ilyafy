@@ -10,6 +10,8 @@ type deviceSettings = {
   colors: themeType;
   setColor: (arg: themeType) => void;
   loadColor: (track: Track | undefined) => void;
+  networkSpeed: number | null;
+  setNetworkSpeed: (arg: number | null) => void;
 };
 export default create<deviceSettings>((set, get) => ({
   theme: Appearance?.getColorScheme() === 'dark' ? 'dark' : 'light',
@@ -23,6 +25,7 @@ export default create<deviceSettings>((set, get) => ({
     text: '#FFFFFF',
     accent: '#F4A9A8',
   },
+  networkSpeed: null,
   setColor: (theme: themeType) => {
     set({ colors: theme });
   },
@@ -76,5 +79,8 @@ export default create<deviceSettings>((set, get) => ({
         }
       });
     }
+  },
+  setNetworkSpeed: arg => {
+    set({ networkSpeed: arg });
   },
 }));

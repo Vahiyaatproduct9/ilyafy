@@ -5,7 +5,6 @@ import RNFS from 'react-native-fs';
 import useMessage from "../../store/useMessage";
 import control from './control';
 import NewPipeModule from "../../modules/NewPipeModule";
-import { Track } from "react-native-track-player";
 import useSongs from "../../store/useSongs";
 const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
@@ -407,7 +406,8 @@ export default {
         fileCache: true,
       }).fetch('GET', url);
       let resolved = false;
-      task.progress({ interval: 100 }, (received) => {
+      task.progress({ interval: 100 }, (received, total) => {
+        console.log('Downloading', (received / total) * 100, "% of", id);
         if (state === 'progressive' && received >= minBuffer && !resolved) {
           resolved = true;
           resolve(filePath)
