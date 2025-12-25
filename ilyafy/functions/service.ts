@@ -2,13 +2,11 @@ import TrackPlayer, { Event, State } from 'react-native-track-player';
 import useSongs from '../store/useSongs';
 import commandListener from './stream/commandListener';
 import useCurrentTrack from '../store/useCurrentTrack';
-import stream from './stream/stream';
 import useMessage from '../store/useMessage';
 import control from './stream/control';
 import get from '../api/playlist/get';
 export default async function () {
   // CONTAINS ONLY REMOTE!!!!!!!!!!
-  const replaceSong = useSongs?.getState()?.replace;
   const setMessage = useMessage?.getState()?.setMessage;
   TrackPlayer.addEventListener(Event.RemotePlay, () => {
     control.remotePlay();
@@ -45,28 +43,7 @@ export default async function () {
     const CurrentSongId = CurrentSong?.mediaId;
     await control.remoteSkip((await TrackPlayer.getActiveTrackIndex() || 0) + 1, 0);
     const songDetails = CurrentSongId ? await get(CurrentSongId) : null;
-    const updatedSong = songDetails?.success ? await stream.localGet(songDetails?.song?.ytUrl || '', CurrentSongId || '', 'update') : null;
-    console.log('songid:', CurrentSongId);
-    console.log('Update Song:', updatedSong);
-    const metadata = updatedSong?.metadata;
-    const localPath = updatedSong?.localPath;
-    const url = localPath || metadata?.url || undefined;
-    const newSongObject = {
-      title: metadata?.title || 'Unknown Song',
-      url,
-      artist: metadata?.artist || 'Ilyafy',
-      artwork: metadata?.thumbnail || '',
-      mediaId: metadata?.id || CurrentSong?.mediaId,
-      localPath
-    };
-    console.log('New Song Object:', newSongObject);
-    if (url) {
-      replaceSong(newSongObject);
-      await TrackPlayer.play();
-    } else {
-      setMessage('Already Reading.')
-      console.log('URL not found');
-    }
+    songDetails?.success && useSongs.getState().addSong(songDetails.song!)
   });
   let bufferingTimeout: number | null = null;
   TrackPlayer.addEventListener(Event.PlaybackState, async (event) => {

@@ -1,4 +1,4 @@
-import { View, Text, Dimensions, Pressable, TextInput } from 'react-native';
+import { View, Text, Dimensions, Pressable } from 'react-native';
 import React from 'react';
 import useDeviceSetting from '../../store/useDeviceSetting';
 import Icon from '../icons/icon';
@@ -7,13 +7,11 @@ import Button from '../buttons/button1';
 import useProfile from '../../store/useProfile';
 
 import Animated, {
-  Easing,
   FadeIn,
   FadeInLeft,
   FadeOut,
   FadeOutLeft,
 } from 'react-native-reanimated';
-import useBackend from '../../store/useBackend';
 
 type barProps = {
   setSideBarVisible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -24,7 +22,6 @@ const SideBar = (props: barProps) => {
   const setProfile = useProfile(s => s.setProfile);
   const { height, width } = Dimensions.get('screen');
   const AP = Animated.createAnimatedComponent(Pressable);
-  const { backend, setBackend } = useBackend();
   const profile = useProfile(s => s.profile);
   return (
     <AP
@@ -41,7 +38,7 @@ const SideBar = (props: barProps) => {
         <Animated.View
           entering={FadeInLeft.duration(250)}
           exiting={FadeOutLeft.duration(250)}
-        className="h-full self-start p-10 justify-between min-w-[80%]"
+          className="h-full self-start p-10 justify-between min-w-[80%]"
           style={{ backgroundColor: colors.primary }}
         >
           <View>
@@ -64,12 +61,6 @@ const SideBar = (props: barProps) => {
             </View>
           </View>
           <View className="flex-col">
-            <TextInput
-              value={backend || ''}
-              onChangeText={setBackend}
-              className="border-2 rounded-2xl px-2 font-thin text-xl color-white border-white"
-              placeholder="Enter backend url"
-            />
             <Button
               label="Sign Out"
               textStyle={{

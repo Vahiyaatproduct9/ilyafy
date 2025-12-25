@@ -91,21 +91,33 @@ export default create(
               setMessage('Song does not exist.');
               return;
             }
-            const newSong = await fetchedSong(
-              songDetails?.song?.ytUrl || '',
-              song?.mediaId || '',
+            const newSong = await NewPipeModule.extractStream(
+              songDetails?.song?.ytUrl!,
             );
             if (!newSong) {
               setMessage("Couldn't fetch song X(");
               console.error('Error in useSongs.');
               return;
             }
-            get().replace(newSong);
+            const bitrateSet = new Set<number>();
+            newSong?.audioStreams.forEach(t => bitrateSet.add(t.bitrate));
+            const newSongObject: CTrack = {
+              url: newSong?.audioStreams.find(
+                t => t.bitrate === Math.min(...bitrateSet),
+              )?.url!,
+              title: newSong?.title,
+              artist: song?.artist,
+              artwork: song?.artwork,
+            };
+            get().songQuality.set(song?.mediaId!, newSong?.audioStreams);
+            get().replace(newSongObject);
+            stream.fetchAndDownload(newSongObject, newSong?.audioStream?.url!);
             return;
           }
           get().replace(song);
           return;
         }
+        // SONG DOESNT EXIST IN PLAYLIST
         const songDetails = await getSongDetail(song?.mediaId || '');
         if (song?.url?.includes('http')) {
           if (!songDetails?.success) {
@@ -113,20 +125,30 @@ export default create(
             setMessage('Song does not exist.');
             return;
           }
-          const newSong = await fetchedSong(
-            songDetails?.song?.ytUrl || '',
-            song?.mediaId || '',
+          const newSong = await NewPipeModule.extractStream(
+            songDetails?.song?.ytUrl!,
           );
           if (!newSong) {
             setMessage("Couldn't fetch song X(");
             console.error('Error in useSongs.');
             return;
           }
-          const fetchedSongInfo = songDetails?.song;
-          await TrackPlayer.add(newSong).then(() => {
-            fetchedSongInfo &&
-              set({ songs: [...get().songs, fetchedSongInfo] });
+          const bitrateSet = new Set<number>();
+          newSong?.audioStreams.forEach(t => bitrateSet.add(t.bitrate));
+          const newSongObject: CTrack = {
+            url: newSong?.audioStreams.find(
+              t => t.bitrate === Math.min(...bitrateSet),
+            )?.url!,
+            title: newSong?.title,
+            artist: song?.artist,
+            artwork: song?.artwork,
+          };
+          get().songQuality.set(songDetails?.song?.id!, newSong?.audioStreams);
+          await TrackPlayer.add(newSongObject).then(() => {
+            songDetails?.song &&
+              set({ songs: [...get().songs, songDetails?.song] });
           });
+          stream.fetchAndDownload(newSongObject, newSong?.audioStream?.url!);
           return;
         }
         console.log('Adding song:', song);

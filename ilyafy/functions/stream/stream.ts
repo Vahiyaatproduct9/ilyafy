@@ -7,6 +7,7 @@ import control from './control';
 import NewPipeModule from "../../modules/NewPipeModule";
 import useSongs from "../../store/useSongs";
 import useDeviceSetting from "../../store/useDeviceSetting";
+import { CTrack } from "../../types/songs";
 const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
 const downloadMap = new Map<string, string>();
@@ -206,85 +207,17 @@ export default {
       throw error;
     }
   },
-  async fetchRemote(ytUrl: string, id: string): Promise<{
-    localPath: string;
-    metadata?: any;
-  } | resolvedPromise | undefined> {
-    if (downloadList.has(id)) {
-      setMessage('Reading, Please wait...');
-      console.log('Already downloading');
-      return undefined;
-    };
-    const localPath = `${RNFS.CachesDirectoryPath}/${id || 'temp'}.aac`;
-    const fileExists = await RNFS.exists(localPath);
-    if (fileExists) {
-      return {
-        localPath,
-      }
+  async fetchAndDownload(song: CTrack, url: string) {
+    const filePath = await this.downloadSong(url, song?.mediaId!);
+    if (typeof filePath !== 'string') {
+      console.log('Couldnt download...');
+      return;
     }
-    try {
-      if (!localPath) {
-        console.error('FileError: path not found', localPath);
-        return undefined;
-      }
-      const response = await NewPipeModule.extractStream(ytUrl);
-      console.log('Fetch Response: ', response)
-      if (!response) {
-        return await this.get(ytUrl, id);
-      }
-      let resolved = false;
-      return new Promise((resolve, reject) => {
-        downloadList.add(id);
-        const task = RNFB.config({
-          path: localPath,
-          fileCache: true,
-          overwrite: true
-        }).fetch('GET', response?.audioStream?.url || '');
-        function handleResolve() {
-          if (resolved) return;
-          console.log("Not resolved, resolving");
-          resolved = true;
-          const resolveResponse = {
-            localPath,
-            metadata: {
-              ...response,
-              thumbnail: response?.thumbnailUrl || thumbnail,
-              title: response?.title || 'Unknown Song',
-              artist: response?.uploader || 'Ilyafy',
-              url: response?.audioStream?.url || '',
-            },
-          };
-          console.log("resolve response:", resolveResponse);
-          resolve(resolveResponse);
-        }
-        task.progress({ interval: 500 }, (rec, total) => {
-          console.log(rec / 1024, "/", total / 1024, "KB", id);
-          if (!resolved) {
-            handleResolve();
-          }
-        })
-        task.then(() => {
-          console.log('Download Complete!');
-          setMessage('Reading Complete!');
-          handleResolve();
-        }, (err) => {
-          reject(new Error(err));
-          setMessage('Some Error Occured!');
-          console.log("local fetch error : ", err)
-        }).catch(err => {
-          console.log("Error:", err);
-          setMessage('Some Error Occured :(');
-          resolved = true;
-          reject(err)
-        }).finally(() => {
-          downloadList.delete(id);
-        })
-      })
-    } catch (error) {
-      setMessage('Ooops!' + error);
-      console.error('Error in stream :(', error);
-      throw error;
+    const newSongObject: CTrack = {
+      ...song,
+      url: filePath
     }
+    useSongs.getState().replace(newSongObject);
   },
   async update(songId: string, accessToken: string): Promise<resolvedPromise> {
     const updateUrl = `${domain}/stream?id=${songId}`;
@@ -441,7 +374,6 @@ export default {
       });
       task.then(() => {
         !resolved && resolve(filePath);
-
         resolved = true;
       }).catch(err => {
         reject(err);
