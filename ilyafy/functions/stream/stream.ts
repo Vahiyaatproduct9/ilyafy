@@ -383,31 +383,24 @@ export default {
   },
   async downloadMap() {
     const songs = useSongs.getState().songs;
-    while (true) {
-      if (downloadMap.size === 0) {
-        console.log('no queue to download. breaking loop.');
-        break;
-      }
+    for (const [id, url] of downloadMap) {
       console.log('Loop running!')
-      const songIndex = downloadMap.entries().next().value;
-      const filePath = await this.downloadSong(songIndex?.[1]!, songIndex?.[0]!)
+      const filePath = await this.downloadSong(url, id)
       if (!filePath || typeof filePath !== 'string') {
         setMessage("Couldn't Read Song! Skipping...");
         console.error("Coudlnt Read song!");
-        downloadMap.delete(songIndex?.[0]!);
         continue;
       };
-      const currentTrack = songs.find(t => t.id === songIndex?.[0]);
+      const currentTrack = songs.find(t => t.id === id);
       useSongs.getState().replace({
-        mediaId: songIndex?.[0],
-        url: filePath || songIndex?.[1] || '',
+        mediaId: id,
+        url: filePath || url || '',
         title: currentTrack?.title || 'Unkown Song',
         artist: currentTrack?.artist || 'Ilyafy',
         artwork: currentTrack?.thumbnail || thumbnail
       })
-      downloadMap.delete(songIndex?.[0]!);
     }
-    // downloadMap.clear();
+    downloadMap.clear();
   },
   async downloadSong(url: string, id: string, state: 'progressive' | 'full' = 'full'): Promise<string | PromiseRejectedResult> {
     const filePath = `${RNFS.CachesDirectoryPath}/${id}.aac`;

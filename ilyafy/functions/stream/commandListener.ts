@@ -191,9 +191,10 @@ const adaptNetworkSpeed = () => {
       const isPlaying = useCurrentTrack.getState().isPlaying;
       console.log('Adapting quality to', url);
       console.log('Bitrate:', audioStreams?.find(t => t.url === url)?.bitrate);
+      await TrackPlayer.add({ ...track, url }, index! + 1);
+      await TrackPlayer.skip(index! + 1);
       await TrackPlayer.remove(index!);
-      await TrackPlayer.add({ ...track, url }, index);
-      await TrackPlayer.seekTo(position);
+      await TrackPlayer.seekTo(position + 1);
       isPlaying && await TrackPlayer.play();
     }
   })
