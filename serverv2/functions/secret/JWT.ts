@@ -1,11 +1,21 @@
 import jwt from 'jsonwebtoken';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import prisma from '@libs/prisma';
 import * as auth from '../../types/auth';
 import { configDotenv } from 'dotenv';
 configDotenv()
-const publicKey = readFileSync('./public.pem', 'utf8')
-const privateKey = readFileSync('./private.pem', 'utf8');
+function validFile(fileName: string) {
+  const fileHere = `./${fileName}`;
+  const fileRoot = `/${fileName}`;
+  const fileSecrets = `/etc/secrets/${fileName}`
+  const fileExistsRoot = existsSync(fileRoot);
+  const fileExistsSecret = existsSync(fileSecrets);
+  if (fileExistsRoot) return fileRoot;
+  if (fileExistsSecret) return fileSecrets;
+  return fileHere;
+}
+const publicKey = readFileSync(validFile('public.pem'), 'utf8')
+const privateKey = readFileSync(validFile('private.pem'), 'utf8');
 const SECRET_KEY = process.env.PASSWORD_ENCRYPTION_KEY || '';
 export function createToken(user: auth.tokenType) {
   console.log('user: ', user)
