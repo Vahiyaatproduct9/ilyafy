@@ -4,9 +4,19 @@ configDotenv({
   quiet: true
 })
 import { constants, publicEncrypt, privateDecrypt } from "crypto"
-import { readFileSync } from "fs"
-const publicKey = readFileSync('./public.pem', 'utf8');
-const privateKey = readFileSync('./private.pem', 'utf8');
+import { existsSync, readFileSync } from "fs"
+function validFile(fileName: string) {
+  const fileHere = `./${fileName}`;
+  const fileRoot = `/${fileName}`;
+  const fileSecrets = `/etc/secrets/${fileName}`
+  const fileExistsRoot = existsSync(fileRoot);
+  const fileExistsSecret = existsSync(fileSecrets);
+  if (fileExistsRoot) return fileRoot;
+  if (fileExistsSecret) return fileSecrets;
+  return fileHere;
+}
+const publicKey = readFileSync(validFile('public.pem'), 'utf8');
+const privateKey = readFileSync(validFile('private.pem'), 'utf8');
 export function encrypt(text: string): string {
   const encrypt = publicEncrypt({
     key: publicKey,
