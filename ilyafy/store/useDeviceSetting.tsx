@@ -81,6 +81,7 @@ export default create<deviceSettings>((set, get) => ({
     }
   },
   setNetworkSpeed: arg => {
+    console.log('Changing Network speed to', arg);
     set({ networkSpeed: arg });
   },
 }));

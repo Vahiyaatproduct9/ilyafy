@@ -6,11 +6,14 @@ import useMessage from "../../store/useMessage";
 import control from './control';
 import NewPipeModule from "../../modules/NewPipeModule";
 import useSongs from "../../store/useSongs";
+import useDeviceSetting from "../../store/useDeviceSetting";
 const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
 const downloadMap = new Map<string, string>();
 const minBuffer = 256 * 1024 // 256kb
 const thumbnail = require('../../assets/images/background.png');
+let smoothedSpeed = 0;
+const ALPHA = 0.3;
 type resolvedPromise = {
   localPath?: string;
   headers?: any;
@@ -380,33 +383,63 @@ export default {
   },
   async downloadMap() {
     const songs = useSongs.getState().songs;
-    for (const [id, url] of downloadMap) {
-      const filePath = await this.downloadSong(url || '', id);
+    while (true) {
+      if (downloadMap.size === 0) {
+        console.log('no queue to download. breaking loop.');
+        break;
+      }
+      console.log('Loop running!')
+      const songIndex = downloadMap.entries().next().value;
+      const filePath = await this.downloadSong(songIndex?.[1]!, songIndex?.[0]!)
       if (!filePath || typeof filePath !== 'string') {
         setMessage("Couldn't Read Song! Skipping...");
         console.error("Coudlnt Read song!");
+        downloadMap.delete(songIndex?.[0]!);
         continue;
-      }
-      const currentTrack = songs.find(t => t.id === id);
+      };
+      const currentTrack = songs.find(t => t.id === songIndex?.[0]);
       useSongs.getState().replace({
-        mediaId: id,
-        url: filePath || url,
+        mediaId: songIndex?.[0],
+        url: filePath || songIndex?.[1] || '',
         title: currentTrack?.title || 'Unkown Song',
         artist: currentTrack?.artist || 'Ilyafy',
         artwork: currentTrack?.thumbnail || thumbnail
-      });
+      })
+      downloadMap.delete(songIndex?.[0]!);
     }
-    downloadMap.clear();
+    // downloadMap.clear();
   },
   async downloadSong(url: string, id: string, state: 'progressive' | 'full' = 'full'): Promise<string | PromiseRejectedResult> {
     const filePath = `${RNFS.CachesDirectoryPath}/${id}.aac`;
     return new Promise((resolve, reject) => {
+      if (downloadList.has(id)) {
+        console.log('Already downloading !');
+        setMessage('Already Reading...');
+        reject('Already downloading !');
+        return;
+      }
+      downloadList.add(id);
       const task = RNFB.config({
         path: filePath,
         fileCache: true,
       }).fetch('GET', url);
       let resolved = false;
-      task.progress({ interval: 100 }, (received, total) => {
+      let startTime = Date.now();
+      let bytesDownloaded: number = 0;
+      task.progress({ interval: 250 }, (received, total) => {
+        const timeDiff = Date.now() - startTime;
+        if (timeDiff >= 1000) {
+          const bytesDiff = received - bytesDownloaded;
+          const instantSpeedKbps = ((bytesDiff * 8) / (timeDiff / 1000)) / 1000;
+          if (smoothedSpeed === 0) {
+            smoothedSpeed = instantSpeedKbps;
+          } else {
+            smoothedSpeed = (instantSpeedKbps * ALPHA) + (smoothedSpeed * (1 - ALPHA));
+          }
+          useDeviceSetting.getState().setNetworkSpeed(Math.round(smoothedSpeed));
+          startTime = Date.now();
+          bytesDownloaded = received;
+        }
         console.log('Downloading', (received / total) * 100, "% of", id);
         if (state === 'progressive' && received >= minBuffer && !resolved) {
           resolved = true;
@@ -415,10 +448,13 @@ export default {
       });
       task.then(() => {
         !resolved && resolve(filePath);
+
         resolved = true;
       }).catch(err => {
         reject(err);
         console.error('download Error', err);
+      }).finally(() => {
+        downloadList.delete(id);
       })
     })
   }

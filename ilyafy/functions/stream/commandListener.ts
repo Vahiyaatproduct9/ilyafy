@@ -9,6 +9,8 @@ import get from "../../api/playlist/get";
 import useSongs from "../../store/useSongs";
 import useCurrentTrack from "../../store/useCurrentTrack";
 import control from "./control";
+import useDeviceSetting from "../../store/useDeviceSetting";
+import { CTrack } from "../../types/songs";
 const userId = useSocketStore?.getState()?.userId;
 const roomId = useProfile?.getState()?.profile?.room_part_of;
 const addSong = useSongs?.getState()?.addSong;
@@ -93,7 +95,7 @@ export const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data
   const tracks = useSongs.getState().songs;
   const currentTrack = useCurrentTrack.getState().track;
   if (currentTrack?.mediaId !== data.songId) {
-    const currentRemoteSongIndex = tracks.findIndex(t => t.mediaId === data.songId);
+    const currentRemoteSongIndex = tracks.findIndex(t => t.id === data.songId);
     if (currentRemoteSongIndex === -1) {
       // get song from server
 
@@ -113,14 +115,16 @@ export const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data
     const queue = await TrackPlayer.getQueue();
     const index = queue.findIndex(t => t.mediaId === data.songId)
     if (index === -1) {
-      const { success, song } = await get(data?.songId);
+      const fetchRequest = await get(data?.songId);
+      const success = fetchRequest?.success;
+      const song = fetchRequest?.song;
       let songIndex;
       if (success && song !== undefined) {
         const saveSong = await stream.localGet(song?.ytUrl || '', song?.id || '');
         const metadata = saveSong?.metadata;
         const localPath = saveSong?.localPath;
         saveSong && await addSong({
-          mediaId: song?.id || song?.mediaId || Date.now().toString(),
+          mediaId: song?.id || Date.now().toString(),
           url: localPath || metadata?.url || song.url || '',
           artist: song?.artist || metadata?.artist || 'Ilyafy',
           artwork: song?.thumbnail || metadata?.thumbnail || require('../../assets/images/background.png'),
@@ -143,6 +147,57 @@ export const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data
       break;
   }
 })
+const adaptNetworkSpeed = () => {
+  const THRESHOLD = 1.5;
+  let stableSampleCount = 0;
+  const REQUIRED_STABLE_SAMPLE = 5;
+  let lastUrl = '';
+  useDeviceSetting.subscribe((state, prevState) => {
+    if (prevState.networkSpeed === state.networkSpeed) {
+      return;
+    }
+    const currentTrack = useCurrentTrack.getState().track;
+    if (!currentTrack?.url.includes('http')) {
+      console.log("Local file detected. skipping network switching");
+      return;
+    }
+    const audioStreams = useSongs.getState().songQuality.get(currentTrack?.mediaId!);
+    if (!audioStreams) {
+      console.log('No Source found for this audio. Ignoring.')
+      return;
+    }
+    const sortedStream = audioStreams.sort((a, b) => b.bitrate - a.bitrate);
+    const bestFit = sortedStream.find(t => t.bitrate * THRESHOLD <= (state.networkSpeed || 0)) || sortedStream[sortedStream.length - 1]
+    const newUrl = bestFit.url;
+    if (newUrl === currentTrack.url) {
+      stableSampleCount = 0;
+      return;
+    };
+    if (newUrl !== lastUrl) {
+      lastUrl = newUrl;
+      stableSampleCount = 0;
+    } else {
+      stableSampleCount++;
+    }
+
+    if (stableSampleCount >= REQUIRED_STABLE_SAMPLE) {
+      stableSampleCount = 0;
+      performSwich(currentTrack, newUrl);
+    }
+
+    async function performSwich(track: CTrack, url: string) {
+      const index = await TrackPlayer.getActiveTrackIndex()
+      const { position } = await TrackPlayer.getProgress();
+      const isPlaying = useCurrentTrack.getState().isPlaying;
+      console.log('Adapting quality to', url);
+      console.log('Bitrate:', audioStreams?.find(t => t.url === url)?.bitrate);
+      await TrackPlayer.remove(index!);
+      await TrackPlayer.add({ ...track, url }, index);
+      await TrackPlayer.seekTo(position);
+      isPlaying && await TrackPlayer.play();
+    }
+  })
+}
 
 
 export default () => {
@@ -154,4 +209,5 @@ export default () => {
   executeSkip();
   executeStop();
   executeHeartbeat();
+  adaptNetworkSpeed();
 }

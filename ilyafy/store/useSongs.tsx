@@ -7,7 +7,7 @@ import _delete from '../api/playlist/delete';
 import post from '../api/playlist/post';
 import list from '../api/playlist/list';
 import TrackPlayer from 'react-native-track-player';
-import { CTrack, songProp } from '../types/songs';
+import { AudioStream, CTrack, songProp } from '../types/songs';
 import getSongDetail from '../api/playlist/get';
 import stream from '../functions/stream/stream';
 import NewPipeModule from '../modules/NewPipeModule';
@@ -24,6 +24,7 @@ type songList = {
   setSong: (arg: songProp[]) => void;
   load: typeof list;
   replace: (song: CTrack) => Promise<void>;
+  songQuality: Map<string, AudioStream[]>;
 };
 const setMessage = useMessage?.getState()?.setMessage;
 const fetchedSong = async (url: string, id: string, song?: CTrack) => {
@@ -50,6 +51,7 @@ export default create(
       setLoading: arg => {
         set({ isLoading: arg });
       },
+      songQuality: new Map<string, AudioStream[]>(),
       add: async url => {
         get().setLoading(true);
         return new Promise(async (resolve, reject) => {
@@ -219,14 +221,22 @@ export default create(
           } else {
             const songDetails = await NewPipeModule.extractStream(song?.ytUrl);
             console.log('song details:', songDetails);
+            const bitrateMap = new Map<number, string>();
+            songDetails?.audioStreams.map(t => {
+              bitrateMap.set(t.bitrate, t.url);
+            });
+            const lowestBitrateUrl = bitrateMap.get(
+              Math.min(...bitrateMap.keys()),
+            );
             const remoteSongObject: CTrack = {
-              url: songDetails?.audioStream?.url || '',
+              url: lowestBitrateUrl || '',
               title: songDetails?.title || 'Unknown Song',
               artist: songDetails?.uploader || 'Ilyafy',
               mediaId: song?.id,
               artwork:
                 song?.thumbnail || songDetails?.thumbnailUrl || thumbnail,
             };
+            get().songQuality.set(song.id, songDetails?.audioStreams!);
             await TrackPlayer.add(remoteSongObject).then(() => {
               set({ songs: [...get().songs, song] });
               stream.addToDownloadMap(
