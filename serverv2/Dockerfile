@@ -14,6 +14,9 @@
   
   COPY . .
   
+  ARG DATABASE_URL
+  ENV DATABASE_URL=$DATABASE_URL
+  
   # 2. Build the project (creates the /dist folder)
   RUN npx prisma generate
   RUN npm run build
