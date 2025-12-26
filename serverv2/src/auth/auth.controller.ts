@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Headers, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Post, Query } from '@nestjs/common';
 import AuthService from './auth.service';
 import * as dto from 'types/dto'
 import { IncomingHttpHeaders } from 'http';
 import { verifyToken } from '@functions/secret/JWT';
 import prisma from '@libs/prisma';
 import getAccessTokenfromHeaders from '@functions/others/getAccessTokenfromHeaders';
+import { httpHeader } from 'types';
 
 @Controller('auth/users')
 export default class AuthController {
@@ -34,17 +35,23 @@ export default class AuthController {
     return this.authService.refreshToken(body);
   }
   @Post('connect')
-  async getRoom(@Body() body: { accessToken: string; email: string; }) {
+  async getRoom(@Body() body: { email: string }, @Headers() headers: IncomingHttpHeaders & { authorization: string }) {
     console.log('Email: ', body.email);
-    return this.authService.connectUser(body)
+    const token = getAccessTokenfromHeaders(headers);
+    return this.authService.connectUser({ email: body.email, accessToken: token });
+  }
+  @Delete('connect')
+  async unpair(@Headers() headers: httpHeader) {
+    const token = getAccessTokenfromHeaders(headers);
+    return this.authService.disconnectUser(token);
   }
   @Get('roommate')
-  async getRoommate(@Headers() headers: IncomingHttpHeaders & { authorization: string }) {
+  async getRoommate(@Headers() headers: httpHeader) {
     const token = getAccessTokenfromHeaders(headers);
     return await this.authService.getRoommate(token)
   }
   @Get('refresh-profile')
-  async refreshProfile(@Headers() headers: IncomingHttpHeaders & { authorization: string }) {
+  async refreshProfile(@Headers() headers: httpHeader) {
     const token = headers.authorization.split(' ')[1];
     const { success, data, message } = verifyToken(token);
     if (!success) {
@@ -60,7 +67,7 @@ export default class AuthController {
     return { success: true, user }
   }
   @Get('poke')
-  async pokeUser(@Headers() headers: IncomingHttpHeaders & { authorization: string },) {
+  async pokeUser(@Headers() headers: httpHeader) {
     const token = getAccessTokenfromHeaders(headers);
     return this.authService.pokeUser(token);
   }

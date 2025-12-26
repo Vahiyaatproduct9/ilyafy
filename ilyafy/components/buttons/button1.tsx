@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Text, Pressable, ViewStyle, TextStyle } from 'react-native';
 import Animated, {
+  AnimatedStyle,
   EntryOrExitLayoutType,
   FadeInDown,
   FadeOutDown,
@@ -12,7 +13,7 @@ import Animated, {
 
 interface Props {
   containerClassName?: string;
-  containerStyle?: ViewStyle;
+  containerStyle?: ViewStyle | AnimatedStyle;
   textClassName?: string;
   textStyle?: ViewStyle | TextStyle;
   onPressIn?: () => void;

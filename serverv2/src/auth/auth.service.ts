@@ -27,6 +27,9 @@ export default class AuthService {
   connectUser(info: { accessToken: string; email: string; }) {
     return this.connection.connectUser(info)
   }
+  disconnectUser(token: string) {
+    return this.connection.disconnectUser(token);
+  }
   searchUser(info: string) {
     return this.connection.search(info)
   }

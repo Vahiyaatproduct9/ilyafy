@@ -1,3 +1,5 @@
+import { IncomingHttpHeaders } from "http";
+
 export interface SignUpData {
   name: string;
   email: string;
@@ -22,3 +24,4 @@ export type tokenType = {
   name: string;
   tokenVersion: number;
 }
+export type httpHeader = IncomingHttpHeaders & { authorization: string } 

@@ -215,6 +215,7 @@ export default create(
       },
       load: async token => {
         get().setLoading(true);
+        set({ songQuality: new Map<string, AudioStream[]>() });
         const songs = await list(token || '');
         if (!songs?.success) {
           setMessage('Network Err X(');
@@ -237,22 +238,28 @@ export default create(
           } else {
             const songDetails = await NewPipeModule.extractStream(song?.ytUrl);
             console.log('song details:', songDetails);
-            const bitrateMap = new Map<number, string>();
-            songDetails?.audioStreams.map(t => {
-              bitrateMap.set(t.bitrate, t.url);
-            });
-            const lowestBitrateUrl = bitrateMap.get(
-              Math.min(...bitrateMap.keys()),
+            const bitrateSet = new Set<number>();
+            for (const streams of songDetails?.audioStreams || []) {
+              bitrateSet.add(streams.bitrate);
+            }
+            const lowestBitrateUrl = songDetails?.audioStreams.find(
+              t => t.bitrate === Math.min(...bitrateSet),
+            )?.url;
+            const thumbnailUrlSet = new Set<number>();
+            songDetails?.thumbnails.forEach(t =>
+              thumbnailUrlSet.add(t.height * t.width),
             );
+            const highestThumbnailUrl = songDetails?.thumbnails.find(
+              t => t.height * t.width === Math.max(...thumbnailUrlSet),
+            )?.url;
             const remoteSongObject: CTrack = {
               url: lowestBitrateUrl || '',
               title: songDetails?.title || 'Unknown Song',
               artist: songDetails?.uploader || 'Ilyafy',
               mediaId: song?.id,
-              artwork:
-                song?.thumbnail || songDetails?.thumbnailUrl || thumbnail,
+              artwork: highestThumbnailUrl,
             };
-            get().songQuality.set(song.id, songDetails?.audioStreams!);
+            get().songQuality.set(song?.id, songDetails?.audioStreams || []);
             await TrackPlayer.add(remoteSongObject).then(() => {
               set({ songs: [...get().songs, song] });
               stream.addToDownloadMap(

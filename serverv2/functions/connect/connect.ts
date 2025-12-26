@@ -84,42 +84,29 @@ export default class Connection {
         message: err
       }
     }
-  }
-  async addToPlaylist(info: roomPlaylist) {
-    const { success, data, message } = verifyToken(info.accessToken);
-    if (!success) {
-      return {
-        success,
-        message
-      }
+  };
+  async disconnectUser(token: string) {
+    const { data, success, message } = verifyToken(token);
+    if (!success) return {
+      success,
+      message
     }
-    const addedSong = await prisma.rooms.update({
+    const deletedRoom = await prisma.rooms.deleteMany({
       where: {
-        id: info.roomId
-      },
-      data: {
-        playlists: {
-          update: {
-            where: {
-              room_part_of: info.roomId
-            },
-            data: {
-              songs: {
-                create: {
-                  title: info.song.title,
-                  artist: info.song.artist,
-                  thumbnail: info.song.thumbnail,
-                  url: info.song.url,
-                  playable: info.song.playable || false,
-                  added_by: data?.id,
-                  ytUrl: info.song.ytUrl
-                }
-              }
-            }
+        users: {
+          every: {
+            id: data?.id
           }
         }
       }
     });
-    return addedSong;
+    if (deletedRoom?.count > 0) return {
+      success: true,
+      message: 'Unpaired :D'
+    }
+    return {
+      success: false,
+      message: 'Couldn\'t Disconnect :('
+    }
   }
 };

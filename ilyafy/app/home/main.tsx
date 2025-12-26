@@ -17,7 +17,6 @@ import {
   NativeScrollEvent,
   Pressable,
 } from 'react-native';
-import Main2 from './main2';
 import Button from '../../components/buttons/button1';
 import Playlist from '../tabs/playlist';
 import Invitation from '../tabs/invitation';
@@ -41,6 +40,8 @@ import { Track } from 'react-native-track-player';
 import useCurrentTrack from '../../store/useCurrentTrack';
 import Icon from '../../components/icons/icon';
 import SideBar from '../../components/options/sideBar';
+import ConfirmScreen from '../../components/popup/confirmScreen';
+import useConfirmScreen from '../../store/useConfirmScreen';
 const tabButtons = ['Playlist', 'Pair'];
 const Main = () => {
   const colors = useDeviceSetting(s => s.colors);
@@ -53,6 +54,7 @@ const Main = () => {
   const scrollX = useSharedValue(80);
   const currentTrack = useCurrentTrack(s => s.track);
   const [sidebarVisible, setSidebarVisible] = useState<boolean>(false);
+  const confirmScreenVisible = useConfirmScreen(s => s.isVisible);
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: e => {
       scrollX.value = e.contentOffset.x;
@@ -117,7 +119,7 @@ const Main = () => {
       style={primaryColorStyle}
     >
       {sidebarVisible && <SideBar setSideBarVisible={setSidebarVisible} />}
-
+      {confirmScreenVisible && <ConfirmScreen />}
       <View className="w-full flex-row py-2 mb-6 item-center justify-between">
         <View className="flex-row justify-center gap-5">
           <Icon

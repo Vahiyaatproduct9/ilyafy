@@ -313,6 +313,7 @@ export default {
   },
   addToDownloadMap(id: string, url: string) {
     downloadMap.set(id, url);
+    console.log('added', id, url, 'to download map')
   },
   async downloadMap() {
     const songs = useSongs.getState().songs;

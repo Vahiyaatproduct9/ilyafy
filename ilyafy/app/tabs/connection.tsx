@@ -14,6 +14,7 @@ import useSocketStore from '../../store/useSocketStore';
 import link from '../../assets/icons/link.svg';
 import link_off from '../../assets/icons/link_off.svg';
 import { commandEmitter } from '../../store/useSocketStore';
+import useConfirmScreen from '../../store/useConfirmScreen';
 
 const Connection = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -68,6 +69,13 @@ const Connection = () => {
       return res;
     });
   };
+  const data = useConfirmScreen(s => s.setData);
+  const unpair = async () => {
+    data({
+      title: 'Are dwajdp',
+      critical: 'no',
+    });
+  };
   const toggleConnect = async () => {
     if (isConnected) {
       useSocketStore?.getState()?.disconnect();
@@ -95,7 +103,7 @@ const Connection = () => {
           fill={colors.text}
           size={24}
           className="rounded-full border-2 border-white"
-          onPress={toggleConnect}
+          onPress={unpair}
         />
       </View>
       {partner?.map((item, i) => {
@@ -132,6 +140,7 @@ const Connection = () => {
             <View className="justify-between flex-row">
               <Button
                 label="UNPAIR"
+                onPress={unpair}
                 containerClassName="px-10 py-4 w-fit rounded-full"
                 textStyle={{ color: colors.text, fontWeight: '600' }}
                 containerStyle={{ backgroundColor: colors.accent }}
