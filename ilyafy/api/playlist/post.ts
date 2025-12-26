@@ -1,3 +1,4 @@
+import NewPipeModule from "../../modules/NewPipeModule";
 import { domain } from "../../path/path";
 import useProfile from "../../store/useProfile";
 import { songProp } from "../../types/songs";
@@ -7,6 +8,17 @@ type postType = {
   message: string;
 } | undefined;
 export default async (url: string): Promise<postType> => {
+  const newSong = await NewPipeModule.extractStream(url);
+  if (!newSong) {
+    return { success: false, message: "Couldn't Extract Info :(" }
+  }
+  const body = {
+    url: newSong?.audioStream?.url,
+    title: newSong?.title,
+    thumbnail: newSong?.thumbnailUrl,
+    artist: newSong?.uploader,
+    ytUrl: url,
+  }
   const accessToken = useProfile?.getState()?.accessToken;
   const res = await fetch(`${domain}/playlist`, {
     method: 'POST',
@@ -14,7 +26,7 @@ export default async (url: string): Promise<postType> => {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ url })
+    body: JSON.stringify(body)
   });
   const response = await res.json();
   return response;

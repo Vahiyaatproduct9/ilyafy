@@ -4,7 +4,8 @@ configDotenv({
   quiet: true
 });
 import nodemailer from 'nodemailer';
-export default async function mailto({ to, subject, html }: { to: string, subject: string, html: string }) {
+import { MailOptions } from 'nodemailer/lib/sendmail-transport';
+export default async function mailto(data: Omit<MailOptions, 'from'>) {
   console.log('GMAIL_PASS:', process.env.GMAIL_PASS);
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -14,22 +15,32 @@ export default async function mailto({ to, subject, html }: { to: string, subjec
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_PASS
     }
-  })
-  const info = await transporter.sendMail({
-    from: `"Ilyafy" <${process.env.GMAIL_USER}>`,
-    to,
-    subject,
-    html,
   });
-  console.log('Message sent:', info);
-  if (info.response.toLowerCase().includes('ok')) {
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"Ilyafy" <${process.env.GMAIL_USER}>`,
+      ...data,
+    });
+
+    if (info && typeof info.response === 'string' && info.response.toLowerCase().includes('ok')) {
+      return {
+        success: true,
+        message: 'Email sent successfully',
+        info
+      };
+    }
+
     return {
-      success: true,
-      message: 'Email sent successfully'
+      success: false,
+      message: 'Failed to send email',
+      info
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: 'Failed to send email',
+      error: err
     };
   }
-  return {
-    success: false,
-    message: 'Failed to send email'
-  };
 }

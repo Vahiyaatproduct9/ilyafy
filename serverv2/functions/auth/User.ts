@@ -1,10 +1,9 @@
 import { SignInData, SignUpData, tokenType } from 'types';
 import prisma from '@libs/prisma';
 import { encrypt, decrypt } from '@functions/secret/cryption';
-import mailto from '@libs/mailer';
-import verification from '@templates/verification';
 import * as JWT from '@functions/secret/JWT';
 import notification from '@libs/notification';
+import verificationEmail from 'src/emails/verificationEmail';
 const codes = new Map<string, string>();
 export default class User {
   async signup(info: SignUpData) {
@@ -103,11 +102,7 @@ export default class User {
   async #sendVerificationEmail(email: string) {
     email = email.toLowerCase();
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const mail = await mailto({
-      to: email,
-      subject: 'Verify your email',
-      html: verification(code)
-    })
+    const mail = await verificationEmail(email, code);
     return {
       ...mail,
       code

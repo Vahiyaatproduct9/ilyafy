@@ -5,7 +5,11 @@ import { IncomingHttpHeaders } from "http";
 type httpHeader = IncomingHttpHeaders & { authorization: string };
 
 type body = {
-  url: string
+  url: string,
+  title: string,
+  thumbnail: string,
+  artist: string,
+  ytUrl: string,
 }
 type songId = { songId: string }
 @Controller('playlist')
@@ -15,20 +19,19 @@ export default class PlaylistController {
   async get(@Query() query: {
     songId: string
   }) {
-    return this.playlist.get(query.songId);
+    return await this.playlist.get(query.songId);
   }
   @Get('list')
   async list(@Headers() headers: httpHeader) {
-    console.log('token:', headers.authorization);
-    return this.playlist.list({ headers })
+    return await this.playlist.list({ headers })
   }
   @Post()
   async post(@Body() body: body,
     @Headers() headers: httpHeader) {
-    return this.playlist.post({ headers, url: body.url })
+    return await this.playlist.post({ headers, body })
   }
   @Delete()
   async delete(@Body() body: songId, @Headers() headers: any) {
-    return this.playlist.delete({ headers, songId: body.songId })
+    return await this.playlist.delete({ headers, songId: body.songId })
   }
 }

@@ -19,10 +19,17 @@ export type roomPlaylist = {
 export type listType = {
   headers: IncomingHttpHeaders & { authorization: string } | undefined,
 }
+export type postBody = {
+  url: string,
+  title: string,
+  thumbnail: string,
+  artist: string,
+  ytUrl: string,
+}
 
 export type postType = {
   headers: IncomingHttpHeaders & { authorization: string };
-  url: string;
+  body: postBody
 }
 
 export type deleteType = {

@@ -58,22 +58,16 @@ export default create(
           const response = await post(url);
           if (response?.success && response?.song) {
             resolve(response);
-            const song = response?.song;
-            const newSong = await fetchedSong(url, song?.id);
-            console.log('adding new song:', newSong);
-            if (!newSong) {
-              reject('Song Not Found X(');
-              setMessage('Song Not Found X(');
-              return;
-            }
-            await TrackPlayer.add(newSong).then(() => {
-              set({
-                songs: response?.song
-                  ? [...get().songs, response?.song]
-                  : [...get().songs],
+            get()
+              .addSong({
+                ...response?.song,
+                mediaId: response?.song?.id,
+                id: undefined,
+                artwork: response?.song?.thumbnail,
+              })
+              .then(() => {
+                get().setLoading(false);
               });
-            });
-            get().setLoading(false);
             return;
           }
           reject(new Error('Fetch Failed'));
