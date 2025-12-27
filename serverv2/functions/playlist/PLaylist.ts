@@ -1,6 +1,6 @@
 import getAccessTokenfromHeaders from "@functions/others/getAccessTokenfromHeaders";
 import { verifyToken } from "@functions/secret/JWT";
-import getMetaData from "@functions/stream/getMetaData";
+// import getMetaData from "@functions/stream/getMetaData";
 import notification from "@libs/notification";
 import prisma from "@libs/prisma";
 import { IncomingHttpHeaders } from "http";
@@ -12,7 +12,7 @@ export default class PLaylist {
   }: listType) {
     const token = getAccessTokenfromHeaders(headers);
     const { success, id, message } = await this.#getPlaylist(token);
-    if (!success) {
+    if (!success || !id) {
       return {
         success,
         id,
@@ -247,7 +247,7 @@ export default class PLaylist {
     }
     return {
       success: true,
-      id: playlistId?.rooms?.playlists[0]?.id || '',
+      id: playlistId?.rooms?.playlists?.[0]?.id || '',
       message: 'found.',
       userId: data?.id,
       users: playlistId.rooms?.users

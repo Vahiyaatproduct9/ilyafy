@@ -94,7 +94,7 @@ export default class Connection {
     const deletedRoom = await prisma.rooms.deleteMany({
       where: {
         users: {
-          every: {
+          some: {
             id: data?.id
           }
         }

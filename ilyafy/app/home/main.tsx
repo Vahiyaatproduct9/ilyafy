@@ -224,7 +224,7 @@ const ScrollView = ({
   scrollHandler,
   setSong,
 }: ScrollViewProps) => {
-  const room_part_of = useProfile().profile?.room_part_of;
+  const profile = useProfile(s => s.profile);
   return (
     <Animated.ScrollView
       horizontal
@@ -239,11 +239,7 @@ const ScrollView = ({
       className={'rounded-[28px] mt-4'}
     >
       <Playlist setSong={setSong} />
-      {room_part_of && room_part_of.length !== 0 ? (
-        <Connection />
-      ) : (
-        <Invitation />
-      )}
+      {profile?.room_part_of ? <Connection /> : <Invitation />}
     </Animated.ScrollView>
   );
 };

@@ -17,12 +17,12 @@ model playlists {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model rooms {
-  id           String      @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  created_at   DateTime    @default(now()) @db.Timestamptz(6)
-  code         String      @unique
-  current_song String?     @db.Uuid
-  playlists    playlists[]
-  songs        songs?      @relation(fields: [current_song], references: [id])
+  id           String     @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at   DateTime   @default(now()) @db.Timestamptz(6)
+  code         String     @unique
+  current_song String?    @db.Uuid
+  playlists    playlists?
+  songs        songs?     @relation(fields: [current_song], references: [id])
   users        users[]
 }
 
@@ -44,14 +44,24 @@ model songs {
 }
 
 model users {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email         String   @unique
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String          @unique
   password      String
   name          String
-  room_part_of  String?  @db.Uuid
+  room_part_of  String?         @db.Uuid
+  authenticated Boolean?        @default(false)
+  tokenVersion  Int             @default(1)
   fcm_token     String?
+  notifications notifications[]
   songs         songs[]
-  rooms         rooms?   @relation(fields: [room_part_of], references: [id], onUpdate: NoAction)
-  authenticated Boolean? @default(false)
-  tokenVersion  Int      @default(1)
+  rooms         rooms?          @relation(fields: [room_part_of], references: [id], onUpdate: NoAction)
+}
+
+model notifications {
+  id      String  @id @db.Uuid
+  user_id String  @db.Uuid
+  title   String
+  body    String?
+  data    Json?
+  users   users   @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "users_references_notification")
 }

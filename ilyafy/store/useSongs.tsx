@@ -11,6 +11,8 @@ import { AudioStream, CTrack, songProp } from '../types/songs';
 import getSongDetail from '../api/playlist/get';
 import stream from '../functions/stream/stream';
 import NewPipeModule from '../modules/NewPipeModule';
+import useProfile from './useProfile';
+import local from '../api/playlist/local';
 // import useCurrentTrack from './useCurrentTrack';
 const thumbnail = require('../assets/images/background.png');
 type songList = {
@@ -55,7 +57,14 @@ export default create(
       add: async url => {
         get().setLoading(true);
         return new Promise(async (resolve, reject) => {
-          const response = await post(url);
+          const roomMember = useProfile.getState().profile?.room_part_of;
+          let response;
+          console.log('room member:', roomMember);
+          if (roomMember) {
+            response = await post(url);
+          } else {
+            response = await local.post(url);
+          }
           if (response?.success && response?.song) {
             resolve(response);
             get()
@@ -76,18 +85,12 @@ export default create(
         });
       },
       addSong: async song => {
+        // const roomMember = useProfile.getState().profile?.room_part_of;
+
         const songExists = get().songs.find(t => t.id === song?.mediaId);
         if (songExists) {
           if (song?.url.includes('http')) {
-            const songDetails = await getSongDetail(song?.mediaId || '');
-            if (!songDetails?.success) {
-              console.error("Song doesn't exist in playlist.");
-              setMessage('Song does not exist.');
-              return;
-            }
-            const newSong = await NewPipeModule.extractStream(
-              songDetails?.song?.ytUrl!,
-            );
+            const newSong = await NewPipeModule.extractStream(song?.ytUrl!);
             if (!newSong) {
               setMessage("Couldn't fetch song X(");
               console.error('Error in useSongs.');
@@ -112,7 +115,10 @@ export default create(
           return;
         }
         // SONG DOESNT EXIST IN PLAYLIST
-        const songDetails = await getSongDetail(song?.mediaId || '');
+        const roomMember = useProfile.getState().profile?.room_part_of;
+        let songDetails;
+        if (roomMember) songDetails = await getSongDetail(song?.mediaId || '');
+        else songDetails = await local.get(song?.id || song?.mediaId);
         if (song?.url?.includes('http')) {
           if (!songDetails?.success) {
             console.error("Song doesn't exist in playlist.");
@@ -168,12 +174,17 @@ export default create(
         };
         await TrackPlayer.remove(index).then(async () => {
           await TrackPlayer.add(song, index);
+          await local.delete(queue[index].id);
+          await local.post(queue[index]);
           set({ songs: [...queue] });
         });
         console.log('trackplayer queue:', await TrackPlayer.getQueue());
       },
       delete: async id => {
-        const response = await _delete(id);
+        const roomMember = useProfile.getState().profile?.room_part_of;
+        let response;
+        if (roomMember) response = await _delete(id);
+        else response = await local.delete(id);
         if (response?.success) {
           const newSongList = get().songs.filter(t => t.id !== id);
           set({
@@ -216,9 +227,12 @@ export default create(
       load: async token => {
         get().setLoading(true);
         set({ songQuality: new Map<string, AudioStream[]>() });
-        const songs = await list(token || '');
+        const roomMember = useProfile.getState().profile?.room_part_of;
+        let songs;
+        if (roomMember) songs = await list(token || '');
+        else songs = await local.list();
         if (!songs?.success) {
-          setMessage('Network Err X(');
+          setMessage(songs?.message || 'Network Err X(');
           return;
         }
         await TrackPlayer.reset().then(() => get().setSong([]));

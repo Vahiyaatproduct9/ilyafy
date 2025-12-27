@@ -20,7 +20,7 @@ const SongOptions = ({ song, setSong }: optionProp) => {
   const setMessage = useMessage.getState().setMessage;
 
   const deleteSong = useCallback(async () => {
-    const response = await del(song?.mediaId || '');
+    const response = await del(song?.id || song?.mediaId || '');
     setMessage(response?.message || '');
     if (response?.success) {
       setSong(null);

@@ -8,26 +8,30 @@ type postType = {
   message: string;
 } | undefined;
 export default async (url: string): Promise<postType> => {
-  const newSong = await NewPipeModule.extractStream(url);
-  if (!newSong) {
-    return { success: false, message: "Couldn't Extract Info :(" }
+  const roomMember = useProfile?.getState().profile?.room_part_of;
+  if (roomMember) {
+    const newSong = await NewPipeModule.extractStream(url);
+    if (!newSong) {
+      return { success: false, message: "Couldn't Extract Info :(" }
+    }
+    const body = {
+      url: newSong?.audioStream?.url,
+      title: newSong?.title,
+      thumbnail: newSong?.thumbnailUrl,
+      artist: newSong?.uploader,
+      ytUrl: url,
+    }
+    const accessToken = useProfile?.getState()?.accessToken;
+    const res = await fetch(`${domain}/playlist`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const response = await res.json();
+    return response;
   }
-  const body = {
-    url: newSong?.audioStream?.url,
-    title: newSong?.title,
-    thumbnail: newSong?.thumbnailUrl,
-    artist: newSong?.uploader,
-    ytUrl: url,
-  }
-  const accessToken = useProfile?.getState()?.accessToken;
-  const res = await fetch(`${domain}/playlist`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-  const response = await res.json();
-  return response;
+  return;
 }

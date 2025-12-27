@@ -43,6 +43,7 @@ export default class AuthController {
   @Delete('connect')
   async unpair(@Headers() headers: httpHeader) {
     const token = getAccessTokenfromHeaders(headers);
+    console.log('token:', token);
     return this.authService.disconnectUser(token);
   }
   @Get('roommate')

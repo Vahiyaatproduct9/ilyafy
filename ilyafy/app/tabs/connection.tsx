@@ -15,6 +15,7 @@ import link from '../../assets/icons/link.svg';
 import link_off from '../../assets/icons/link_off.svg';
 import { commandEmitter } from '../../store/useSocketStore';
 import useConfirmScreen from '../../store/useConfirmScreen';
+import disconnect from '../../functions/partner/disconnect';
 
 const Connection = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -24,6 +25,8 @@ const Connection = () => {
   const width = Dimensions.get('window').width - 16;
   const isConnected = useSocketStore?.getState()?.isConnected;
   const connect = useSocketStore().connect;
+  const profile = useProfile.getState().profile;
+  const setProfile = useProfile.getState().setProfile;
   const [partner, setPartner] = useState<
     | []
     | {
@@ -37,20 +40,27 @@ const Connection = () => {
     getRoommate(accessToken ?? undefined)
       .then(response => {
         if (response?.success)
-          setPartner([
-            {
-              id: response?.user?.id || '',
-              name: response?.user?.name || '',
-              email: response?.user?.email || '',
-            },
-          ]);
+          if (
+            response?.user?.email.length === 0 &&
+            response?.user?.id.length === 0 &&
+            response?.user?.name.length === 0
+          ) {
+            setProfile(profile ? { ...profile, room_part_of: null } : null);
+          }
+        setPartner([
+          {
+            id: response?.user?.id || '',
+            name: response?.user?.name || '',
+            email: response?.user?.email || '',
+          },
+        ]);
       })
       .catch(err => {
         console.log('error:', err);
         setMessage('Failed to fetch roommate');
         setPartner([]);
       });
-  }, [accessToken, room_part_of, setMessage]);
+  }, [accessToken, profile, room_part_of, setMessage, setProfile]);
   useEffect(() => {
     console.log('partner:', partner);
   }, [partner]);
@@ -72,8 +82,11 @@ const Connection = () => {
   const data = useConfirmScreen(s => s.setData);
   const unpair = async () => {
     data({
-      title: 'Are dwajdp',
       critical: 'no',
+      body: 'Unpairing will delete all songs paramanently.',
+      yesLabel: 'Unpair',
+      noLabel: 'Cancel',
+      yesFunction: async () => disconnect(),
     });
   };
   const toggleConnect = async () => {
@@ -103,7 +116,7 @@ const Connection = () => {
           fill={colors.text}
           size={24}
           className="rounded-full border-2 border-white"
-          onPress={unpair}
+          onPress={toggleConnect}
         />
       </View>
       {partner?.map((item, i) => {

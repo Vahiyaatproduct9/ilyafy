@@ -44,10 +44,12 @@ const Playlist = ({
   const [searchItem, setSearchItem] = useState<string>('');
   const isLoading = useSongs(s => s.isLoading);
   const colors = useDeviceSetting(s => s.colors);
+  const profile = useProfile(s => s.profile);
 
   const loadSongs = useCallback(async () => {
     await load(accessToken || '');
-  }, [accessToken, load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken, load, profile?.room_part_of]);
   useEffect(() => {
     console.log(loading);
   }, [loading]);
@@ -105,6 +107,7 @@ const Playlist = ({
           showPopup={showAddScreen}
         />
       )}
+
       <View className="justify-end w-full gap-2 flex-row p-2">
         <View className="flex-1 flex-row items-center border-2 border-white rounded-full">
           <Icon component={Search} size={28} className="ml-4" fill="white" />
