@@ -105,6 +105,14 @@ The Newer Architecture flow goes
   - `ilyafy/store/useDeviceSettings.ts`
   - `ilyafy/store/useSongs.ts`
 
+## Support for Unpaired Users
+
+- Unpaired users can still save and listen to songs ad free.
+
+## Offline Mode
+
+- Once the Songs are "**Cached**", they can be played offline.
+
 ## Compatible with multiple devices
 
 - Able to connect multiple devices using the same account.
@@ -116,6 +124,11 @@ The Newer Architecture flow goes
 ## Admin Log report through Email (Server)
 
 - Endpoint for reporting recent logs to creator for optimisations.
+
+## Appropriate Middlewares (Server)
+
+- Rate Limiter
+- Access Token Check
 
 ## Latest Optimisations
 
