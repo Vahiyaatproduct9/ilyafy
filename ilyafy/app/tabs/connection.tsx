@@ -46,6 +46,7 @@ const Connection = () => {
             response?.user?.name.length === 0
           ) {
             setProfile(profile ? { ...profile, room_part_of: null } : null);
+            return;
           }
         setPartner([
           {

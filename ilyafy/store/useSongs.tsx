@@ -29,22 +29,22 @@ type songList = {
   songQuality: Map<string, AudioStream[]>;
 };
 const setMessage = useMessage?.getState()?.setMessage;
-const fetchedSong = async (url: string, id: string, song?: CTrack) => {
-  const fs = await stream.localGet(url, id);
-  let metadata = fs?.metadata;
-  let localPath = fs?.localPath || metadata?.url || undefined;
-  const newSong = {
-    url: localPath || metadata?.url || '',
-    mediaId: id || song?.id || song?.mediaId,
-    artist: song?.artist || metadata?.artist || 'Ilyafy',
-    artwork: song?.artwork || metadata?.thumbnail || undefined,
-    title: song?.title || metadata?.title || 'Unknown Song',
-    localPath,
-  };
-  console.log('new Song:::', newSong);
+// const fetchedSong = async (url: string, id: string, song?: CTrack) => {
+//   const fs = await stream.localGet(url, id);
+//   let metadata = fs?.metadata;
+//   let localPath = fs?.localPath || metadata?.url || undefined;
+//   const newSong = {
+//     url: localPath || metadata?.url || '',
+//     mediaId: id || song?.id || song?.mediaId,
+//     artist: song?.artist || metadata?.artist || 'Ilyafy',
+//     artwork: song?.artwork || metadata?.thumbnail || undefined,
+//     title: song?.title || metadata?.title || 'Unknown Song',
+//     localPath,
+//   };
+//   console.log('new Song:::', newSong);
 
-  return newSong;
-};
+//   return newSong;
+// };
 export default create(
   persist<songList>(
     (set, get) => ({
@@ -71,7 +71,7 @@ export default create(
               .addSong({
                 ...response?.song,
                 mediaId: response?.song?.id,
-                id: undefined,
+                id: response?.song?.id,
                 artwork: response?.song?.thumbnail,
               })
               .then(() => {
@@ -99,6 +99,7 @@ export default create(
             const bitrateSet = new Set<number>();
             newSong?.audioStreams.forEach(t => bitrateSet.add(t.bitrate));
             const newSongObject: CTrack = {
+              ...song,
               url: newSong?.audioStreams.find(
                 t => t.bitrate === Math.min(...bitrateSet),
               )?.url!,
@@ -142,6 +143,7 @@ export default create(
             title: newSong?.title,
             artist: song?.artist,
             artwork: song?.artwork,
+            mediaId: song?.mediaId || song?.id,
           };
           get().songQuality.set(songDetails?.song?.id!, newSong?.audioStreams);
           await TrackPlayer.add(newSongObject).then(() => {

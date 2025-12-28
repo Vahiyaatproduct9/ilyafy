@@ -37,6 +37,7 @@ export default class AuthService {
     return this.user.pokeUser(token);
   }
   async getRoommate(token: string) {
-    return this.user.getRoommate(token);
+    const result = await this.user.getRoommate(token);
+    return result;
   }
 }

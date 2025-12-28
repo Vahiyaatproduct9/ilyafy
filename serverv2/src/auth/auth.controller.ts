@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Headers, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Post } from '@nestjs/common';
 import AuthService from './auth.service';
 import * as dto from 'types/dto'
 import { IncomingHttpHeaders } from 'http';
@@ -47,6 +47,7 @@ export default class AuthController {
     return this.authService.disconnectUser(token);
   }
   @Get('roommate')
+
   async getRoommate(@Headers() headers: httpHeader) {
     const token = getAccessTokenfromHeaders(headers);
     return await this.authService.getRoommate(token)

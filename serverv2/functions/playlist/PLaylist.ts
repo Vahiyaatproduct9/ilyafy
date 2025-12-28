@@ -81,7 +81,9 @@ export default class PLaylist {
       ...body,
       playable: false
     }
-    return await this.#addToDB({ songInfo: payload, headers })
+    console.log('POSTED SONG:', payload)
+    const result = await this.#addToDB({ songInfo: payload, headers })
+    return result;
   }
   async #addToDB({ headers, songInfo }: { headers: IncomingHttpHeaders & { authorization: string; }; songInfo: song }) {
     const token = getAccessTokenfromHeaders(headers);
@@ -101,7 +103,7 @@ export default class PLaylist {
         added_by: userId,
         url: songInfo.url,
         ytUrl: songInfo.ytUrl,
-        playable: songInfo.playable
+        playable: songInfo.playable,
       },
       select: {
         id: true,
@@ -139,7 +141,7 @@ export default class PLaylist {
             body: '1 song added to Playlist!',
             data: {
               songDetails: JSON.stringify({
-                id: insertSong.id || '',
+                id: insertSong?.id || '',
                 title: insertSong.title || '',
                 artist: insertSong.artist || '',
                 thumbnail: insertSong.thumbnail || '',

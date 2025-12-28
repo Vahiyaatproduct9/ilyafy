@@ -5,6 +5,8 @@ import { SessionGateway } from './gateways/session.gateway';
 import PlaylistModule from './playlist/playlist.module';
 import { LoggerMiddleware } from './middleware/log.middleware';
 import { AdminModule } from './admin/admin.module';
+import { AccessTokenCheck } from './middleware/accessToken.middleware';
+import RateLimiter from './middleware/rateLimiter.middleware';
 @Module({
   imports: [AuthModule, StreamModule, SessionGateway, PlaylistModule, AdminModule],
 
@@ -12,7 +14,14 @@ import { AdminModule } from './admin/admin.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(LoggerMiddleware)
-      .forRoutes('*')
+      .apply(LoggerMiddleware, RateLimiter)
+      .forRoutes('*');
+    consumer.apply(AccessTokenCheck)
+      .forRoutes(
+        'auth/users/roommate',
+        'auth/users/poke',
+        'auth/users/refresh-token',
+        'auth/users/connect',
+      )
   }
 }

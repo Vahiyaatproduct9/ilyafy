@@ -7,11 +7,11 @@ import { Request } from "express";
 export default class AdminController {
   constructor(private adminService: AdminService) { }
   @Get('logs')
-  get(@Headers() headers: IncomingHttpHeaders & {
+  async get(@Headers() headers: IncomingHttpHeaders & {
     'X-Key'?: string,
     'x-key': string
   },
     @Req() req: Request) {
-    this.adminService.logs(headers["X-Key"] || headers['x-key'], req)
+    return await this.adminService.logs(headers["X-Key"] || headers['x-key'], req)
   }
 }

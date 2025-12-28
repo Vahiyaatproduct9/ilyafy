@@ -1,8 +1,8 @@
 import mailto from "@libs/mailer"
 import { Request } from "express"
 
-export default {
-  wrongKey: (offenderReq: Request) => {
+const adminAlerts = {
+  getInfo: (offenderReq: Request) => {
     const headers = Object(offenderReq.headers)
     const body = offenderReq.body;
     const query = offenderReq.query;
@@ -11,15 +11,34 @@ export default {
     const content = JSON.stringify({
       headers, body, query, time, ip
     }, null, 2);
-    mailto({
+    return content;
+  },
+  wrongKey: async (offenderReq: Request) => {
+    const content = adminAlerts.getInfo(offenderReq);
+    await mailto({
       to: process.env.ADMIN_EMAIL,
       subject: 'Someone tried to access logs.',
       priority: 'high',
       html: content,
       attachments: [{
-        filename: 'offenderReq.txt',
+        filename: 'offenderReq.json',
+        content
+      }]
+    })
+  },
+  tooManyRequests: async (offenderReq: Request) => {
+    const content = adminAlerts.getInfo(offenderReq);
+    await mailto({
+      to: process.env.ADMIN_EMAIL,
+      subject: 'Too Many Requests',
+      priority: 'normal',
+      html: content,
+      attachments: [{
+        filename: 'requests.json',
         content
       }]
     })
   }
 }
+
+export default adminAlerts
