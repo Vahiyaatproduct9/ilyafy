@@ -4,6 +4,7 @@ import refreshJWTs from "../../api/auth/refreshJWTs";
 export default async () => {
   const setAccessToken = useProfile?.getState()?.setAccessToken;
   const setRefreshToken = useProfile?.getState()?.setRefreshToken;
+  const setProfile = useProfile.getState().setProfile;
   const oldAccessToken = useProfile?.getState()?.accessToken || '';
   const timeLeft = JWTExpiry(oldAccessToken);
   console.log('TIme Left for EXpiry: ', timeLeft)
@@ -13,6 +14,8 @@ export default async () => {
     if (response?.success) {
       setAccessToken(response?.accessToken || '');
       setRefreshToken(response?.refreshToken || '');
+    } else {
+      setProfile(null)
     }
   }
 }

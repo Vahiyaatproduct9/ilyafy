@@ -20,7 +20,6 @@ export class AppModule implements NestModule {
       .forRoutes(
         'auth/users/roommate',
         'auth/users/poke',
-        'auth/users/refresh-token',
         'auth/users/connect',
       )
   }

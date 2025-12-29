@@ -14,10 +14,15 @@ export default async (url: string): Promise<postType> => {
     if (!newSong) {
       return { success: false, message: "Couldn't Extract Info :(" }
     }
+    const resSet = new Set<number>();
+    newSong?.thumbnails?.forEach(t => {
+      resSet.add(t.height * t.width)
+    })
+    const maxResThumbnail = newSong?.thumbnails?.find(t => (t.height * t.width) === Math.max(...resSet))
     const body = {
       url: newSong?.audioStream?.url,
       title: newSong?.title,
-      thumbnail: newSong?.thumbnailUrl,
+      thumbnail: maxResThumbnail?.url,
       artist: newSong?.uploader,
       ytUrl: url,
     }

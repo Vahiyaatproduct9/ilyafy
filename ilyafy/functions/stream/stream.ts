@@ -353,6 +353,8 @@ export default {
       let resolved = false;
       let startTime = Date.now();
       let bytesDownloaded: number = 0;
+      let smoothedSpeed = 0;
+      const ALPHA = 0.3;
       task.progress({ interval: 250 }, (received, total) => {
         const timeDiff = Date.now() - startTime;
         if (timeDiff >= 1000) {

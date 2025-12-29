@@ -86,8 +86,8 @@ export default create(
       },
       addSong: async song => {
         // const roomMember = useProfile.getState().profile?.room_part_of;
-
         const songExists = get().songs.find(t => t.id === song?.mediaId);
+        console.log('song exists:', songExists);
         if (songExists) {
           if (song?.url.includes('http')) {
             const newSong = await NewPipeModule.extractStream(song?.ytUrl!);
@@ -147,8 +147,9 @@ export default create(
           };
           get().songQuality.set(songDetails?.song?.id!, newSong?.audioStreams);
           await TrackPlayer.add(newSongObject).then(() => {
-            songDetails?.song &&
-              set({ songs: [...get().songs, songDetails?.song] });
+            const songs = get().songs!;
+            !songs.find(t => t.id === songDetails?.song?.id) &&
+              set({ songs: [...songs, songDetails?.song!] });
           });
           stream.fetchAndDownload(newSongObject, newSong?.audioStream?.url!);
           return;
@@ -161,6 +162,7 @@ export default create(
       },
       replace: async song => {
         let queue = get().songs;
+        const roomMember = useProfile.getState().profile?.room_part_of;
         const index = queue.findIndex(t => t.id === song?.mediaId);
         if (index === -1) {
           console.log('Song not found.');
@@ -176,8 +178,10 @@ export default create(
         };
         await TrackPlayer.remove(index).then(async () => {
           await TrackPlayer.add(song, index);
-          await local.delete(queue[index].id);
-          await local.post(queue[index]);
+          if (!roomMember) {
+            await local.delete(queue[index].id);
+            await local.post(queue[index]);
+          }
           set({ songs: [...queue] });
         });
         console.log('trackplayer queue:', await TrackPlayer.getQueue());

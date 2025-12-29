@@ -43,7 +43,11 @@ export default async function () {
     const CurrentSongId = CurrentSong?.mediaId;
     await control.remoteSkip((await TrackPlayer.getActiveTrackIndex() || 0) + 1, 0);
     const songDetails = CurrentSongId ? await get(CurrentSongId) : null;
-    songDetails?.success && useSongs.getState().addSong(songDetails.song!)
+    songDetails?.success && useSongs.getState().addSong({
+      ...songDetails?.song!,
+      mediaId: CurrentSongId,
+      artwork: songDetails.song?.thumbnail
+    })
   });
   let bufferingTimeout: number | null = null;
   TrackPlayer.addEventListener(Event.PlaybackState, async (event) => {

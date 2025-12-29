@@ -58,6 +58,8 @@ const MacroPlayer = (props: {
     if (isPlaying) control.remotePause();
     else if (canBePlayed) await control.remotePlay();
     else setMessage('They are buffering, please wait!');
+    const queue = await TrackPlayer.getQueue();
+    console.log('Queue:', queue);
   }
   async function skipToNext() {
     await control.remoteSkip(

@@ -88,9 +88,10 @@ export default class PLaylist {
   async #addToDB({ headers, songInfo }: { headers: IncomingHttpHeaders & { authorization: string; }; songInfo: song }) {
     const token = getAccessTokenfromHeaders(headers);
     const { success, id, message, userId } = await this.#getPlaylist(token);
-    if (!success) {
+    console.log('success:', success, id, message, userId);
+    if (!success || id?.length === 0) {
       return {
-        success,
+        success: false,
         message
       }
     }
@@ -134,30 +135,30 @@ export default class PLaylist {
     }
     const { success: userSuccess } = verifyToken(token);
     if (userSuccess) {
-      for (const user of (insertSong?.playlists?.rooms?.users || [])) {
-        notification({
-          message: {
-            title: '+1',
-            body: '1 song added to Playlist!',
-            data: {
-              songDetails: JSON.stringify({
-                id: insertSong?.id || '',
-                title: insertSong.title || '',
-                artist: insertSong.artist || '',
-                thumbnail: insertSong.thumbnail || '',
-                added_by: insertSong.added_by || '',
-                added_at: insertSong.added_at || '',
-                ytUrl: insertSong.ytUrl || '',
-                url: insertSong.url || '',
-                playable: insertSong.playable || ''
-              }),
-            },
-            event: 'playlist',
-            code: 'add'
+      notification({
+        message: {
+          title: '+1',
+          body: '1 song added to Playlist!',
+          data: {
+            songDetails: JSON.stringify({
+              id: insertSong?.id || '',
+              title: insertSong.title || '',
+              artist: insertSong.artist || '',
+              thumbnail: insertSong.thumbnail || '',
+              added_by: insertSong.added_by || '',
+              added_at: insertSong.added_at || '',
+              ytUrl: insertSong.ytUrl || '',
+              url: insertSong.url || '',
+              playable: insertSong.playable || ''
+            }),
           },
-          fcmToken: user?.fcm_token || ''
-        })
-      }
+          event: 'playlist',
+          code: 'add'
+        },
+        fcmToken: insertSong?.playlists?.rooms?.users?.find(t => t?.id !== userId)?.fcm_token || ''
+      })
+      // for (const user of (insertSong?.playlists?.rooms?.users || [])) {
+      // }
     }
     return {
       success: true,
@@ -249,7 +250,7 @@ export default class PLaylist {
     }
     return {
       success: true,
-      id: playlistId?.rooms?.playlists?.[0]?.id || '',
+      id: playlistId?.rooms?.playlists?.id || '',
       message: 'found.',
       userId: data?.id,
       users: playlistId.rooms?.users
