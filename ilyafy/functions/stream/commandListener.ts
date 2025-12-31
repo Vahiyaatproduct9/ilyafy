@@ -130,7 +130,7 @@ export const executeHeartbeat = () => commandEmitter.on('heartbeat', async (data
           artwork: song?.thumbnail || metadata?.thumbnail || require('../../assets/images/background.png'),
           title: song?.title || metadata?.thumbnail || 'Unknown Song'
         })
-        songIndex && await TrackPlayer.skip(songIndex, data?.position);
+        songIndex && await control.remoteSkip(songIndex, data?.position);
       }
     }
     else await TrackPlayer.skip(index, data.position)
