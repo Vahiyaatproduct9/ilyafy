@@ -1,3 +1,10 @@
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.core:core:1.13.1'
+        force 'androidx.core:core-ktx:1.13.1'
+    }
+}
+
 apply plugin: "com.android.application"
 apply plugin: "com.google.gms.google-services"
 apply plugin: "org.jetbrains.kotlin.android"
@@ -12,7 +19,6 @@ def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
     ndkVersion rootProject.ext.ndkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace "com.ilyafy"
@@ -21,7 +27,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 2
-        versionName "2.2 beta"
+        versionName "2.2"
         
         // Ensure multidex is handled (Native in SDK 24+)
         multiDexEnabled true
@@ -85,7 +91,7 @@ dependencies {
     implementation("com.facebook.react:react-android")
     
     // NewPipeExtractor & Desugaring
-    implementation("com.squareup.okhttp3:okhttp:5.3.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.github.teamnewpipe:NewPipeExtractor:0.24.8")
     coreLibraryDesugaring('com.android.tools:desugar_jdk_libs:2.1.3')
 

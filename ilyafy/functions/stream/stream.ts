@@ -8,6 +8,8 @@ import NewPipeModule from "../../modules/NewPipeModule";
 import useSongs from "../../store/useSongs";
 import useDeviceSetting from "../../store/useDeviceSetting";
 import { CTrack } from "../../types/songs";
+import TrackPlayer from "react-native-track-player";
+import useCurrentTrack from "../../store/useCurrentTrack";
 const setMessage = useMessage?.getState()?.setMessage;
 const downloadList = new Set<string>();
 const downloadMap = new Map<string, string>();
@@ -217,7 +219,15 @@ export default {
       ...song,
       url: filePath
     }
-    useSongs.getState().replace(newSongObject);
+    const activePlayer = await TrackPlayer.getActiveTrack();
+    const position = useCurrentTrack.getState().position;
+    const isPlaying = useCurrentTrack.getState().isPlaying;
+    await useSongs.getState().replace(newSongObject);
+    if (activePlayer?.mediaId === newSongObject?.mediaId) {
+      await TrackPlayer.skip(useSongs.getState().songs.findIndex(t => t.id === activePlayer?.mediaId));
+      await TrackPlayer.seekTo(position || 0);
+      isPlaying ? TrackPlayer.play() : TrackPlayer.pause();
+    }
   },
   async update(songId: string, accessToken: string): Promise<resolvedPromise> {
     const updateUrl = `${domain}/stream?id=${songId}`;
@@ -353,8 +363,6 @@ export default {
       let resolved = false;
       let startTime = Date.now();
       let bytesDownloaded: number = 0;
-      let smoothedSpeed = 0;
-      const ALPHA = 0.3;
       task.progress({ interval: 250 }, (received, total) => {
         const timeDiff = Date.now() - startTime;
         if (timeDiff >= 1000) {

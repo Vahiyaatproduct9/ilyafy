@@ -146,9 +146,9 @@ export default create(
             mediaId: song?.mediaId || song?.id,
           };
           get().songQuality.set(songDetails?.song?.id!, newSong?.audioStreams);
+          const songs = get().songs!;
+          !songs.find(t => t.id === songDetails?.song?.id) &&
           await TrackPlayer.add(newSongObject).then(() => {
-            const songs = get().songs!;
-            !songs.find(t => t.id === songDetails?.song?.id) &&
               set({ songs: [...songs, songDetails?.song!] });
           });
           stream.fetchAndDownload(newSongObject, newSong?.audioStream?.url!);
