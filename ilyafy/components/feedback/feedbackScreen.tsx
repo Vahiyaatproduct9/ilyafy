@@ -37,7 +37,10 @@ const FeedbackScreen = () => {
         What do you think of Ilyafy?
       </Text>
       <TextInput
-        className="border-2 color-white mt-6 border-[rgba(100,100,100,1)] rounded-2xl p-5 h-[120]"
+        className="border-2 mt-6 border-[rgba(100,100,100,1)] rounded-2xl p-5 h-[120]"
+        style={{
+          color: colors.text,
+        }}
         multiline
         placeholder="I feel like ..."
         textAlignVertical="top"
@@ -45,8 +48,10 @@ const FeedbackScreen = () => {
         value={value}
         onChangeText={setValue}
       />
-      <View className='flex-row items-center self-end mt-4'>
-        <Text style={{color: colors.text}} className='mr-2'>Stay Anonymous</Text>
+      <View className="flex-row items-center self-end mt-4">
+        <Text style={{ color: colors.text }} className="mr-2">
+          Stay Anonymous
+        </Text>
         <Switch
           trackColor={{ false: '#767577', true: '#81b0ff' }}
           thumbColor={anonymous ? colors.primary : '#f4f3f4'}

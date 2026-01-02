@@ -16,11 +16,14 @@ import useSocketStore from './store/useSocketStore';
 import refreshJWT from './functions/auth/refreshJWT';
 import useCurrentTrack from './store/useCurrentTrack';
 import storagePermission from './permissions/storagePermission';
+import FeedbackScreen from './components/feedback/feedbackScreen';
+import useDeviceSetting from './store/useDeviceSetting';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const profile = useProfile(a => a.profile);
   const connect = useSocketStore(s => s.connect);
+  const colors = useDeviceSetting(s => s.colors);
   console.log('profile:', profile);
   useEffect(() => {
     SystemNavigationBar.stickyImmersive();
@@ -50,10 +53,10 @@ export default function App() {
       }
     }
   });
-  notifee.onBackgroundEvent(async data => {
-    const { type, detail } = data;
-    console.log('type & detail: ', data);
-  });
+  // notifee.onBackgroundEvent(async data => {
+  //   const { type, detail } = data;
+  //   console.log('type & detail: ', data);
+  // });
 
   return (
     <>
@@ -70,6 +73,21 @@ export default function App() {
               <>
                 <Stack.Screen name="Main" component={Main} />
                 <Stack.Screen name="invitation" component={Invitation} />
+                <Stack.Screen
+                  name="feedback"
+                  component={FeedbackScreen}
+                  options={{
+                    headerShown: true,
+                    headerTitle: 'Feedback',
+                    headerStyle: {
+                      backgroundColor: colors.background,
+                    },
+                    headerTitleStyle: {
+                      color: colors.text,
+                    },
+                    headerTintColor: colors.text,
+                  }}
+                />
               </>
             )}
           </Stack.Navigator>

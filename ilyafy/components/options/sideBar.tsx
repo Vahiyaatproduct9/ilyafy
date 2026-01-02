@@ -12,17 +12,22 @@ import Animated, {
   FadeOut,
   FadeOutLeft,
 } from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
 
 type barProps = {
   setSideBarVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const SideBar = (props: barProps) => {
+  const navigation = useNavigation();
   const colors = useDeviceSetting(s => s.colors);
   const setProfile = useProfile(s => s.setProfile);
   const { height, width } = Dimensions.get('screen');
   const AP = Animated.createAnimatedComponent(Pressable);
   const profile = useProfile(s => s.profile);
+  const showFeedbackScreen = () => {
+    navigation.navigate('feedback' as never);
+  };
   return (
     <AP
       onPress={() => props.setSideBarVisible(false)}
@@ -60,7 +65,19 @@ const SideBar = (props: barProps) => {
               </Text>
             </View>
           </View>
-          <View className="flex-col">
+          <View className="flex-col gap-2">
+            <Button
+              label="Feedback"
+              textStyle={{
+                color: colors.text,
+              }}
+              textClassName="text-l font-bold"
+              containerStyle={{
+                backgroundColor: colors.background,
+              }}
+              onPress={showFeedbackScreen}
+              containerClassName="items-center rounded-2xl justify-center w-full py-5 bg-red-600"
+            />
             <Button
               label="Sign Out"
               textStyle={{

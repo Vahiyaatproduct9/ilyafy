@@ -1,7 +1,7 @@
 import mailto from "@libs/mailer"
 import { configDotenv } from "dotenv"
+configDotenv();
 import { writeFile } from "fs";
-configDotenv({ quiet: true });
 export default async function (filename: string, path: string) {
   await mailto({
     to: process.env.ADMIN_EMAIL,

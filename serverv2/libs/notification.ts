@@ -1,6 +1,6 @@
 import { configDotenv } from 'dotenv';
-import admin from 'firebase-admin';
 configDotenv();
+import admin from 'firebase-admin';
 const SECRET = process.env.GOOGLE_API || '';
 const serviceAccount = JSON.parse(SECRET);
 admin.initializeApp({

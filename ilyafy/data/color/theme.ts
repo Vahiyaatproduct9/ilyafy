@@ -2,9 +2,9 @@ import { Appearance } from "react-native";
 const theme = Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
 export const dark = theme === 'dark' ? true : false;
 export default {
-  background: dark ? '#6C3E79' : '#FADADD',
-  primary: '#F4A9A8',
-  secondary: dark ? '#FADADD' : '#6C3E79',
-  text: '#FFFFFF',
-  accent: '#F4A9A8'
+  background: dark ? '#090F15' : '#FADADD',
+  primary: '#262E36',
+  secondary: dark ? '#B3B7BA' : '#6C3E79',
+  text: '#D3D1CE',
+  accent: '#6C6D74'
 }

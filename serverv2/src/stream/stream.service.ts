@@ -6,8 +6,8 @@ import { IncomingHttpHeaders } from 'http';
 import prisma from '@libs/prisma';
 import { verifyToken } from '@functions/secret/JWT';
 import { configDotenv } from 'dotenv';
-import { log } from 'console';
 configDotenv();
+import { log } from 'console';
 const allowProxy = false
 @Injectable()
 export default class StreamService {

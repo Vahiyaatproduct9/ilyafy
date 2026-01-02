@@ -19,11 +19,11 @@ export default create<deviceSettings>((set, get) => ({
     set({ theme: arg });
   },
   colors: {
-    background: get()?.theme === 'dark' ? '#6C3E79' : '#FADADD',
-    primary: '#F4A9A8',
-    secondary: get()?.theme === 'dark' ? '#FADADD' : '#6C3E79',
-    text: '#FFFFFF',
-    accent: '#F4A9A8',
+    background: get()?.theme === 'dark' ? '#090F15' : '#E9E5DC',
+    primary: '#262E36',
+    secondary: get()?.theme === 'dark' ? '#B3B7BA' : '#E5DED2',
+    text: get()?.theme === 'dark' ? '#E9E5DC' : '#010101',
+    accent: '#6C6D74',
   },
   networkSpeed: null,
   setColor: (theme: themeType) => {

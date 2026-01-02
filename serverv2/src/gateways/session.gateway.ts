@@ -47,10 +47,9 @@ export class SessionGateway {
   @SubscribeMessage('message')
   async pass(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { roomId: string, userId: string; state: string, progress?: string, event?: object }
+    @MessageBody() data: any
   ) {
     const room = this.localSockets.get(data.roomId);
-    // console.log('local Sockets: ', this.localSockets);
     if (!room || !room.has(socket.id)) {
       console.log('socket id:', socket.id);
       console.log('room:', room);
@@ -59,11 +58,14 @@ export class SessionGateway {
     }
     for (const s of room) {
       if (s === socket.id) continue;
+      if (data.state === 'heartbeat') {
+        data = { ...data, online: s.length > 1 }
+      }
       this.server.to(s).emit('message', data);
     }
-    if (data.state !== 'heartbeat') {
-      console.log('Message from socket ', socket.id, ': ', data);
-    }
+    // if (data.state !== 'heartbeat') {
+    console.log('Message from socket ', socket.id, ': ', data);
+    // }
   }
 
   @SubscribeMessage('join')

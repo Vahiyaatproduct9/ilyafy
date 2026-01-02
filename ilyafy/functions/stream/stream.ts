@@ -219,13 +219,14 @@ export default {
       ...song,
       url: filePath
     }
-    const activePlayer = await TrackPlayer.getActiveTrack();
+    const activePlayer = useCurrentTrack.getState().track;
     const position = useCurrentTrack.getState().position;
     const isPlaying = useCurrentTrack.getState().isPlaying;
     await useSongs.getState().replace(newSongObject);
     if (activePlayer?.mediaId === newSongObject?.mediaId) {
-      await TrackPlayer.skip(useSongs.getState().songs.findIndex(t => t.id === activePlayer?.mediaId));
-      await TrackPlayer.seekTo(position || 0);
+      const queue = await TrackPlayer.getQueue();
+
+      await TrackPlayer.skip(queue.findIndex(t => t.id === activePlayer?.mediaId), position || 0);
       isPlaying ? TrackPlayer.play() : TrackPlayer.pause();
     }
   },

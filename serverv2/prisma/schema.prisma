@@ -52,16 +52,25 @@ model users {
   authenticated Boolean?        @default(false)
   tokenVersion  Int             @default(1)
   fcm_token     String?
+  feedback      feedback[]
   notifications notifications[]
   songs         songs[]
   rooms         rooms?          @relation(fields: [room_part_of], references: [id], onUpdate: NoAction)
 }
 
 model notifications {
-  id      String  @id @db.Uuid
+  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id String  @db.Uuid
   title   String
   body    String?
   data    Json?
   users   users   @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "users_references_notification")
+}
+
+model feedback {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  body       String
+  ip_address String  @db.VarChar
+  user_id    String? @db.Uuid
+  users      users?  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "user_id_references_users")
 }
