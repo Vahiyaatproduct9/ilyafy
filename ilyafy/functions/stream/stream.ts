@@ -219,15 +219,20 @@ export default {
       ...song,
       url: filePath
     }
-    const activePlayer = useCurrentTrack.getState().track;
-    const position = useCurrentTrack.getState().position;
+    const activePlayer = await TrackPlayer.getActiveTrack();
+    const { position } = await TrackPlayer.getProgress();
     const isPlaying = useCurrentTrack.getState().isPlaying;
+
     await useSongs.getState().replace(newSongObject);
+    console.log('activeTrack:', activePlayer);
+    console.log('newSongObject:', newSongObject);
     if (activePlayer?.mediaId === newSongObject?.mediaId) {
       const queue = await TrackPlayer.getQueue();
-
-      await TrackPlayer.skip(queue.findIndex(t => t.id === activePlayer?.mediaId), position || 0);
-      isPlaying ? TrackPlayer.play() : TrackPlayer.pause();
+      const trackIndex = queue.findIndex(t => t.mediaId === newSongObject?.mediaId);
+      console.log('track index:', trackIndex);
+      await TrackPlayer.skip(trackIndex, position || 0);
+      console.log('queue before replacement:', queue);
+      isPlaying ? control.remotePlay() : control.remotePause();
     }
   },
   async update(songId: string, accessToken: string): Promise<resolvedPromise> {
@@ -336,14 +341,23 @@ export default {
         console.error("Coudlnt Read song!");
         continue;
       };
-      const currentTrack = songs.find(t => t.id === id);
+      const currentTrack = (await TrackPlayer.getActiveTrack());
+      const songToReplace = songs.find(s => s.id === id);
+      const isPlaying = useCurrentTrack.getState().isPlaying;
       useSongs.getState().replace({
         mediaId: id,
         url: filePath || url || '',
-        title: currentTrack?.title || 'Unkown Song',
-        artist: currentTrack?.artist || 'Ilyafy',
-        artwork: currentTrack?.thumbnail || thumbnail
-      })
+        title: songToReplace?.title || 'Unkown Song',
+        artist: songToReplace?.artist || 'Ilyafy',
+        artwork: String(songToReplace?.thumbnail || thumbnail)
+      });
+      if (currentTrack?.id === id) {
+        const { position } = await TrackPlayer.getProgress();
+        const queue = await TrackPlayer.getQueue();
+        const activeTrackIndex = queue.findIndex(t => t.mediaId === currentTrack?.id);
+        await TrackPlayer.skip(activeTrackIndex, position || 0);
+        isPlaying ? control.remotePlay() : control.remotePause();
+      }
     }
     downloadMap.clear();
   },

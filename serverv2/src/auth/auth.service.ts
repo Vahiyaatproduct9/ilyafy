@@ -24,7 +24,7 @@ export default class AuthService {
     const token = info.refreshToken;
     return this.user.refreshToken(token)
   }
-  connectUser(info: { accessToken: string; email: string; }) {
+  connectUser(info) {
     return this.connection.connectUser(info)
   }
   disconnectUser(token: string) {

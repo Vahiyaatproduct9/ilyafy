@@ -73,7 +73,7 @@ const Item = ({
         style={colors}
       >
         <Image
-          source={song?.thumbnail ? { uri: song.thumbnail } : image}
+          source={song?.thumbnail ? { uri: song?.thumbnail } : image}
           className="h-20 w-20 rounded-2xl self-center"
         />
         <View className="p-2 flex-1 justify-evenly">

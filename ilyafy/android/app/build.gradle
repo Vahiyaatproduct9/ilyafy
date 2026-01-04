@@ -27,7 +27,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 2
-        versionName "2.2"
+        versionName "2.3-beta"
         
         // Ensure multidex is handled (Native in SDK 24+)
         multiDexEnabled true

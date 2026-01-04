@@ -1,10 +1,11 @@
 import { configDotenv } from 'dotenv';
 configDotenv({
-  path: '.env',
   quiet: true
 });
 import nodemailer from 'nodemailer';
 import { MailOptions } from 'nodemailer/lib/sendmail-transport';
+const GMAIL_USER = process.env.GMAIL_USER;
+const GMAIL_PASS = process.env.GMAIL_PASS;
 export default async function mailto(data: Omit<MailOptions, 'from'>) {
   console.log('GMAIL_PASS:', process.env.GMAIL_PASS);
   const transporter = nodemailer.createTransport({
@@ -12,14 +13,14 @@ export default async function mailto(data: Omit<MailOptions, 'from'>) {
     secure: true,
     port: 465,
     auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PASS
+      user: GMAIL_USER,
+      pass: GMAIL_PASS
     }
   });
 
   try {
     const info = await transporter.sendMail({
-      from: `"Ilyafy" <${process.env.GMAIL_USER}>`,
+      from: `"Ilyafy" <${GMAIL_USER}>`,
       ...data,
     });
 
@@ -37,6 +38,7 @@ export default async function mailto(data: Omit<MailOptions, 'from'>) {
       info
     };
   } catch (err) {
+    console.error('Failed to send email:', err);
     return {
       success: false,
       message: 'Failed to send email',
