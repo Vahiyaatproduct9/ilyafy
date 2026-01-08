@@ -4,6 +4,7 @@ configDotenv({
 });
 import nodemailer from 'nodemailer';
 import { MailOptions } from 'nodemailer/lib/sendmail-transport';
+import { logErr } from './mongoose';
 const GMAIL_USER = process.env.GMAIL_USER;
 const GMAIL_PASS = process.env.GMAIL_PASS;
 export default async function mailto(data: Omit<MailOptions, 'from'>) {
@@ -35,6 +36,7 @@ export default async function mailto(data: Omit<MailOptions, 'from'>) {
     };
   } catch (err) {
     console.error('Failed to send email:', err);
+    logErr(err);
     return {
       success: false,
       message: 'Failed to send email',
