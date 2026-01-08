@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { configDotenv } from 'dotenv';
 import mailto from './mailer';
 configDotenv();
@@ -27,10 +27,10 @@ enum logType {
   'warning'
 }
 
-const logSchema = new mongoose.Schema({
+const logSchema = new Schema({
   time: String,
   log: String,
-  type: logType
+  type: ['error', 'warning']
 });
 const MongoLog = mongoose.model('MongoLog', logSchema);
 
