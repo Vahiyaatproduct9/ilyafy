@@ -36,6 +36,7 @@
     "dotenv": "^17.2.3",
     "firebase-admin": "^13.6.0",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.1.1",
     "nodemailer": "^7.0.10",
     "prisma": "7.0.0",
     "redis": "^5.9.0",

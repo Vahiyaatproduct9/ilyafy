@@ -7,7 +7,6 @@ import { MailOptions } from 'nodemailer/lib/sendmail-transport';
 const GMAIL_USER = process.env.GMAIL_USER;
 const GMAIL_PASS = process.env.GMAIL_PASS;
 export default async function mailto(data: Omit<MailOptions, 'from'>) {
-  console.log('GMAIL_PASS:', process.env.GMAIL_PASS);
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     secure: true,
@@ -23,7 +22,6 @@ export default async function mailto(data: Omit<MailOptions, 'from'>) {
       from: `"Ilyafy" <${GMAIL_USER}>`,
       ...data,
     });
-
     if (info && typeof info.response === 'string' && info.response.toLowerCase().includes('ok')) {
       return {
         success: true,

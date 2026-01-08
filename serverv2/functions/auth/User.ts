@@ -4,6 +4,7 @@ import { encrypt, decrypt } from '@functions/secret/cryption';
 import * as JWT from '@functions/secret/JWT';
 import notification from '@libs/notification';
 import verificationEmail from 'src/emails/verificationEmail';
+import { logErr } from '@libs/mongoose';
 const codes = new Map<string, string>();
 export default class User {
   async signup(info: SignUpData) {
@@ -46,6 +47,7 @@ export default class User {
         }
       } catch (e) {
         console.log('Error sending verification email:', e);
+        logErr(e);
         await prisma.users.delete({
           where: {
             id: user.id
@@ -58,6 +60,7 @@ export default class User {
       setTimeout(() => { codes.delete(info.email); }, 10 * 60 * 1000);
       return { success: true, message: 'User created successfully', userId: user.id };
     }
+    logErr("Couldn't create User.");
     return { success: false, message: 'User creation failed' };
   }
   async signin(arg: SignInData) {
