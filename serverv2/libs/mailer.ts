@@ -9,8 +9,6 @@ const GMAIL_PASS = process.env.GMAIL_PASS;
 export default async function mailto(data: Omit<MailOptions, 'from'>) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
-    secure: true,
-    port: 465,
     auth: {
       user: GMAIL_USER,
       pass: GMAIL_PASS
