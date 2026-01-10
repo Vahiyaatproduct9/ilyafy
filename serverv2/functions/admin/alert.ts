@@ -18,12 +18,12 @@ const adminAlerts = {
     await mailto({
       to: process.env.ADMIN_EMAIL,
       subject: 'Someone tried to access logs.',
-      priority: 'high',
-      html: content,
-      attachments: [{
-        filename: 'offenderReq.json',
-        content
-      }]
+      text: content,
+      html: '<p>See attached JSON for details.</p>',
+      // attachments: [{
+      //   filename: 'offenderReq.json',
+      //   content
+      // }]
     })
   },
   tooManyRequests: async (offenderReq: Request) => {
@@ -31,12 +31,8 @@ const adminAlerts = {
     await mailto({
       to: process.env.ADMIN_EMAIL,
       subject: 'Too Many Requests',
-      priority: 'normal',
-      html: content,
-      attachments: [{
-        filename: 'requests.json',
-        content
-      }]
+      text: content,
+      html: '<p>See attached JSON for details.</p>',
     })
   }
 }
