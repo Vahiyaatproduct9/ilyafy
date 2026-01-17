@@ -14,10 +14,12 @@ import useProfile from './store/useProfile';
 import Invitation from './app/tabs/invitation';
 import useSocketStore from './store/useSocketStore';
 import refreshJWT from './functions/auth/refreshJWT';
-import useCurrentTrack from './store/useCurrentTrack';
 import storagePermission from './permissions/storagePermission';
 import FeedbackScreen from './components/feedback/feedbackScreen';
 import useDeviceSetting from './store/useDeviceSetting';
+import Settings from './components/settings/settingsScreen';
+import ConfirmScreen from './components/popup/confirmScreen';
+import useConfirmScreen from './store/useConfirmScreen';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -43,6 +45,7 @@ export default function App() {
       SystemNavigationBar.navigationShow();
     };
   }, [profile]);
+  const confirmScreenVisible = useConfirmScreen(s => s.isVisible);
   notifee.onForegroundEvent(data => {
     const { type, detail } = data;
     if (type === EventType.ACTION_PRESS) {
@@ -53,14 +56,10 @@ export default function App() {
       }
     }
   });
-  // notifee.onBackgroundEvent(async data => {
-  //   const { type, detail } = data;
-  //   console.log('type & detail: ', data);
-  // });
-
   return (
     <>
       <Message />
+      {confirmScreenVisible && <ConfirmScreen />}
       <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
         <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -79,6 +78,21 @@ export default function App() {
                   options={{
                     headerShown: true,
                     headerTitle: 'Feedback',
+                    headerStyle: {
+                      backgroundColor: colors.background,
+                    },
+                    headerTitleStyle: {
+                      color: colors.text,
+                    },
+                    headerTintColor: colors.text,
+                  }}
+                />
+                <Stack.Screen
+                  name="settings"
+                  component={Settings}
+                  options={{
+                    headerShown: true,
+                    headerTitle: 'Settings',
                     headerStyle: {
                       backgroundColor: colors.background,
                     },

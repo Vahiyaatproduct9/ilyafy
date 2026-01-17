@@ -365,9 +365,10 @@ export default {
     const filePath = `${RNFS.CachesDirectoryPath}/${id}.aac`;
     return new Promise((resolve, reject) => {
       if (downloadList.has(id)) {
-        console.log('Already downloading !');
-        setMessage('Already Reading...');
-        reject('Already downloading !');
+        const message = 'Already Reading...';
+        console.log(message);
+        setMessage(message);
+        reject(message);
         return;
       }
       downloadList.add(id);

@@ -42,8 +42,8 @@ const ConfirmScreen = () => {
   });
   return (
     <Animated.View
-      entering={FadeIn.duration(800)}
-      exiting={FadeOut.duration(800)}
+      entering={FadeIn.duration(250)}
+      exiting={FadeOut.duration(250)}
       className="absolute top-0 left-0
       bg-[rgba(0,0,0,0.3)] z-50 items-center justify-center"
       style={{
@@ -78,8 +78,6 @@ const ConfirmScreen = () => {
               cS?.data?.critical === 'yes' ? flickerAnimation : {}
             }
           />
-          {/* <Animated.View className={'w-full'}>
-          </Animated.View> */}
           <Button
             containerClassName="items-center rounded-xl bg-[rgba(100,100,100,0.7)] p-3 justify-center w-full"
             label={cS?.data?.noLabel || 'No'}

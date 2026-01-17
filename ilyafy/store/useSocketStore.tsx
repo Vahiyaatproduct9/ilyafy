@@ -13,18 +13,20 @@ interface wsConnectedion {
   userId: string | null;
   sendMessage: (arg: Object | []) => Promise<boolean>;
   roomId: string | null;
+  partnerActive: boolean;
 }
 interface command {
   state: commands;
   data: any;
 }
 export const commandEmitter: EventEmitter<commands, any> = new EventEmitter();
-
+let partnerId: number | undefined;
 export default create<wsConnectedion>()((set, get) => ({
   socket: null,
   userId: null,
   isConnected: false,
   roomId: null,
+  partnerActive: false,
   connect: () => {
     const profile = useProfile?.getState()?.profile;
     const roomId = profile?.room_part_of || Date.now().toString();
@@ -87,6 +89,13 @@ export default create<wsConnectedion>()((set, get) => ({
     });
     socket.on('message', (message: command) => {
       console.log('Server SENT: ', message);
+      if (message.state === 'heartbeat') {
+        clearTimeout(partnerId!);
+        set({ partnerActive: true });
+        partnerId = setTimeout(() => {
+          set({ partnerActive: false });
+        }, 1000 * 10);
+      }
       commandEmitter.emit(message.state, message);
     });
     socket.on('connect_error', err => {

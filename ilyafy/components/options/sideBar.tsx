@@ -21,12 +21,11 @@ type barProps = {
 const SideBar = (props: barProps) => {
   const navigation = useNavigation();
   const colors = useDeviceSetting(s => s.colors);
-  const setProfile = useProfile(s => s.setProfile);
   const { height, width } = Dimensions.get('screen');
   const AP = Animated.createAnimatedComponent(Pressable);
   const profile = useProfile(s => s.profile);
-  const showFeedbackScreen = () => {
-    navigation.navigate('feedback' as never);
+  const showSettingsScreen = () => {
+    navigation.navigate('settings' as never);
   };
   return (
     <AP
@@ -67,7 +66,7 @@ const SideBar = (props: barProps) => {
           </View>
           <View className="flex-col gap-2">
             <Button
-              label="Feedback"
+              label="Settings"
               textStyle={{
                 color: colors.text,
               }}
@@ -75,10 +74,10 @@ const SideBar = (props: barProps) => {
               containerStyle={{
                 backgroundColor: colors.background,
               }}
-              onPress={showFeedbackScreen}
+              onPress={showSettingsScreen}
               containerClassName="items-center rounded-2xl justify-center w-full py-5 bg-red-600"
             />
-            <Button
+            {/* <Button
               label="Sign Out"
               textStyle={{
                 color: colors.text,
@@ -89,7 +88,7 @@ const SideBar = (props: barProps) => {
               }}
               onPress={() => setProfile(null)}
               containerClassName="items-center rounded-2xl justify-center w-full py-5 bg-red-600"
-            />
+            /> */}
           </View>
         </Animated.View>
       </View>

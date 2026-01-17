@@ -49,6 +49,7 @@ const Otp = () => {
         style={{ color: theme.text }}
       >
         Please Enter the One Time Code sent to your Email!
+        Make Sure to check your Spam folder too.
       </Text>
       <TextInput
         className={'w-[250px] h-fit py-5 text-xl border-[1px] rounded-2xl'}

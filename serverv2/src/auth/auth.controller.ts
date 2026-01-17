@@ -11,6 +11,11 @@ import { httpHeader } from 'types';
 export default class AuthController {
   constructor(private authService: AuthService) { }
 
+  @Delete()
+  async deleteUser(@Headers() headers: httpHeader) {
+    const token = getAccessTokenfromHeaders(headers);
+    return this.authService.deleteUser(token);
+  }
   @Post('signup')
   async signup(@Body() body: dto.signUpDto) {
     console.log('Signup request received:', body);

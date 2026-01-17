@@ -26,6 +26,7 @@ const Connection = () => {
   const isConnected = useSocketStore?.getState()?.isConnected;
   const connect = useSocketStore().connect;
   const profile = useProfile.getState().profile;
+  const partnerOnline = useSocketStore(s => s.partnerActive);
   const setProfile = useProfile.getState().setProfile;
   const [partner, setPartner] = useState<
     | []
@@ -149,6 +150,14 @@ const Connection = () => {
                 >
                   {item.email}
                 </Text>
+                {isConnected && (
+                  <Text
+                    className="text-l font-normal"
+                    style={{ color: partnerOnline ? '#00A300' : '#DE2D09' }}
+                  >
+                    {partnerOnline ? 'Connected' : 'Disconnected'}
+                  </Text>
+                )}
               </View>
             </View>
             <View className="justify-between flex-row">

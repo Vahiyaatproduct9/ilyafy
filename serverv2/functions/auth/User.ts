@@ -144,6 +144,39 @@ export default class User {
       message: 'Invalid verification code'
     }
   }
+  async deleteUser(token: string) {
+    const { success, data, message } = this.verifyToken(token);
+    if (!success) {
+      return {
+        success,
+        message
+      }
+    }
+    await prisma.rooms.deleteMany({
+      where: {
+        users: {
+          some: {
+            id: data?.id || ''
+          }
+        }
+      }
+    })
+    const deleteData = await prisma.users.deleteMany({
+      where: {
+        id: data?.id || ''
+      }
+    });
+    if (deleteData.count === 0) {
+      return {
+        success: false,
+        message: 'User not found!'
+      }
+    }
+    return {
+      success: true,
+      message: 'User deleted successfully'
+    }
+  }
   async getRoommate(token: string) {
     const { success, data, message } = this.verifyToken(token);
     if (!success) {
