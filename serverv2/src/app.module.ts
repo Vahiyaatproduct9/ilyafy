@@ -8,9 +8,9 @@ import { AdminModule } from './admin/admin.module';
 import { AccessTokenCheck } from './middleware/accessToken.middleware';
 import { FeedbackModule } from './feedback/feedback.module';
 import RateLimiter from './middleware/rateLimiter.middleware';
+import GeneralModule from './general/general.module';
 @Module({
-  imports: [AuthModule, StreamModule, SessionGateway, PlaylistModule, AdminModule, FeedbackModule],
-
+  imports: [GeneralModule, AuthModule, StreamModule, SessionGateway, PlaylistModule, AdminModule, FeedbackModule],
 })
 export class AppModule
   implements NestModule {
